@@ -261,6 +261,11 @@ body {
   border: 1px solid #fed7aa;
 }
 .btn-reset:hover { background: #ffedd5; }
+.btn-date {
+  background: #f0fdf4; color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.btn-date:hover { background: #dcfce7; }
 .btn-sm { padding: 5px 9px; font-size: 12px; }
 .ml-auto { margin-left: auto; }
 
@@ -549,11 +554,104 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .drag-toggle-btn.active:hover { background: #e0e7ff; }
 
 /* ═══════════════════════════════════════════════════
+   NOTICE BOARD
+═══════════════════════════════════════════════════ */
+.notice-board {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 20px;
+  display: flex; align-items: stretch; gap: 12px;
+  overflow: hidden;
+}
+.notice-board-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; color: var(--accent);
+  letter-spacing: .06em; white-space: nowrap;
+  flex-shrink: 0; padding-right: 12px;
+  border-right: 1px solid var(--line);
+}
+.notice-ticker {
+  flex: 1; overflow: hidden; position: relative;
+  display: flex; align-items: center;
+  min-height: 28px;
+}
+.notice-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 0;
+  width: 100%;
+}
+.notice-item {
+  display: flex; align-items: baseline; gap: 8px;
+  font-size: 13px; color: var(--ink);
+  padding: 2px 0;
+  border-bottom: 1px solid var(--line2);
+  animation: slide-in .25s ease;
+}
+.notice-item:last-child { border-bottom: none; }
+@keyframes slide-in {
+  from { opacity:0; transform: translateY(-4px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.notice-author {
+  font-size: 11px; font-weight: 700; color: var(--accent);
+  flex-shrink: 0; min-width: 36px;
+}
+.notice-time {
+  font-size: 10px; color: var(--ink3);
+  flex-shrink: 0; font-variant-numeric: tabular-nums;
+}
+.notice-text { flex: 1; line-height: 1.4; word-break: break-all; }
+.notice-del {
+  font-size: 11px; color: var(--ink3); cursor: pointer;
+  background: none; border: none; padding: 0 2px;
+  opacity: 0; transition: opacity .15s;
+  flex-shrink: 0;
+}
+.notice-item:hover .notice-del { opacity: 1; }
+.notice-del:hover { color: var(--red); }
+.notice-input-wrap {
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+}
+.notice-input {
+  padding: 5px 10px;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-size: 13px; color: var(--ink); background: var(--page);
+  outline: none; width: 220px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.notice-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+  background: var(--white);
+}
+.notice-send {
+  padding: 5px 12px; border-radius: var(--r-sm);
+  font-size: 12px; font-weight: 600;
+  background: var(--accent); color: #fff;
+  border: none; cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.notice-send:hover { background: #4f46e5; }
+.notice-empty {
+  font-size: 12px; color: var(--ink3); font-style: italic;
+}
+.notice-author-input {
+  padding: 5px 8px;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-size: 12px; color: var(--ink); background: var(--page);
+  outline: none; width: 68px;
+  transition: border-color .15s;
+}
+.notice-author-input:focus { border-color: var(--accent); }
+
+/* ═══════════════════════════════════════════════════
    PRINT MEDIA
 ═══════════════════════════════════════════════════ */
 @media print {
   body { background: white; }
-  .topbar, .statstrip, .tabs, .toolbar, .hint-bar, .warn-strip, .section-info,
+  .topbar, .statstrip, .notice-board, .tabs, .toolbar, .hint-bar, .warn-strip, .section-info,
   .no-print { display: none !important; }
   .page { display: none !important; }
   #print-page { display: block !important; }
@@ -612,6 +710,21 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
+<!-- ── NOTICE BOARD ─────────────────────────────── -->
+<div class="notice-board no-print" id="notice-board">
+  <div class="notice-board-label">📌 留言板</div>
+  <div class="notice-ticker">
+    <ul class="notice-list" id="notice-list">
+      <li class="notice-empty" id="notice-empty">尚無留言</li>
+    </ul>
+  </div>
+  <div class="notice-input-wrap">
+    <input class="notice-author-input" id="notice-author" placeholder="暱稱" maxlength="6">
+    <input class="notice-input" id="notice-input" placeholder="輸入留言…" maxlength="60" onkeydown="if(event.key==='Enter')postNotice()">
+    <button class="notice-send" onclick="postNotice()">送出</button>
+  </div>
+</div>
+
 <!-- ── TABS ─────────────────────────────────────── -->
 <nav class="tabs no-print">
   <button class="tab active" onclick="switchTab('check',this)">打勾單</button>
@@ -641,6 +754,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <div class="ml-auto" style="display:flex;gap:8px;align-items:center;">
       <button class="drag-toggle-btn" id="drag-toggle-btn" onclick="toggleDragMode()">⠿ 調整順序</button>
       <span class="drag-mode-hint">拖曳卡片可調整同組排列順序</span>
+      <button class="btn btn-date" onclick="updateAllDates()">📅 更新日期</button>
       <button class="btn btn-ghost" onclick="openAddModal()">＋ 新增</button>
       <button class="btn btn-reset" onclick="resetAll()">↺ 重置今日</button>
     </div>
@@ -792,6 +906,12 @@ async function syncFromCloud() {
       const cloudOrder = JSON.parse(data.zhongxin_order_v1);
       if (JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) { groupOrder = cloudOrder; updated = true; }
     }
+    if (data.zhongxin_notices_v1) {
+      const cloudNotices = JSON.parse(data.zhongxin_notices_v1);
+      if (JSON.stringify(notices) !== JSON.stringify(cloudNotices)) {
+        notices = cloudNotices; renderNotices();
+      }
+    }
     if (updated) renderAll();
     setSyncDot('');
   } catch(e) {
@@ -835,10 +955,12 @@ const todayISO = today.getFullYear() + '-' +
 let db = {};
 let historyLog = [];
 let groupOrder = {}; // { groupName: [clientName, ...] }
+let notices = [];    // [{ id, author, text, time }]
 let editing = null;
 let dragMode = false;
 let dragSrcName = null;
 const HISTORY_DAYS = 6;
+const NOTICE_MAX = 20; // 最多顯示幾則留言
 
 // ══════════════════════════════════════════════════════════
 //  INIT
@@ -865,9 +987,15 @@ function init() {
   const go = localStorage.getItem('zhongxin_order_v1');
   groupOrder = go ? JSON.parse(go) : {};
 
+  const nt = localStorage.getItem('zhongxin_notices_v1');
+  notices = nt ? JSON.parse(nt) : [];
+
   ensureTodayEditLog();
   save(); saveHistory();
   buildFixedFilter();
+  // 還原上次暱稱
+  const savedAuthor = localStorage.getItem('zhongxin_notice_author');
+  if (savedAuthor) document.getElementById('notice-author').value = savedAuthor;
   renderAll();
 }
 
@@ -893,6 +1021,10 @@ function saveHistory() {
 function saveOrder() {
   localStorage.setItem('zhongxin_order_v1', JSON.stringify(groupOrder));
   saveToCloud('zhongxin_order_v1', groupOrder);
+}
+function saveNotices() {
+  localStorage.setItem('zhongxin_notices_v1', JSON.stringify(notices));
+  saveToCloud('zhongxin_notices_v1', notices);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -974,6 +1106,50 @@ function renderAll() {
   renderGrid();
   renderTable();
   renderPrint();
+  renderNotices();
+}
+
+// ══════════════════════════════════════════════════════════
+//  NOTICE BOARD
+// ══════════════════════════════════════════════════════════
+function renderNotices() {
+  const list = document.getElementById('notice-list');
+  const empty = document.getElementById('notice-empty');
+  if (!notices.length) {
+    list.innerHTML = '<li class="notice-empty" id="notice-empty">尚無留言</li>';
+    return;
+  }
+  list.innerHTML = notices.slice(-NOTICE_MAX).reverse().map(n => `
+    <li class="notice-item">
+      <span class="notice-author">${esc(n.author||'?')}</span>
+      <span class="notice-text">${esc(n.text)}</span>
+      <span class="notice-time">${esc(n.time)}</span>
+      <button class="notice-del" onclick="deleteNotice('${esc(n.id)}')" title="刪除">✕</button>
+    </li>`).join('');
+}
+
+function postNotice() {
+  const input  = document.getElementById('notice-input');
+  const author = (document.getElementById('notice-author').value || '匿名').trim().slice(0,6);
+  const text   = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const now = new Date();
+  const time = String(now.getMonth()+1).padStart(2,'0') + '/' +
+               String(now.getDate()).padStart(2,'0') + ' ' +
+               String(now.getHours()).padStart(2,'0') + ':' +
+               String(now.getMinutes()).padStart(2,'0');
+  notices.push({ id: Date.now().toString(36), author, text, time });
+  if (notices.length > NOTICE_MAX) notices = notices.slice(-NOTICE_MAX);
+  input.value = '';
+  saveNotices();
+  renderNotices();
+  // 儲存暱稱供下次使用
+  localStorage.setItem('zhongxin_notice_author', author);
+}
+
+function deleteNotice(id) {
+  notices = notices.filter(n => n.id !== id);
+  saveNotices(); renderNotices();
 }
 
 function updateStats() {
@@ -1472,8 +1648,23 @@ function resetAll() {
     snapshotOnReset();
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
+    lockLocal(20000); // 重置後鎖定 20 秒，防止雲端舊資料覆蓋
     save(); saveHistory(); renderAll();
     toast('✅ 今日狀態已記錄並重置');
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  UPDATE ALL DATES
+// ══════════════════════════════════════════════════════════
+function updateAllDates() {
+  // 只更新狀態為「有叫貨」或「今日不叫貨」的客戶日期（未叫貨不異動）
+  const targets = Object.keys(db).filter(n => db[n].status !== '未叫貨');
+  if (!targets.length) { toast('目前沒有已叫貨或今日不叫的客戶'); return; }
+  showConfirm(`將 ${targets.length} 位已叫貨／今日不叫貨的客戶日期更新為今日（${todayStr}）？`, ()=>{
+    targets.forEach(n => { db[n].date = todayStr; });
+    save(); renderAll();
+    toast(`✅ 已更新 ${targets.length} 位客戶日期為今日`);
   });
 }
 
