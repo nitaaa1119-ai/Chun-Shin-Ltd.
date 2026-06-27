@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>忠欣 · 叫貨系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --ink:    #18181b;
+  --ink2:   #52525b;
+  --ink3:   #a1a1aa;
+  --line:   #e4e4e7;
+  --line2:  #f4f4f5;
+  --white:  #ffffff;
+  --page:   #f8f8fa;
+
+  --red:    #ef4444;
+  --red-bg: #fef2f2;
+  --red-bd: #fecaca;
+
+  --grn:    #16a34a;
+  --grn-bg: #f0fdf4;
+  --grn-bd: #bbf7d0;
+
+  --blu:    #2563eb;
+  --blu-bg: #eff6ff;
+  --blu-bd: #bfdbfe;
+
+  --amber:     #d97706;
+  --amber-bg:  #fffbeb;
+  --amber-bd:  #fcd34d;
+  --amber-dk:  #92400e;
+
+  --radius: 12px;
+  --r-sm:   7px;
+  --shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 20px rgba(0,0,0,.09), 0 2px 6px rgba(0,0,0,.05);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "微軟正黑體", sans-serif;
+  background: var(--page);
+  color: var(--ink);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── 頂欄 ─────────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 1px 0 var(--line);
+}
+.topbar-brand {
+  display: flex; align-items: baseline; gap: 8px;
+}
+.topbar-brand .logo {
+  font-size: 18px; font-weight: 800; letter-spacing: -.5px; color: var(--ink);
+}
+.topbar-brand .sub {
+  font-size: 12px; color: var(--ink3); font-weight: 400;
+}
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+/* ── 統計列 ─────────────────────────────────────────── */
+.statbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 24px;
+  display: flex; gap: 0; align-items: stretch;
+}
+.stat {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 20px 4px 0;
+  margin-right: 20px;
+  border-right: 1px solid var(--line);
+}
+.stat:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+.stat-pip {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.stat-pip.red   { background: var(--red); }
+.stat-pip.green { background: var(--grn); }
+.stat-pip.blue  { background: var(--blu); }
+.stat-pip.gray  { background: var(--ink3); }
+.stat-pip.amber { background: var(--amber); }
+.stat-label { font-size: 12px; color: var(--ink2); }
+.stat-val   { font-size: 16px; font-weight: 700; color: var(--ink); }
+.progress-wrap {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+}
+.progress-bar {
+  width: 120px; height: 6px; background: var(--line);
+  border-radius: 99px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--grn);
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.progress-pct { font-size: 13px; font-weight: 600; color: var(--grn); min-width: 36px; }
+
+/* ── 導覽頁籤 ─────────────────────────────────────────── */
+.tabs {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex; gap: 0;
+}
+.tab {
+  padding: 12px 20px;
+  font-size: 14px; font-weight: 500;
+  color: var(--ink2);
+  border: none; background: none; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--blu); border-bottom-color: var(--blu); }
+
+/* ── 工具列 ─────────────────────────────────────────── */
+.toolbar {
+  padding: 14px 24px;
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 300px; }
+.search-wrap input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: 14px; color: var(--ink);
+  background: var(--white);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.search-wrap input:focus { border-color: var(--blu); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.search-wrap input::placeholder { color: var(--ink3); }
+.search-icon {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink3); font-size: 14px; pointer-events: none;
+}
+
+/* ── 按鈕 ─────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 14px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 500;
+  border: none; cursor: pointer;
+  transition: all .15s; white-space: nowrap;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--ink); color: var(--white); }
+.btn-primary:hover { background: #3f3f46; }
+.btn-ghost { background: var(--white); color: var(--ink2); border: 1px solid var(--line); }
+.btn-ghost:hover { background: var(--line2); color: var(--ink); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+.btn-danger:hover { background: #fee2e2; }
+.btn-amber { background: var(--amber-bg); color: var(--amber-dk); border: 1px solid var(--amber-bd); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ── 頁面切換 ─────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── 打勾單格線 ─────────────────────────────────────────── */
+.group-section { padding: 0 24px 20px; }
+.group-label {
+  font-size: 11px; font-weight: 600; color: var(--ink3);
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 16px 0 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.group-count {
+  background: var(--line2); color: var(--ink2);
+  font-size: 11px; padding: 1px 8px; border-radius: 99px;
+  font-weight: 500;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+  gap: 8px;
+}
+
+/* ── 客戶卡片 ─────────────────────────────────────────── */
+.ccard {
+  position: relative;
+  padding: 12px 10px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  display: flex; flex-direction: column; gap: 4px;
+  min-height: 62px;
+  transition: transform .12s, box-shadow .12s;
+  border: 1.5px solid transparent;
+  user-select: none;
+}
+.ccard:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.ccard:active { transform: scale(.96); }
+
+.ccard.unordered { background: var(--red-bg);   border-color: var(--red-bd);   color: #991b1b; }
+.ccard.ordered   { background: var(--grn-bg);   border-color: var(--grn-bd);   color: #166534; }
+.ccard.no-order  { background: var(--blu-bg);   border-color: var(--blu-bd);   color: #1e40af; }
+.ccard.warn3     { background: var(--amber-bg); border-color: var(--amber-bd); color: var(--amber-dk);
+                   box-shadow: 0 0 0 2px rgba(217,119,6,.15); }
+
+/* warn3 脈動邊框動畫 */
+@keyframes warn-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(217,119,6,.25); }
+  50%      { box-shadow: 0 0 0 4px rgba(217,119,6,.08); }
+}
+.ccard.warn3 { animation: warn-pulse 2.8s ease-in-out infinite; }
+
+.ccard-name { line-height: 1.25; word-break: break-all; }
+.ccard-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; font-weight: 400; opacity: .75; margin-top: 2px;
+}
+.ccard-status-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.unordered .ccard-status-dot { background: var(--red); }
+.ordered   .ccard-status-dot { background: var(--grn); }
+.no-order  .ccard-status-dot { background: var(--blu); }
+.warn3     .ccard-status-dot { background: var(--amber); }
+
+/* warn3 標籤 */
+.warn3-tag {
+  position: absolute; top: 5px; right: 26px;
+  font-size: 9px; font-weight: 700;
+  background: var(--amber); color: #fff;
+  padding: 1px 5px; border-radius: 99px;
+  letter-spacing: .04em;
+  pointer-events: none;
+}
+
+/* 編輯按鈕 */
+.edit-btn {
+  position: absolute; top: 5px; right: 5px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; opacity: 0;
+  transition: opacity .15s; cursor: pointer;
+  border: none; color: inherit;
+}
+.ccard:hover .edit-btn { opacity: 1; }
+
+/* ── 後台管理 ─────────────────────────────────────────── */
+.table-wrap { padding: 0 24px 24px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead th {
+  padding: 10px 14px;
+  text-align: left; font-size: 12px; font-weight: 600;
+  color: var(--ink2); letter-spacing: .04em;
+  border-bottom: 1px solid var(--line);
+  background: var(--page);
+  white-space: nowrap;
+}
+tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line2);
+  color: var(--ink);
+  vertical-align: middle;
+}
+tbody tr:hover td { background: var(--line2); }
+
+/* 後台：warn3 行 */
+tbody tr.row-warn td { background: #fffbeb; }
+tbody tr.row-warn:hover td { background: #fef3c7; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 12px; font-weight: 500;
+}
+.badge.unordered { background: var(--red-bg);  color: #991b1b; }
+.badge.ordered   { background: var(--grn-bg);  color: #166534; }
+.badge.no-order  { background: var(--blu-bg);  color: #1e40af; }
+.badge.warn3     { background: var(--amber-bg); color: var(--amber-dk); border: 1px solid var(--amber-bd); }
+
+/* ── 時間條列（後台新功能） ─────────────────────────────── */
+.timeline-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 3px;
+  min-width: 180px;
+}
+.tl-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--ink2);
+  padding: 3px 0;
+}
+.tl-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.tl-dot.ordered   { background: var(--grn); }
+.tl-dot.no-order  { background: var(--blu); }
+.tl-dot.unordered { background: var(--red); }
+.tl-time { font-variant-numeric: tabular-nums; color: var(--ink3); font-size: 11px; min-width: 42px; }
+.tl-status { font-weight: 500; }
+.tl-empty { font-size: 12px; color: var(--ink3); font-style: italic; }
+
+/* 3天未叫貨警示橫幅 */
+.warn-banner {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--amber-bg); border: 1px solid var(--amber-bd);
+  color: var(--amber-dk); border-radius: var(--r-sm);
+  font-size: 12px; font-weight: 600;
+  padding: 4px 10px;
+}
+
+/* ── 列印預覽 ─────────────────────────────────────────── */
+.print-wrap { padding: 0 24px 24px; }
+.print-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.print-table th, .print-table td {
+  border: 1px solid #000; padding: 3px 4px; text-align: center;
+}
+.print-table td.name-cell {
+  font-weight: 600; text-align: left; padding-left: 6px; white-space: nowrap;
+}
+/* 3天未叫貨在打勾單底部標示 */
+.print-table td.name-cell.name-warn {
+  background: #fffbeb;
+  color: var(--amber-dk);
+}
+
+/* ── Toast ─────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--ink); color: #fff;
+  padding: 10px 20px; border-radius: var(--radius);
+  font-size: 14px; font-weight: 500;
+  transition: transform .25s ease;
+  z-index: 999; pointer-events: none; white-space: nowrap;
+  box-shadow: var(--shadow-md);
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Modal ─────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+  backdrop-filter: blur(2px);
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--white); border-radius: 16px;
+  width: 90%; max-width: 400px; padding: 24px;
+  box-shadow: var(--shadow-md);
+  transform: scale(.95); transition: transform .2s;
+}
+.overlay.open .modal { transform: scale(1); }
+.modal-title {
+  font-size: 17px; font-weight: 700; margin-bottom: 20px; color: var(--ink);
+}
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--ink2); margin-bottom: 5px; letter-spacing: .03em;
+}
+.field input, .field select {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-size: 14px; color: var(--ink); background: var(--white);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--blu);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+.modal-actions {
+  display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end;
+}
+.modal-actions-left { margin-right: auto; }
+
+/* ── 右鍵提示 ─────────────────────────────────────────── */
+.hint-bar {
+  padding: 7px 24px;
+  font-size: 12px; color: var(--ink3);
+  border-bottom: 1px solid var(--line2);
+  background: var(--white);
+}
+
+/* ── 無資料 ─────────────────────────────────────────── */
+.empty { padding: 48px 24px; text-align: center; color: var(--ink3); font-size: 14px; }
+
+/* ── 後台分隔標示 ─────────────────────────────────────── */
+.section-info {
+  padding: 8px 24px;
+  background: var(--line2);
+  border-bottom: 1px solid var(--line);
+  font-size: 12px; color: var(--ink2);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── 列印 ─────────────────────────────────────────── */
+@media print {
+  body { background: white; }
+  .topbar, .statbar, .tabs, .toolbar, .hint-bar,
+  .no-print { display: none !important; }
+  .page { display: none !important; }
+  #print-page { display: block !important; }
+  .print-wrap { padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- 頂欄 -->
+<header class="topbar no-print">
+  <div class="topbar-brand">
+    <span class="logo">忠欣</span>
+    <span class="sub">叫貨系統</span>
+  </div>
+  <div class="topbar-right" style="display:flex;align-items:center;gap:8px;">
+    <div id="topbar-date" style="font-size:13px;color:#71717a;"></div>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer;font-size:12px;" title="匯入備份資料（JSON）">
+      📥 匯入備份
+      <input type="file" id="backup-import" accept=".json" style="display:none" onchange="importBackup(this)">
+    </label>
+    <button class="btn btn-ghost btn-sm" style="font-size:12px;" onclick="exportBackup()" title="匯出目前所有資料為 JSON 備份">📤 匯出備份</button>
+  </div>
+</header>
+
+<!-- 統計列 -->
+<div class="statbar no-print">
+  <div class="stat">
+    <span class="stat-pip red"></span>
+    <span class="stat-label">未叫貨</span>
+    <span class="stat-val" id="c-un">0</span>
+  </div>
+  <div class="stat">
+    <span class="stat-pip green"></span>
+    <span class="stat-label">已叫貨</span>
+    <span class="stat-val" id="c-or">0</span>
+  </div>
+  <div class="stat">
+    <span class="stat-pip blue"></span>
+    <span class="stat-label">今日不叫</span>
+    <span class="stat-val" id="c-no">0</span>
+  </div>
+  <div class="stat">
+    <span class="stat-pip amber"></span>
+    <span class="stat-label">3天未叫</span>
+    <span class="stat-val" id="c-warn">0</span>
+  </div>
+  <div class="stat">
+    <span class="stat-pip gray"></span>
+    <span class="stat-label">總計</span>
+    <span class="stat-val" id="c-tot">0</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+    <span class="progress-pct" id="prog-pct">0%</span>
+  </div>
+</div>
+
+<!-- 頁籤 -->
+<nav class="tabs no-print">
+  <button class="tab active" onclick="switchTab('check', this)">打勾單</button>
+  <button class="tab" onclick="switchTab('backend', this)">後台管理</button>
+  <button class="tab" onclick="switchTab('print', this)">列印預覽</button>
+</nav>
+
+<!-- 打勾單 -->
+<div id="check-page" class="page active">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="q-front" placeholder="搜尋客戶…" oninput="renderGrid()">
+    </div>
+    <select id="filter-fixed" onchange="renderGrid()" style="padding:8px 10px;border:1px solid #e4e4e7;border-radius:7px;font-size:13px;background:#fff;outline:none;cursor:pointer;">
+      <option value="">全部負責人</option>
+    </select>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-ghost" onclick="openAddModal()">＋ 新增客戶</button>
+      <button class="btn btn-danger" onclick="resetAll()" id="reset-btn">重置今日</button>
+    </div>
+  </div>
+  <div class="hint-bar">左鍵切換叫貨狀態・右鍵標記「今日不叫貨」・<span style="color:#d97706;font-weight:500;">⚠ 橙色 = 連續3天未叫貨</span></div>
+  <div id="grid-container"></div>
+</div>
+
+<!-- 後台管理 -->
+<div id="backend-page" class="page">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="q-back" placeholder="搜尋客戶或負責人…" oninput="renderTable()">
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#52525b;cursor:pointer;padding:0 4px;">
+      <input type="checkbox" id="chk-warn3" onchange="renderTable()" style="accent-color:#f59e0b;width:14px;height:14px;">
+      只顯示3天未叫貨
+    </label>
+    <button class="btn btn-ghost" style="margin-left:auto" onclick="openAddModal()">＋ 新增客戶</button>
+  </div>
+  <div class="section-info">
+    📋 條列顯示每次叫貨狀態的變更時間點・連續3天未叫貨的客戶以 <span style="color:#d97706;font-weight:600;">⚠ 橙底</span> 標示，並同步於打勾單卡片上顯示
+  </div>
+  <div class="table-wrap">
+    <table id="history-table">
+      <thead>
+        <tr id="history-thead-row"></tr>
+      </thead>
+      <tbody id="backend-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 列印預覽 -->
+<div id="print-page" class="page">
+  <div class="toolbar no-print" style="flex-wrap:wrap;gap:10px;">
+    <span style="font-size:15px;font-weight:600;color:#18181b;">列印預覽</span>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;">
+      <label class="btn btn-ghost" style="cursor:pointer;">
+        📂 匯入打勾單 Excel
+        <input type="file" id="excel-import" accept=".xls,.xlsx" style="display:none" onchange="importExcel(this)">
+      </label>
+      <button class="btn btn-primary" id="btn-export-excel" onclick="exportExcel()" style="display:none;">⬇ 匯出 Excel</button>
+      <button class="btn btn-ghost" onclick="window.print()">🖨 列印</button>
+    </div>
+  </div>
+  <div id="import-status" style="padding:6px 24px;font-size:13px;color:#52525b;display:none;"></div>
+  <div class="print-wrap">
+    <table class="print-table" id="print-table"></table>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- 確認對話框 -->
+<div class="overlay" id="confirm-overlay">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-title" style="font-size:15px;white-space:pre-line;" id="confirm-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirm-cancel">取消</button>
+      <button class="btn btn-danger" id="confirm-ok">確定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">新增客戶</div>
+    <div class="field"><label>客戶名稱 *</label><input id="m-name" placeholder="請輸入廠商名稱"></div>
+    <div class="field">
+      <label>叫貨狀態</label>
+      <select id="m-status">
+        <option value="未叫貨">未叫貨</option>
+        <option value="有叫貨">有叫貨</option>
+        <option value="今日不叫貨">今日不叫貨</option>
+      </select>
+    </div>
+    <div class="field"><label>負責人</label><input id="m-fixed" placeholder="請輸入負責人"></div>
+    <div class="field"><label>日期</label><input type="date" id="m-date"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger modal-actions-left" id="btn-del" style="display:none" onclick="deleteClient()">刪除</button>
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveClient()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 替換為您剛剛複製的 Web App URL
+const API_URL = "https://script.google.com/macros/s/AKfycbyEYFIA77xqimTTHdhw10l5XCF9gtBhQq61sZgqVeypLeweGZX0EBe_--kcDa-gUvI/exec"; 
+
+// 從雲端抓取最新資料 (背景同步)
+async function syncFromCloud() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    let isUpdated = false;
+
+    // 比對當前資料與雲端資料
+    if (data.zhongxin_v4) {
+      const cloudDB = JSON.parse(data.zhongxin_v4);
+      if (JSON.stringify(db) !== JSON.stringify(cloudDB)) {
+        db = cloudDB;
+        isUpdated = true;
+      }
+    }
+    if (data.zhongxin_hist_v4) {
+      const cloudHist = JSON.parse(data.zhongxin_hist_v4);
+      if (JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
+        historyLog = cloudHist;
+        isUpdated = true;
+      }
+    }
+    
+    // 若雲端有別人打勾的新資料，就重新渲染畫面
+    if (isUpdated) {
+      render();
+      updateStats();
+    }
+  } catch(e) {
+    console.error("雲端同步失敗：", e);
+  }
+}
+
+// 將資料推送到雲端
+async function saveToCloud(key, valueObj) {
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ key: key, value: JSON.stringify(valueObj) }),
+      // 使用 text/plain 可避免 Google Sites 的 CORS 跨域阻擋問題
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
+    });
+  } catch(e) {
+    console.error("儲存至雲端失敗：", e);
+  }
+}
+// ── 初始資料 ────────────────────────────────────────────
+const INIT = {"彭園林森":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園三重":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園板橋":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園忠孝":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園基隆":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園八德":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園新店":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園新板":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園通安":{"status":"未叫貨","date":"","fixed":"孟潔"},"一品宴":{"status":"未叫貨","date":"","fixed":"孟潔"},"湘8老":{"status":"未叫貨","date":"","fixed":"孟潔"},"吉吉園":{"status":"未叫貨","date":"","fixed":"散單"},"豪鼎新店":{"status":"未叫貨","date":"","fixed":"散單"},"水源公館":{"status":"未叫貨","date":"","fixed":"散單"},"東方":{"status":"未叫貨","date":"","fixed":"散單"},"長春":{"status":"未叫貨","date":"","fixed":"散單"},"絕好調":{"status":"未叫貨","date":"","fixed":"散單"},"馳走屋":{"status":"未叫貨","date":"","fixed":"散單"},"悅華軒":{"status":"未叫貨","date":"","fixed":"散單"},"和民站前":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作裕隆":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作北車":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作桂北":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作青埔":{"status":"未叫貨","date":"","fixed":"阿巧"},"上村北車":{"status":"未叫貨","date":"","fixed":"阿巧"},"晶麒":{"status":"未叫貨","date":"","fixed":"阿巧"},"甜蜜森林":{"status":"未叫貨","date":"","fixed":"阿巧"},"鉑宴":{"status":"未叫貨","date":"","fixed":"散單"},"桐花民生":{"status":"未叫貨","date":"","fixed":"散單"},"中國信託":{"status":"未叫貨","date":"","fixed":"學姐"},"瑞健":{"status":"未叫貨","date":"","fixed":"學姐"},"薇閣":{"status":"未叫貨","date":"","fixed":"阿巧"},"璿民":{"status":"未叫貨","date":"","fixed":"阿巧"},"MMK忠孝":{"status":"未叫貨","date":"","fixed":"阿巧"},"PAUL仁愛":{"status":"未叫貨","date":"","fixed":"阿巧"},"PAUL林口":{"status":"未叫貨","date":"","fixed":"阿巧"},"UKAI":{"status":"未叫貨","date":"","fixed":"阿巧"},"藍象央廚":{"status":"未叫貨","date":"","fixed":"散單"},"藍象新光":{"status":"未叫貨","date":"","fixed":"散單"},"藍象巨城":{"status":"未叫貨","date":"","fixed":"散單"},"藍象林口":{"status":"未叫貨","date":"","fixed":"散單"},"共同存在":{"status":"未叫貨","date":"","fixed":"散單"},"晶湯SOGO":{"status":"未叫貨","date":"","fixed":"散單"},"晶湯京站":{"status":"未叫貨","date":"","fixed":"散單"},"咖啡北車":{"status":"未叫貨","date":"","fixed":"學姐"},"咖啡士林":{"status":"未叫貨","date":"","fixed":"學姐"},"咖啡央廚":{"status":"未叫貨","date":"","fixed":"學姐"},"總督":{"status":"未叫貨","date":"","fixed":"散單"},"雙岩幸福":{"status":"未叫貨","date":"","fixed":"散單"},"八和大安":{"status":"未叫貨","date":"","fixed":"散單"},"八和敦北":{"status":"未叫貨","date":"","fixed":"散單"},"花田盛事":{"status":"有叫貨","date":"","fixed":"散單"},"芯聚苑":{"status":"未叫貨","date":"","fixed":"琪姐"},"大黑屋":{"status":"未叫貨","date":"","fixed":"散單"},"鮪一大安":{"status":"未叫貨","date":"","fixed":"散單"},"鮪一永吉":{"status":"有叫貨","date":"","fixed":"散單"},"鮪一八德":{"status":"未叫貨","date":"","fixed":"散單"},"廣泰樓":{"status":"未叫貨","date":"","fixed":"散單"},"KikiATT":{"status":"未叫貨","date":"","fixed":"琪姐"},"胡饕市府":{"status":"未叫貨","date":"","fixed":"散單"},"胡饕興安":{"status":"有叫貨","date":"","fixed":"散單"},"胡饕土城":{"status":"有叫貨","date":"","fixed":"散單"},"胡饕天母":{"status":"有叫貨","date":"","fixed":"散單"},"胡饕總部":{"status":"未叫貨","date":"","fixed":"散單"},"富善光復":{"status":"有叫貨","date":"","fixed":"散單"},"富善昆明":{"status":"未叫貨","date":"","fixed":"散單"},"富善民樂":{"status":"未叫貨","date":"","fixed":"散單"},"富善三重":{"status":"未叫貨","date":"","fixed":"散單"},"黑武大安":{"status":"未叫貨","date":"","fixed":"散單"},"黑武信義":{"status":"有叫貨","date":"","fixed":"散單"},"便當大安":{"status":"未叫貨","date":"","fixed":"散單"},"味道西寧":{"status":"有叫貨","date":"","fixed":"散單"},"味道京站":{"status":"有叫貨","date":"","fixed":"散單"},"敘香園":{"status":"未叫貨","date":"","fixed":"散單"},"通安漢堡":{"status":"未叫貨","date":"","fixed":"散單"},"大安站":{"status":"未叫貨","date":"","fixed":"散單"},"鮮來":{"status":"未叫貨","date":"","fixed":"散單"},"爍場復興":{"status":"未叫貨","date":"","fixed":"散單"},"爍場南京":{"status":"未叫貨","date":"","fixed":"散單"},"麻辣沙龍":{"status":"未叫貨","date":"","fixed":"散單"},"合點內湖":{"status":"有叫貨","date":"","fixed":"散單"},"合點京站":{"status":"有叫貨","date":"","fixed":"散單"},"合點竹北":{"status":"有叫貨","date":"","fixed":"散單"},"合點南港":{"status":"有叫貨","date":"","fixed":"散單"},"阿默咖啡":{"status":"未叫貨","date":"","fixed":"散單"},"初心文德":{"status":"未叫貨","date":"","fixed":"散單"},"榕央廚":{"status":"未叫貨","date":"","fixed":"散單"},"榕士林":{"status":"未叫貨","date":"","fixed":"散單"},"榕信義":{"status":"未叫貨","date":"","fixed":"散單"},"枝枒":{"status":"未叫貨","date":"","fixed":"散單"},"印度大江":{"status":"未叫貨","date":"","fixed":"散單"},"印度宏匯":{"status":"未叫貨","date":"","fixed":"散單"},"讚岐林口":{"status":"未叫貨","date":"","fixed":"散單"},"讚岐板橋":{"status":"未叫貨","date":"","fixed":"散單"},"椰兄央廚":{"status":"未叫貨","date":"","fixed":"散單"},"椰兄慶城":{"status":"有叫貨","date":"","fixed":"散單"},"椰兄中山":{"status":"未叫貨","date":"","fixed":"散單"},"椰兄南港":{"status":"未叫貨","date":"","fixed":"散單"},"浮島":{"status":"未叫貨","date":"","fixed":"散單"}};
+
+const today = new Date();
+const todayStr = today.getFullYear() + '/' + String(today.getMonth()+1).padStart(2,'0') + '/' + String(today.getDate()).padStart(2,'0');
+const todayISO = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+let db = {};
+let historyLog = [];  // [ {date, records: {name: status}, editLog: {name: [{time, status}]}} ]
+let editing = null;
+
+const HISTORY_DAYS = 6;
+
+// ── 初始化 ────────────────────────────────────────────
+function init() {
+  document.getElementById('topbar-date').textContent = todayStr;
+
+  // 優先讀 v4，若無則嘗試從 v3 遷移，再無則使用 INIT
+  const savedV4 = localStorage.getItem('zhongxin_v4');
+  if (savedV4) {
+    db = JSON.parse(savedV4);
+  } else {
+    const savedV3 = localStorage.getItem('zhongxin_v3');
+    if (savedV3) {
+      db = JSON.parse(savedV3);
+      localStorage.setItem('zhongxin_v4', savedV3); // 遷移到 v4 key
+    } else {
+      db = JSON.parse(JSON.stringify(INIT));
+    }
+  }
+
+  // 歷史記錄：優先讀 v4，若無則嘗試從 v3 遷移
+  const savedHistV4 = localStorage.getItem('zhongxin_hist_v4');
+  if (savedHistV4) {
+    historyLog = JSON.parse(savedHistV4);
+  } else {
+    const savedHistV3 = localStorage.getItem('zhongxin_hist');
+    if (savedHistV3) {
+      historyLog = JSON.parse(savedHistV3);
+      localStorage.setItem('zhongxin_hist_v4', savedHistV3); // 遷移
+    } else {
+      historyLog = [];
+    }
+  }
+
+  // 確保今日的 editLog 存在，然後統一儲存（確保任何初始化修正都寫入）
+  ensureTodayEditLog();
+  save();
+  saveHistory();
+
+  buildFixedFilter();
+  renderAll();
+}
+
+// 確保今日 historyLog 條目存在（用於儲存今日的操作時間點）
+function ensureTodayEditLog() {
+  let today_entry = historyLog.find(h => h.date === todayStr);
+  if (!today_entry) {
+    today_entry = { date: todayStr, records: {}, editLog: {} };
+    historyLog.push(today_entry);
+    if (historyLog.length > HISTORY_DAYS) historyLog = historyLog.slice(-HISTORY_DAYS);
+    // 不在此處 saveHistory()，由 init() 結尾統一儲存
+  } else if (!today_entry.editLog) {
+    today_entry.editLog = {};
+  }
+}
+
+function getTodayEntry() {
+  return historyLog.find(h => h.date === todayStr);
+}
+// 覆寫原先的 save 函數
+function save() {
+  localStorage.setItem('zhongxin_v4', JSON.stringify(db)); 
+  saveToCloud('zhongxin_v4', db); // 同步到試算表
+}
+
+// 覆寫原先的 saveHistory 函數
+function saveHistory() {
+  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+  saveToCloud('zhongxin_hist_v4', historyLog); // 同步到試算表
+}
+// ── 重置打卡 ──────────────────────────────────────────
+function snapshotOnReset() {
+  const records = {};
+  Object.keys(db).forEach(n => { records[n] = db[n].status; });
+
+  let entry = getTodayEntry();
+  if (entry) {
+    entry.records = records;
+    // 保留 editLog
+  } else {
+    entry = { date: todayStr, records, editLog: {} };
+    historyLog.push(entry);
+    if (historyLog.length > HISTORY_DAYS) historyLog = historyLog.slice(-HISTORY_DAYS);
+  }
+  saveHistory();
+}
+
+// ── 記錄時間點操作 ────────────────────────────────────
+function logEditTime(name, status) {
+  const entry = getTodayEntry();
+  if (!entry) return;
+  if (!entry.editLog) entry.editLog = {};
+  if (!entry.editLog[name]) entry.editLog[name] = [];
+
+  const now = new Date();
+  const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+  // 同一分鐘內相同狀態不重複記錄
+  const last = entry.editLog[name].at(-1);
+  if (last && last.time === timeStr && last.status === status) return;
+
+  entry.editLog[name].push({ time: timeStr, status });
+  saveHistory();
+}
+
+// ── 負責人篩選 ────────────────────────────────────────
+function buildFixedFilter() {
+  const sel = document.getElementById('filter-fixed');
+  const cur = sel.value;
+  const all = [...new Set(Object.values(db).map(d => d.fixed).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">全部負責人</option>';
+  all.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f; o.textContent = f;
+    if (f === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+// ── 渲染全部 ─────────────────────────────────────────
+function renderAll() {
+  updateStats();
+  renderGrid();
+  renderTable();
+  renderPrint();
+}
+
+function updateStats() {
+  const names = Object.keys(db);
+  const tot  = names.length;
+  const ord  = names.filter(n => db[n].status === '有叫貨').length;
+  const no   = names.filter(n => db[n].status === '今日不叫貨').length;
+  const un   = tot - ord - no;
+  const warn = getWarn3Set().size;
+  const pct  = tot ? Math.round(ord / tot * 100) : 0;
+  document.getElementById('c-un').textContent   = un;
+  document.getElementById('c-or').textContent   = ord;
+  document.getElementById('c-no').textContent   = no;
+  document.getElementById('c-warn').textContent = warn;
+  document.getElementById('c-tot').textContent  = tot;
+  document.getElementById('prog').style.width   = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+}
+
+// ── 連續3天未叫貨偵測 ────────────────────────────────
+function getWarn3Set() {
+  const warn = new Set();
+  const completed = historyLog
+    .filter(h => h.date !== todayStr)
+    .sort((a, b) => a.date < b.date ? -1 : 1);
+  if (completed.length < 3) return warn;
+  const recent3 = completed.slice(-3);
+  Object.keys(db).forEach(n => {
+    const all3 = recent3.every(h => {
+      const s = h.records[n];
+      return s === '未叫貨' || s === undefined;
+    });
+    if (all3) warn.add(n);
+  });
+  return warn;
+}
+
+// ── 打勾單格線 ────────────────────────────────────────
+function renderGrid() {
+  const q  = (document.getElementById('q-front').value || '').toLowerCase().trim();
+  const ff = document.getElementById('filter-fixed').value;
+  const container = document.getElementById('grid-container');
+  const warn3 = getWarn3Set();
+
+  const names = Object.keys(db).filter(n => {
+    const d = db[n];
+    return (!q || n.toLowerCase().includes(q)) && (!ff || d.fixed === ff);
+  });
+
+  if (!names.length) {
+    container.innerHTML = '<div class="empty">查無符合條件的客戶</div>';
+    return;
+  }
+
+  const groups = {};
+  names.forEach(n => {
+    const g = db[n].fixed || '（未分類）';
+    (groups[g] = groups[g] || []).push(n);
+  });
+
+  let html = '';
+  Object.keys(groups).sort().forEach(g => {
+    html += '<div class="group-section"><div class="group-label">' + esc(g) +
+      '<span class="group-count">' + groups[g].length + '</span></div><div class="card-grid">';
+    groups[g].forEach(n => { html += mkCard(n, warn3); });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function mkCard(n, warn3) {
+  const d = db[n];
+  const isWarn = warn3 && warn3.has(n) && d.status === '未叫貨';
+  let cls, lbl;
+  if (d.status === '有叫貨')       { cls = 'ordered';   lbl = '已叫貨'; }
+  else if (d.status === '今日不叫貨') { cls = 'no-order'; lbl = '不叫'; }
+  else if (isWarn)                 { cls = 'warn3';     lbl = '連續未叫'; }
+  else                             { cls = 'unordered'; lbl = '未叫貨'; }
+
+  const warnTag = isWarn ? '<span class="warn3-tag">⚠ 3天</span>' : '';
+
+  return '<div class="ccard ' + cls + '" onclick="toggle(\'' + esc(n) + '\')" oncontextmenu="rightClick(event,\'' + esc(n) + '\')">' +
+    warnTag +
+    '<button class="edit-btn" onclick="openEditModal(event,\'' + esc(n) + '\')">✏</button>' +
+    '<div class="ccard-name">' + esc(n) + '</div>' +
+    '<div class="ccard-meta"><span class="ccard-status-dot"></span><span>' + lbl + '</span>' +
+    (d.date ? '<span>' + d.date.slice(5) + '</span>' : '') +
+    '</div></div>';
+}
+
+function toggle(n) {
+  if (db[n].status === '未叫貨')     changeStatus(n, '有叫貨');
+  else if (db[n].status === '有叫貨') changeStatus(n, '未叫貨');
+}
+function rightClick(e, n) {
+  e.preventDefault();
+  changeStatus(n, db[n].status === '今日不叫貨' ? '未叫貨' : '今日不叫貨');
+}
+function changeStatus(n, s) {
+  db[n].status = s;
+  db[n].date = s === '未叫貨' ? '' : todayStr;
+  save();
+  logEditTime(n, s);  // ← 記錄時間點
+  renderAll();
+  toast(n + ' → ' + s);
+}
+
+// ── 後台管理：條列式時間點表格 ───────────────────────
+function renderTable() {
+  const q = (document.getElementById('q-back').value || '').toLowerCase().trim();
+  const onlyWarn = document.getElementById('chk-warn3').checked;
+  const warn3 = getWarn3Set();
+
+  // 排序歷史從舊到新
+  const sortedHist = [...historyLog].sort((a, b) => a.date < b.date ? -1 : 1);
+  const dates = sortedHist.map(h => h.date);
+
+  // 取得今日 editLog
+  const todayEntry = getTodayEntry();
+  const todayEditLog = todayEntry ? (todayEntry.editLog || {}) : {};
+
+  // 表頭
+  const theadRow = document.getElementById('history-thead-row');
+  let thHtml = '<th style="min-width:110px">客戶</th><th>負責人</th>';
+
+  // 過去已重置的天（非今日）
+  const pastDates = dates.filter(d => d !== todayStr);
+  pastDates.forEach(d => {
+    thHtml += '<th style="white-space:nowrap;text-align:center;">' + d.slice(5) + '<br><span style="font-size:10px;color:#a1a1aa;font-weight:400;">最終狀態</span></th>';
+  });
+
+  thHtml += '<th style="min-width:200px;">今日操作時間點</th>';
+  thHtml += '<th style="text-align:center;">今日狀態</th>';
+  thHtml += '<th style="text-align:center;">連續未叫</th>';
+  thHtml += '<th></th>';
+  theadRow.innerHTML = thHtml;
+
+  const tbody = document.getElementById('backend-tbody');
+  let html = '';
+  let count = 0;
+
+  Object.keys(db).forEach(n => {
+    const d = db[n];
+    if (q && !n.toLowerCase().includes(q) && !(d.fixed||'').toLowerCase().includes(q)) return;
+    const isWarn = warn3.has(n);
+    if (onlyWarn && !isWarn) return;
+    count++;
+
+    // 計算連續未叫天數
+    let streak = 0;
+    for (let i = sortedHist.length - 1; i >= 0; i--) {
+      const s = sortedHist[i].records[n];
+      if (s === '未叫貨' || s === undefined) streak++;
+      else break;
+    }
+
+    const bc = d.status === '有叫貨' ? 'ordered' : d.status === '今日不叫貨' ? 'no-order' : (isWarn ? 'warn3' : 'unordered');
+    const rowClass = isWarn ? 'row-warn' : '';
+
+    html += '<tr class="' + rowClass + '">';
+    html += '<td style="font-weight:700;">';
+    if (isWarn) html += '<span style="color:#d97706;">⚠ </span>';
+    html += esc(n) + '</td>';
+    html += '<td style="color:#52525b;">' + esc(d.fixed||'—') + '</td>';
+
+    // 過去各天最終狀態
+    pastDates.forEach(dt => {
+      const hist = sortedHist.find(h => h.date === dt);
+      const s = hist ? (hist.records[n] || '—') : '—';
+      let cellStyle = 'text-align:center;font-size:12px;';
+      let label = s;
+      if (s === '有叫貨')      { cellStyle += 'color:#166534;font-weight:600;'; label = '✓'; }
+      else if (s === '今日不叫貨') { cellStyle += 'color:#1e40af;'; label = '不叫'; }
+      else { cellStyle += 'color:#d4d4d8;'; label = '—'; }
+      html += '<td style="' + cellStyle + '">' + label + '</td>';
+    });
+
+    // 今日操作時間點（條列）
+    const logs = todayEditLog[n] || [];
+    html += '<td>';
+    if (logs.length === 0) {
+      html += '<span class="tl-empty">尚無操作記錄</span>';
+    } else {
+      html += '<ul class="timeline-list">';
+      logs.forEach(log => {
+        const dotCls = log.status === '有叫貨' ? 'ordered' : log.status === '今日不叫貨' ? 'no-order' : 'unordered';
+        html += '<li class="tl-item">' +
+          '<span class="tl-dot ' + dotCls + '"></span>' +
+          '<span class="tl-time">' + esc(log.time) + '</span>' +
+          '<span class="tl-status">' + esc(log.status) + '</span>' +
+          '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</td>';
+
+    // 今日狀態
+    html += '<td style="text-align:center;"><span class="badge ' + bc + '">' + d.status + '</span></td>';
+
+    // 連續未叫
+    html += '<td style="text-align:center;">';
+    if (isWarn) {
+      html += '<span class="warn-banner">⚠ ' + streak + '天</span>';
+    } else if (streak > 0) {
+      html += '<span style="font-size:12px;color:#a1a1aa;">' + streak + '天</span>';
+    } else {
+      html += '<span style="font-size:12px;color:#d4d4d8;">—</span>';
+    }
+    html += '</td>';
+
+    // 操作
+    html += '<td style="white-space:nowrap;">' +
+      '<button class="btn btn-ghost btn-sm" onclick="openEditModal(null,\'' + esc(n) + '\')">編輯</button>' +
+      '<button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="confirmDeleteHistory(\'' + esc(n) + '\')">刪除</button>' +
+      '</td>';
+    html += '</tr>';
+  });
+
+  const colSpan = 4 + pastDates.length + 2;
+  tbody.innerHTML = html || '<tr><td colspan="' + colSpan + '" style="text-align:center;color:#a1a1aa;padding:24px">查無資料</td></tr>';
+}
+
+function confirmDeleteHistory(n) {
+  showConfirm('確定刪除客戶「' + n + '」？\n同時清除其所有歷史記錄。', function() {
+    historyLog.forEach(h => {
+      if (h.records) delete h.records[n];
+      if (h.editLog) delete h.editLog[n];
+    });
+    delete db[n];
+    buildFixedFilter();
+    save(); saveHistory(); renderAll();
+    toast('已刪除 ' + n);
+  });
+}
+
+// ── 列印預覽 ──────────────────────────────────────────
+let importedWbData = null;
+
+function renderPrint() {
+  importedWbData ? renderPrintFromExcel() : renderPrintDefault();
+}
+
+function renderPrintDefault() {
+  const warn3 = getWarn3Set();
+  const names = Object.keys(db);
+  const COLS = 5;
+  let html = '<thead><tr>';
+  for (let i = 0; i < COLS; i++)
+    html += '<th>客戶名稱</th><th></th><th></th><th></th><th></th><th></th><th></th>';
+  html += '</tr></thead><tbody>';
+  for (let i = 0; i < names.length; i += COLS) {
+    html += '<tr>';
+    for (let j = 0; j < COLS; j++) {
+      const n = names[i+j];
+      if (n) {
+        const isWarn = warn3.has(n) && db[n].status === '未叫貨';
+        const warnCls = isWarn ? ' name-warn' : '';
+        const warnPrefix = isWarn ? '⚠ ' : '';
+        html += '<td class="name-cell' + warnCls + '">' + warnPrefix + esc(n) + '</td><td></td><td></td><td></td><td></td><td></td><td></td>';
+      } else {
+        html += '<td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  document.getElementById('print-table').innerHTML = html;
+}
+
+// ── Excel 匯入 ─────────────────────────────────────────
+function importExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('import-status');
+  statusEl.style.display = 'block';
+  statusEl.textContent = '讀取中…';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+
+      if (!rows.length) { statusEl.textContent = '⚠ 檔案無資料'; return; }
+
+      const headerRow = rows[0];
+      const todayDay = today.getDate();
+
+      const todayColIndices = [];
+      headerRow.forEach((val, idx) => {
+        if (val === todayDay) todayColIndices.push(idx);
+      });
+
+      if (!todayColIndices.length) {
+        statusEl.textContent = '⚠ 找不到今日（' + todayDay + ' 日）的欄位，請確認Excel表頭';
+        return;
+      }
+
+      importedWbData = { rows, todayColIndices, headerRow };
+      document.getElementById('btn-export-excel').style.display = 'inline-flex';
+      statusEl.style.color = '#16a34a';
+      statusEl.textContent = '✅ 已載入「' + file.name + '」，今日（' + todayDay + '日）欄位已識別，共 ' + todayColIndices.length + ' 個對應欄';
+      renderPrintFromExcel();
+    } catch(err) {
+      statusEl.style.color = '#ef4444';
+      statusEl.textContent = '⚠ 讀取失敗：' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+function renderPrintFromExcel() {
+  const { rows, todayColIndices, headerRow } = importedWbData;
+  const COLS_PER_GROUP = 7;
+  const warn3 = getWarn3Set();
+  const orderedSet = new Set(Object.keys(db).filter(n => db[n].status === '有叫貨'));
+
+  let html = '<thead><tr>';
+  for (let c = 0; c < headerRow.length; c++) {
+    const val = headerRow[c];
+    const isTodayCol = todayColIndices.includes(c);
+    html += '<th style="' + (isTodayCol ? 'background:#dbeafe;' : '') + '">' + esc(val !== null ? String(val) : '') + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.every(v => v === null)) continue;
+    html += '<tr>';
+    for (let c = 0; c < row.length; c++) {
+      const val = row[c];
+      const isTodayCol = todayColIndices.includes(c);
+      const isNameCol  = (c % COLS_PER_GROUP === 0);
+      let cellContent = '';
+      let cellStyle   = '';
+
+      if (isNameCol && val) {
+        const clientName = String(val);
+        const isWarn = warn3.has(clientName) && db[clientName] && db[clientName].status === '未叫貨';
+        cellContent = (isWarn ? '⚠ ' : '') + esc(clientName);
+        cellStyle = 'font-weight:600;text-align:left;padding-left:6px;white-space:nowrap;' +
+                    (isWarn ? 'background:#fffbeb;color:#92400e;' : '');
+      } else if (isTodayCol) {
+        let clientName = null;
+        for (let nc = c - 1; nc >= 0; nc--) {
+          if (nc % COLS_PER_GROUP === 0 && row[nc] !== null) {
+            clientName = String(row[nc]); break;
+          }
+        }
+        if (clientName && orderedSet.has(clientName)) {
+          cellContent = 'V';
+          cellStyle = 'font-weight:700;color:#16a34a;background:#f0fdf4;';
+        } else {
+          cellStyle = 'background:#eff6ff;';
+        }
+      }
+      html += '<td style="' + cellStyle + '">' + cellContent + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  document.getElementById('print-table').innerHTML = html;
+}
+
+// ── Excel 匯出 ─────────────────────────────────────────
+function exportExcel() {
+  if (!importedWbData) return;
+  const { rows, todayColIndices } = importedWbData;
+  const COLS_PER_GROUP = 7;
+  const orderedSet = new Set(Object.keys(db).filter(n => db[n].status === '有叫貨'));
+
+  const outRows = rows.map(row => row ? [...row] : []);
+  for (let r = 1; r < outRows.length; r++) {
+    const row = outRows[r];
+    if (!row) continue;
+    for (const c of todayColIndices) {
+      let clientName = null;
+      for (let nc = c - 1; nc >= 0; nc--) {
+        if (nc % COLS_PER_GROUP === 0 && row[nc] !== null) {
+          clientName = String(row[nc]); break;
+        }
+      }
+      if (clientName && orderedSet.has(clientName)) row[c] = 'V';
+    }
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(outRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '打勾單');
+  const dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb, '打勾單_' + dateStr + '.xlsx');
+  toast('✅ Excel 已匯出');
+}
+
+// ── Modal ─────────────────────────────────────────────
+function openAddModal() {
+  editing = null;
+  document.getElementById('modal-title').textContent = '新增客戶';
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-status').value = '未叫貨';
+  document.getElementById('m-fixed').value = '';
+  document.getElementById('m-date').value = todayISO;
+  document.getElementById('btn-del').style.display = 'none';
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('m-name').focus(), 100);
+}
+function openEditModal(e, n) {
+  if (e) e.stopPropagation();
+  editing = n;
+  const d = db[n];
+  document.getElementById('modal-title').textContent = '編輯：' + n;
+  document.getElementById('m-name').value   = n;
+  document.getElementById('m-status').value = d.status;
+  document.getElementById('m-fixed').value  = d.fixed || '';
+  const storedDate = d.date || '';
+  document.getElementById('m-date').value = storedDate ? storedDate.replace(/\//g, '-') : todayISO;
+  document.getElementById('btn-del').style.display = 'inline-flex';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function bgClose(e)   { if (e.target === document.getElementById('overlay')) closeModal(); }
+
+function saveClient() {
+  const name   = document.getElementById('m-name').value.trim();
+  const status = document.getElementById('m-status').value;
+  const fixed  = document.getElementById('m-fixed').value.trim();
+  const dateVal = document.getElementById('m-date').value;
+  const dateStr = dateVal ? dateVal.replace(/-/g, '/') : '';
+  if (!name) { alert('請輸入客戶名稱'); return; }
+
+  if (editing) {
+    if (name !== editing && db[name]) { alert('該名稱已存在'); return; }
+    const old = db[editing];
+    if (name !== editing) {
+      db[name] = {...old};
+      delete db[editing];
+      historyLog.forEach(h => {
+        if (h.records && h.records[editing] !== undefined) {
+          h.records[name] = h.records[editing];
+          delete h.records[editing];
+        }
+        if (h.editLog && h.editLog[editing] !== undefined) {
+          h.editLog[name] = h.editLog[editing];
+          delete h.editLog[editing];
+        }
+      });
+    }
+    db[name].status = status;
+    db[name].fixed  = fixed;
+    db[name].date   = status === '未叫貨' ? '' : (dateStr || todayStr);
+  } else {
+    if (db[name]) { alert('該名稱已存在'); return; }
+    db[name] = { status, date: status !== '未叫貨' ? (dateStr || todayStr) : '', fixed };
+  }
+  closeModal();
+  buildFixedFilter();
+  save(); saveHistory(); renderAll();
+  toast('✅ 儲存成功');
+}
+
+function deleteClient() {
+  if (!editing) return;
+  showConfirm('確定刪除「' + editing + '」？', function() {
+    historyLog.forEach(h => {
+      if (h.records) delete h.records[editing];
+      if (h.editLog) delete h.editLog[editing];
+    });
+    delete db[editing];
+    closeModal();
+    buildFixedFilter();
+    save(); saveHistory(); renderAll();
+    toast('已刪除 ' + editing);
+  });
+}
+
+function resetAll() {
+  showConfirm('是否確定重置今日叫貨狀態？\n系統將記錄今日最終叫貨狀態後，所有客戶恢復為「未叫貨」。', function() {
+    snapshotOnReset();
+    Object.keys(db).forEach(n => { db[n].status = '未叫貨'; db[n].date = ''; });
+    // 重置後清除今日 editLog，迎接新的一天
+    const entry = getTodayEntry();
+    if (entry) entry.editLog = {};
+    save(); saveHistory(); renderAll();
+    toast('✅ 今日狀態已記錄並重置');
+  });
+}
+
+// ── 確認對話框 ────────────────────────────────────────
+function showConfirm(msg, onOk) {
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-overlay').classList.add('open');
+  document.getElementById('confirm-ok').onclick = function() {
+    document.getElementById('confirm-overlay').classList.remove('open');
+    onOk();
+  };
+  document.getElementById('confirm-cancel').onclick = function() {
+    document.getElementById('confirm-overlay').classList.remove('open');
+  };
+}
+
+// ── 頁籤 ─────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id + '-page').classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── 備份匯出 / 匯入 ─────────────────────────────────
+function exportBackup() {
+  const payload = {
+    _version: 4,
+    _exported: todayStr,
+    db: db,
+    historyLog: historyLog
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '叫貨備份_' + todayStr.replace(/\//g, '') + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('✅ 備份已匯出');
+}
+
+function importBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (!payload.db) { toast('⚠ 格式錯誤，找不到資料', true); return; }
+      showConfirm('確定匯入備份？\n目前資料將被覆蓋。', function() {
+        db = payload.db;
+        historyLog = payload.historyLog || [];
+        ensureTodayEditLog();
+        save();
+        saveHistory();
+        buildFixedFilter();
+        renderAll();
+        toast('✅ 備份匯入成功');
+      });
+    } catch(err) {
+      toast('⚠ 讀取失敗：' + err.message, true);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ── 工具 ─────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+let _t;
+function toast(msg, isErr) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = isErr ? '#ef4444' : '#18181b';
+  el.classList.add('show');
+  clearTimeout(_t);
+  _t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+// 網頁載入完成後，先拉取一次雲端資料，並設定每 5 秒自動同步一次
+window.addEventListener('load', () => {
+  syncFromCloud();
+  setInterval(syncFromCloud, 5000); // 5000 毫秒 = 5 秒
+});
+init();
+</script>
+</body>
+</html>
