@@ -1292,7 +1292,14 @@ function importExcel(input) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      // 保留原始 arrayBuffer，匯出時直接在原始 workbook 上改，才能保住格式
+      const rawBuf = e.target.result;
+      const wb = XLSX.read(new Uint8Array(rawBuf), {
+        type: 'array',
+        cellStyles: true,   // 保留儲存格樣式
+        cellNF: true,       // 保留數字格式
+        cellDates: true,    // 保留日期格式
+      });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
       if (!rows.length) { statusEl.textContent='⚠ 檔案無資料'; return; }
@@ -1301,7 +1308,8 @@ function importExcel(input) {
       const todayColIndices = [];
       headerRow.forEach((v,i) => { if (v===todayDay) todayColIndices.push(i); });
       if (!todayColIndices.length) { statusEl.textContent=`⚠ 找不到今日（${todayDay}日）欄位`; return; }
-      importedWbData = { rows, todayColIndices, headerRow };
+      // 同時保留原始 wb 物件，供匯出時直接修改使用
+      importedWbData = { rows, todayColIndices, headerRow, wb, wsName: wb.SheetNames[0] };
       document.getElementById('btn-export-excel').style.display='inline-flex';
       statusEl.style.color='var(--grn)';
       statusEl.textContent=`✅ 已載入「${file.name}」，今日（${todayDay}日）識別 ${todayColIndices.length} 個欄`;
@@ -1347,22 +1355,47 @@ function renderPrintFromExcel() {
 
 function exportExcel() {
   if (!importedWbData) return;
-  const {rows,todayColIndices}=importedWbData, CPG=7;
-  const ordSet=new Set(Object.keys(db).filter(n=>db[n].status==='有叫貨'));
-  const out=rows.map(r=>r?[...r]:[]);
-  for(let r=1;r<out.length;r++){
-    const row=out[r]; if(!row) continue;
-    for(const c of todayColIndices){
-      let cn=null;
-      for(let nc=c-1;nc>=0;nc--){if(nc%CPG===0&&row[nc]!=null){cn=String(row[nc]);break;}}
-      if(cn&&ordSet.has(cn)) row[c]='V';
+  const { rows, todayColIndices, wb, wsName } = importedWbData;
+  const CPG = 7;
+  const ordSet = new Set(Object.keys(db).filter(n => db[n].status === '有叫貨'));
+
+  // 直接操作原始 worksheet，不重建，才能保住儲存格格式、合併、樣式
+  const ws = wb.Sheets[wsName];
+
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    for (const c of todayColIndices) {
+      // 找到同列最近一個名稱欄
+      let cn = null;
+      for (let nc = c - 1; nc >= 0; nc--) {
+        if (nc % CPG === 0 && row[nc] != null) { cn = String(row[nc]); break; }
+      }
+      // 將 Excel 欄列索引轉成儲存格位址 (e.g. r=1,c=3 → D2)
+      const cellAddr = XLSX.utils.encode_cell({ r: r, c: c });
+      if (cn && ordSet.has(cn)) {
+        // 有叫貨：寫入 "V"，保留原有儲存格其他屬性（格式、樣式）
+        if (!ws[cellAddr]) ws[cellAddr] = {};
+        ws[cellAddr].v = 'V';   // 值
+        ws[cellAddr].t = 's';   // 類型：string
+        // 如果原始儲存格有樣式物件，保留它；否則不覆蓋
+      } else {
+        // 未叫貨：清空該格的值（保留儲存格物件讓格式留著）
+        if (ws[cellAddr]) {
+          ws[cellAddr].v = '';
+          ws[cellAddr].t = 's';
+        }
+      }
     }
   }
-  const ws=XLSX.utils.aoa_to_sheet(out), wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'打勾單');
-  const ds=today.getFullYear()+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0');
-  XLSX.writeFile(wb,'打勾單_'+ds+'.xlsx');
-  toast('✅ Excel 已匯出');
+
+  const ds = today.getFullYear() +
+    String(today.getMonth()+1).padStart(2,'0') +
+    String(today.getDate()).padStart(2,'0');
+
+  // 用 bookType:'xlsx' 寫出，保留所有原始格式
+  XLSX.writeFile(wb, '打勾單_' + ds + '.xlsx', { bookType: 'xlsx', type: 'binary' });
+  toast('✅ Excel 已匯出（原始格式保留）');
 }
 
 // ══════════════════════════════════════════════════════════
