@@ -510,6 +510,45 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .empty-icon { font-size: 32px; margin-bottom: 8px; }
 
 /* ═══════════════════════════════════════════════════
+   DRAG & DROP
+═══════════════════════════════════════════════════ */
+.ccard[draggable="true"] { cursor: grab; }
+.ccard[draggable="true"]:active { cursor: grabbing; }
+.ccard.dragging {
+  opacity: .35;
+  transform: scale(.96);
+  box-shadow: none !important;
+}
+.ccard.drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+.drag-mode-hint {
+  display: none;
+  align-items: center; gap: 6px;
+  padding: 5px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-lt);
+  border-radius: var(--r-sm);
+  font-size: 12px; color: var(--accent); font-weight: 500;
+  white-space: nowrap;
+}
+.drag-mode-active .drag-mode-hint { display: flex; }
+.drag-mode-active .ccard { cursor: grab; }
+.drag-toggle-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: var(--r-sm);
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--line); background: var(--white); color: var(--ink2);
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.drag-toggle-btn.active {
+  background: var(--accent-bg); border-color: var(--accent-lt); color: var(--accent);
+}
+.drag-toggle-btn:hover { background: var(--line2); }
+.drag-toggle-btn.active:hover { background: #e0e7ff; }
+
+/* ═══════════════════════════════════════════════════
    PRINT MEDIA
 ═══════════════════════════════════════════════════ */
 @media print {
@@ -599,7 +638,9 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
       <option value="今日不叫貨">今日不叫貨</option>
       <option value="warn3">⚠ 3天未叫</option>
     </select>
-    <div class="ml-auto" style="display:flex;gap:8px;">
+    <div class="ml-auto" style="display:flex;gap:8px;align-items:center;">
+      <button class="drag-toggle-btn" id="drag-toggle-btn" onclick="toggleDragMode()">⠿ 調整順序</button>
+      <span class="drag-mode-hint">拖曳卡片可調整同組排列順序</span>
       <button class="btn btn-ghost" onclick="openAddModal()">＋ 新增</button>
       <button class="btn btn-reset" onclick="resetAll()">↺ 重置今日</button>
     </div>
@@ -747,6 +788,10 @@ async function syncFromCloud() {
       const cloudHist = JSON.parse(data.zhongxin_hist_v4);
       if (JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) { historyLog = cloudHist; updated = true; }
     }
+    if (data.zhongxin_order_v1) {
+      const cloudOrder = JSON.parse(data.zhongxin_order_v1);
+      if (JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) { groupOrder = cloudOrder; updated = true; }
+    }
     if (updated) renderAll();
     setSyncDot('');
   } catch(e) {
@@ -789,7 +834,10 @@ const todayISO = today.getFullYear() + '-' +
 
 let db = {};
 let historyLog = [];
+let groupOrder = {}; // { groupName: [clientName, ...] }
 let editing = null;
+let dragMode = false;
+let dragSrcName = null;
 const HISTORY_DAYS = 6;
 
 // ══════════════════════════════════════════════════════════
@@ -813,6 +861,9 @@ function init() {
     historyLog = hv3 ? JSON.parse(hv3) : [];
     if (hv3) localStorage.setItem('zhongxin_hist_v4', hv3);
   }
+
+  const go = localStorage.getItem('zhongxin_order_v1');
+  groupOrder = go ? JSON.parse(go) : {};
 
   ensureTodayEditLog();
   save(); saveHistory();
@@ -838,6 +889,10 @@ function save() {
 function saveHistory() {
   localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
   saveToCloud('zhongxin_hist_v4', historyLog);
+}
+function saveOrder() {
+  localStorage.setItem('zhongxin_order_v1', JSON.stringify(groupOrder));
+  saveToCloud('zhongxin_order_v1', groupOrder);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -953,6 +1008,16 @@ function updateStats() {
 // ══════════════════════════════════════════════════════════
 //  GRID
 // ══════════════════════════════════════════════════════════
+// 取得群組內依儲存順序排列的客戶名稱
+function getGroupNames(groupName, allNamesInGroup) {
+  const saved = groupOrder[groupName] || [];
+  // 合併：saved 中有的依序，saved 沒有的（新增的）補到後面
+  const savedSet = new Set(saved);
+  const ordered = saved.filter(n => allNamesInGroup.includes(n));
+  allNamesInGroup.forEach(n => { if (!savedSet.has(n)) ordered.push(n); });
+  return ordered;
+}
+
 function renderGrid() {
   const q  = (document.getElementById('q-front').value || '').toLowerCase().trim();
   const ff = document.getElementById('filter-fixed').value;
@@ -974,16 +1039,25 @@ function renderGrid() {
     return;
   }
 
-  const groups = {};
-  names.forEach(n => { const g = db[n].fixed || '未分類'; (groups[g] = groups[g] || []).push(n); });
+  // 先依 fixed 分組
+  const rawGroups = {};
+  names.forEach(n => { const g = db[n].fixed || '未分類'; (rawGroups[g] = rawGroups[g] || []).push(n); });
 
   let html = '';
-  Object.keys(groups).sort().forEach(g => {
-    html += `<div class="group-section"><div class="group-label">${esc(g)}<span class="group-count">${groups[g].length}</span></div><div class="card-grid">`;
-    groups[g].forEach(n => { html += mkCard(n, warn3); });
+  Object.keys(rawGroups).sort().forEach(g => {
+    const orderedNames = getGroupNames(g, rawGroups[g]);
+    const gEsc = esc(g);
+    html += `<div class="group-section" data-group="${gEsc}">
+      <div class="group-label">${gEsc}<span class="group-count">${orderedNames.length}</span></div>
+      <div class="card-grid" data-group="${gEsc}" 
+           ondragover="onDragOver(event)" ondrop="onDrop(event,'${gEsc}')">`;
+    orderedNames.forEach(n => { html += mkCard(n, warn3); });
     html += '</div></div>';
   });
   container.innerHTML = html;
+
+  // 若拖曳模式啟動中，重新附加拖曳事件
+  if (dragMode) attachDragEvents();
 }
 
 function mkCard(n, warn3) {
@@ -998,7 +1072,9 @@ function mkCard(n, warn3) {
   const warnTag = isWarn ? '<span class="warn3-badge">⚠ 連續3天未叫</span>' : '';
   const nn = esc(n);
 
-  return `<div class="ccard ${cls}" onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')">
+  return `<div class="ccard ${cls}" data-name="${nn}"
+    onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')"
+    ondragstart="onDragStart(event,'${nn}')" ondragend="onDragEnd(event)">
     ${warnTag}
     <button class="edit-btn" onclick="openEditModal(event,'${nn}')">✏</button>
     <div class="ccard-name">${nn}</div>
@@ -1011,11 +1087,13 @@ function mkCard(n, warn3) {
 }
 
 function toggle(n) {
+  if (dragMode) return; // 拖曳模式中停用點擊
   if (db[n].status === '未叫貨')     changeStatus(n, '有叫貨');
   else if (db[n].status === '有叫貨') changeStatus(n, '未叫貨');
 }
 function rightClick(e, n) {
   e.preventDefault();
+  if (dragMode) return;
   changeStatus(n, db[n].status === '今日不叫貨' ? '未叫貨' : '今日不叫貨');
 }
 function changeStatus(n, s) {
@@ -1023,6 +1101,84 @@ function changeStatus(n, s) {
   db[n].date = s === '未叫貨' ? '' : todayStr;
   save(); logEditTime(n, s); renderAll();
   toast(n + ' → ' + s);
+}
+
+// ── 拖曳模式 ──────────────────────────────────────────────────────────────
+function toggleDragMode() {
+  dragMode = !dragMode;
+  const btn = document.getElementById('drag-toggle-btn');
+  const page = document.getElementById('check-page');
+  btn.classList.toggle('active', dragMode);
+  page.classList.toggle('drag-mode-active', dragMode);
+  if (dragMode) {
+    attachDragEvents();
+    toast('✏ 排序模式：拖曳卡片調整位置');
+  } else {
+    toast('✅ 排序已儲存');
+  }
+}
+
+function attachDragEvents() {
+  document.querySelectorAll('.ccard').forEach(el => {
+    el.setAttribute('draggable', 'true');
+  });
+}
+
+function onDragStart(e, name) {
+  if (!dragMode) { e.preventDefault(); return; }
+  dragSrcName = name;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', name);
+  setTimeout(() => e.target.classList.add('dragging'), 0);
+}
+
+function onDragEnd(e) {
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.ccard.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  // 高亮目標卡片
+  document.querySelectorAll('.ccard.drag-over').forEach(el => el.classList.remove('drag-over'));
+  const target = e.target.closest('.ccard');
+  if (target && target.dataset.name !== dragSrcName) {
+    target.classList.add('drag-over');
+  }
+}
+
+function onDrop(e, groupName) {
+  e.preventDefault();
+  document.querySelectorAll('.ccard.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+  const targetCard = e.target.closest('.ccard');
+  const targetName = targetCard ? targetCard.dataset.name : null;
+  if (!dragSrcName || dragSrcName === targetName) return;
+
+  // 確認兩張卡片在同一群組
+  if (db[dragSrcName]?.fixed !== db[targetName]?.fixed &&
+      !(db[dragSrcName]?.fixed === undefined && db[targetName]?.fixed === undefined)) {
+    toast('⚠ 只能在同一負責人群組內調整順序', true); return;
+  }
+
+  // 取得目前排序，將 src 插入到 target 前
+  const group = db[dragSrcName]?.fixed || '未分類';
+  const allInGroup = Object.keys(db).filter(n => (db[n].fixed || '未分類') === group);
+  let ordered = getGroupNames(group, allInGroup);
+
+  const srcIdx = ordered.indexOf(dragSrcName);
+  const tgtIdx = ordered.indexOf(targetName);
+  if (srcIdx === -1 || tgtIdx === -1) return;
+
+  ordered.splice(srcIdx, 1);
+  const newTgtIdx = ordered.indexOf(targetName);
+  ordered.splice(newTgtIdx >= 0 ? newTgtIdx : ordered.length, 0, dragSrcName);
+
+  groupOrder[group] = ordered;
+  saveOrder();
+  renderGrid();
+  if (dragMode) attachDragEvents();
 }
 
 // ══════════════════════════════════════════════════════════
