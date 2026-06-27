@@ -338,7 +338,8 @@ body {
 .ccard.ordered   { background: var(--grn-bg);   border-color: var(--grn-bd);   color: var(--grn-dk); }
 .ccard.no-order  { background: var(--blu-bg);   border-color: var(--blu-bd);   color: var(--blu-dk); }
 .ccard.warn3     {
-  background: var(--amber-bg); border-color: var(--amber-bd); color: var(--amber-dk);
+  background: #fefce8; border-color: #fbbf24; color: #78350f;
+  border-left: 4px solid #f59e0b;
   animation: warn-pulse 2.6s ease-in-out infinite;
 }
 @keyframes warn-pulse {
@@ -361,10 +362,11 @@ body {
 
 .warn3-badge {
   position: absolute; top: 5px; right: 24px;
-  font-size: 8px; font-weight: 700; letter-spacing: .04em;
-  background: var(--amber); color: #fff;
-  padding: 1px 5px; border-radius: 99px;
+  font-size: 9px; font-weight: 700; letter-spacing: .03em;
+  background: #f59e0b; color: #fff;
+  padding: 2px 6px; border-radius: 99px;
   pointer-events: none;
+  box-shadow: 0 1px 3px rgba(245,158,11,.4);
 }
 .edit-btn {
   position: absolute; top: 5px; right: 5px;
@@ -590,6 +592,13 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <select id="filter-fixed" class="filter-select" onchange="renderGrid()">
       <option value="">全部負責人</option>
     </select>
+    <select id="filter-status" class="filter-select" onchange="renderGrid()">
+      <option value="">全部狀態</option>
+      <option value="未叫貨">未叫貨</option>
+      <option value="有叫貨">已叫貨</option>
+      <option value="今日不叫貨">今日不叫貨</option>
+      <option value="warn3">⚠ 3天未叫</option>
+    </select>
     <div class="ml-auto" style="display:flex;gap:8px;">
       <button class="btn btn-ghost" onclick="openAddModal()">＋ 新增</button>
       <button class="btn btn-reset" onclick="resetAll()">↺ 重置今日</button>
@@ -651,6 +660,11 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     </div>
   </div>
   <div id="import-status" style="padding:6px 20px;font-size:13px;color:var(--ink2);display:none;"></div>
+  <div id="print-placeholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:12px;color:var(--ink3);">
+    <div style="font-size:40px;">📂</div>
+    <div style="font-size:15px;font-weight:600;color:var(--ink2);">尚未匯入 Excel</div>
+    <div style="font-size:13px;">請點選上方「匯入 Excel」按鈕，載入打勾單後即可預覽與列印</div>
+  </div>
   <div class="print-wrap">
     <table class="print-table" id="print-table"></table>
   </div>
@@ -697,7 +711,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 // ══════════════════════════════════════════════════════════
 //  CLOUD SYNC
 // ══════════════════════════════════════════════════════════
-const API_URL = "https://script.google.com/macros/s/AKfycbyEYFIA77xqimTTHdhw10l5XCF9gtBhQq61sZgqVeypLeweGZX0EBe_--kcDa-gUvI/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwJZ1N0SayvqAG76N0TAqocmqm-qOiwUryaLSBEUO-qeGF0vZ-eMs0JWs1z2cTBQGU/exec";
 
 function setSyncDot(state) {
   const dot = document.getElementById('sync-dot');
@@ -930,9 +944,14 @@ function renderGrid() {
   const container = document.getElementById('grid-container');
   const warn3 = getWarn3Set();
 
+  const fs = document.getElementById('filter-status').value;
   const names = Object.keys(db).filter(n => {
     const d = db[n];
-    return (!q || n.toLowerCase().includes(q)) && (!ff || d.fixed === ff);
+    if (q && !n.toLowerCase().includes(q)) return false;
+    if (ff && d.fixed !== ff) return false;
+    if (fs === 'warn3') return warn3.has(n) && d.status === '未叫貨';
+    if (fs && d.status !== fs) return false;
+    return true;
   });
 
   if (!names.length) {
@@ -961,7 +980,7 @@ function mkCard(n, warn3) {
   else if (isWarn)                   { cls = 'warn3';      lbl = '連續未叫'; }
   else                               { cls = 'unordered';  lbl = '未叫貨'; }
 
-  const warnTag = isWarn ? '<span class="warn3-badge">⚠ 3天</span>' : '';
+  const warnTag = isWarn ? '<span class="warn3-badge">⚠ 連續3天未叫</span>' : '';
   const nn = esc(n);
 
   return `<div class="ccard ${cls}" onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')">
@@ -1089,24 +1108,10 @@ let importedWbData = null;
 function renderPrint() { importedWbData ? renderPrintFromExcel() : renderPrintDefault(); }
 
 function renderPrintDefault() {
-  const warn3 = getWarn3Set();
-  const names = Object.keys(db);
-  const COLS = 5;
-  let html = '<thead><tr>';
-  for (let i=0;i<COLS;i++) html += '<th>客戶名稱</th><th></th><th></th><th></th><th></th><th></th><th></th>';
-  html += '</tr></thead><tbody>';
-  for (let i=0;i<names.length;i+=COLS) {
-    html += '<tr>';
-    for (let j=0;j<COLS;j++) {
-      const n=names[i+j];
-      if (n) {
-        const iw = warn3.has(n) && db[n].status === '未叫貨';
-        html += `<td class="name-cell${iw?' name-warn':''}">${iw?'⚠ ':''}${esc(n)}</td><td></td><td></td><td></td><td></td><td></td><td></td>`;
-      } else html += '<td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
-    }
-    html += '</tr>';
-  }
-  document.getElementById('print-table').innerHTML = html + '</tbody>';
+  // 未匯入 Excel 時，顯示提示而非預設表格
+  document.getElementById('print-table').innerHTML = '';
+  const wrap = document.getElementById('print-placeholder');
+  if (wrap) wrap.style.display = 'flex';
 }
 
 function importExcel(input) {
@@ -1136,6 +1141,8 @@ function importExcel(input) {
 }
 
 function renderPrintFromExcel() {
+  const ph = document.getElementById('print-placeholder');
+  if (ph) ph.style.display = 'none';
   const { rows, todayColIndices, headerRow } = importedWbData;
   const CPG=7, warn3=getWarn3Set();
   const ordSet = new Set(Object.keys(db).filter(n => db[n].status==='有叫貨'));
