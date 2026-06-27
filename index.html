@@ -713,12 +713,26 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 // ══════════════════════════════════════════════════════════
 const API_URL = "https://script.google.com/macros/s/AKfycbwJZ1N0SayvqAG76N0TAqocmqm-qOiwUryaLSBEUO-qeGF0vZ-eMs0JWs1z2cTBQGU/exec";
 
+// 本地操作鎖：用戶操作後暫停雲端覆蓋，等待推送完成
+let _localLock = false;
+let _syncInterval = null;
+
 function setSyncDot(state) {
   const dot = document.getElementById('sync-dot');
   dot.className = 'sync-dot' + (state ? ' ' + state : '');
 }
 
+// 設定本地鎖：鎖定期間不讓雲端資料覆蓋本地
+function lockLocal(ms = 8000) {
+  _localLock = true;
+  clearTimeout(lockLocal._t);
+  lockLocal._t = setTimeout(() => { _localLock = false; }, ms);
+}
+
 async function syncFromCloud() {
+  // 本地有未推送完的操作時，跳過這次同步，避免覆蓋
+  if (_localLock) return;
+
   setSyncDot('syncing');
   try {
     const res  = await fetch(API_URL);
@@ -742,6 +756,7 @@ async function syncFromCloud() {
 }
 
 async function saveToCloud(key, val) {
+  lockLocal(10000); // 推送開始，鎖定 10 秒，防止同步覆蓋
   setSyncDot('syncing');
   try {
     await fetch(API_URL, {
@@ -1316,7 +1331,7 @@ function toast(msg, isErr) {
 // ══════════════════════════════════════════════════════════
 window.addEventListener('load', ()=>{
   syncFromCloud();
-  setInterval(syncFromCloud, 5000);
+  _syncInterval = setInterval(syncFromCloud, 6000); // 6秒同步一次
 });
 init();
 </script>
