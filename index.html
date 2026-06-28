@@ -741,6 +741,97 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .notice-author-input:focus { border-color: var(--accent); }
 
 /* ═══════════════════════════════════════════════════
+   ANALYTICS PAGE
+═══════════════════════════════════════════════════ */
+.analytics-wrap {
+  padding: 20px;
+}
+.analytics-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+}
+.analytics-title {
+  font-size: 15px; font-weight: 700; color: var(--ink);
+}
+.analytics-month-nav {
+  display: flex; align-items: center; gap: 8px;
+}
+.month-btn {
+  width: 30px; height: 30px; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--white);
+  cursor: pointer; font-size: 14px; color: var(--ink2);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.month-btn:hover { background: var(--line2); }
+.month-label {
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  min-width: 80px; text-align: center;
+}
+.analytics-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.analytics-card-title {
+  font-size: 12px; font-weight: 600; color: var(--ink3);
+  letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.chart-legend {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--ink2);
+}
+.legend-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+/* SVG 折線圖容器 */
+.chart-svg-wrap {
+  width: 100%; overflow-x: auto;
+}
+.chart-svg-wrap svg {
+  display: block; min-width: 320px;
+}
+/* 今日摘要卡片 */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.summary-card {
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+}
+.summary-card-label {
+  font-size: 11px; color: var(--ink3); font-weight: 500;
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 4px;
+}
+.summary-card-val {
+  font-size: 26px; font-weight: 800; color: var(--ink);
+  letter-spacing: -.5px; line-height: 1;
+}
+.summary-card-sub {
+  font-size: 11px; color: var(--ink3); margin-top: 2px;
+}
+/* 無資料提示 */
+.analytics-empty {
+  text-align: center; padding: 48px 20px;
+  color: var(--ink3); font-size: 14px;
+}
+.analytics-empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+/* ═══════════════════════════════════════════════════
    PRINT MEDIA
 ═══════════════════════════════════════════════════ */
 @media print {
@@ -851,6 +942,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 <nav class="tabs no-print">
   <button class="tab active" onclick="switchTab('check',this)">打勾單</button>
   <button class="tab" onclick="switchTab('backend',this)">後台管理</button>
+  <button class="tab" onclick="switchTab('analytics',this)">📊 趨勢分析</button>
   <button class="tab" onclick="switchTab('print',this)">列印預覽</button>
 </nav>
 
@@ -918,6 +1010,47 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
       <thead><tr id="history-thead-row"></tr></thead>
       <tbody id="backend-tbody"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PAGE: 趨勢分析
+══════════════════════════════════════════════════ -->
+<div id="analytics-page" class="page">
+  <div class="analytics-wrap">
+
+    <!-- 標頭：月份切換 -->
+    <div class="analytics-header">
+      <div class="analytics-title">📊 每月叫貨趨勢</div>
+      <div class="analytics-month-nav">
+        <button class="month-btn" onclick="analyticsChangeMonth(-1)">‹</button>
+        <span class="month-label" id="analytics-month-label"></span>
+        <button class="month-btn" onclick="analyticsChangeMonth(1)">›</button>
+      </div>
+    </div>
+
+    <!-- 今日 / 當月摘要 -->
+    <div class="summary-grid" id="analytics-summary"></div>
+
+    <!-- 折線圖 -->
+    <div class="analytics-card">
+      <div class="analytics-card-title">每日店家數量趨勢</div>
+      <div class="chart-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>已叫貨</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>未叫貨</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>今日不叫</span>
+      </div>
+      <div class="chart-svg-wrap" id="analytics-chart"></div>
+    </div>
+
+    <!-- 每日明細表 -->
+    <div class="analytics-card">
+      <div class="analytics-card-title">每日明細</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;" id="analytics-table"></table>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1245,6 +1378,10 @@ function renderAll() {
   renderTable();
   renderPrint();
   renderNotices();
+  // 只在分析頁面顯示時才渲染（避免效能問題）
+  if (document.getElementById('analytics-page').classList.contains('active')) {
+    renderAnalytics();
+  }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1960,6 +2097,7 @@ function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   document.getElementById(id+'-page').classList.add('active');
   btn.classList.add('active');
+  if (id === 'analytics') renderAnalytics();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2013,6 +2151,224 @@ function saveUserName() {
   updateUserTag();
   closeUserModal();
   toast(`✅ 暱稱已設定為「${name}」`);
+}
+
+// ══════════════════════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════════════════════
+let analyticsYear  = today.getFullYear();
+let analyticsMonth = today.getMonth(); // 0-indexed
+
+function analyticsChangeMonth(delta) {
+  analyticsMonth += delta;
+  if (analyticsMonth < 0)  { analyticsMonth = 11; analyticsYear--; }
+  if (analyticsMonth > 11) { analyticsMonth = 0;  analyticsYear++; }
+  renderAnalytics();
+}
+
+function renderAnalytics() {
+  const y = analyticsYear, m = analyticsMonth;
+  const monthStr = `${y}年 ${m+1}月`;
+  document.getElementById('analytics-month-label').textContent = monthStr;
+
+  // 取得該月所有日期的資料
+  // historyLog: [{date:'2025/07/01', records:{name:status}}, ...]
+  // 今日資料從 db 直接取
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const dayData = []; // [{date, ord, un, no, total}]
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+    let ord=0, un=0, no=0;
+
+    if (dateStr === todayStr) {
+      // 今日：從當前 db 取
+      Object.values(db).forEach(v => {
+        if (v.status === '有叫貨')     ord++;
+        else if (v.status === '今日不叫貨') no++;
+        else un++;
+      });
+    } else {
+      // 歷史：從 historyLog 取
+      const entry = historyLog.find(h => h.date === dateStr);
+      if (entry && entry.records) {
+        const total = Object.keys(db).length;
+        Object.values(entry.records).forEach(s => {
+          if (s === '有叫貨')     ord++;
+          else if (s === '今日不叫貨') no++;
+          else un++;
+        });
+        // 有些客戶可能沒有記錄，視為未叫貨
+        const recorded = ord + un + no;
+        un += Math.max(0, total - recorded);
+      } else {
+        // 無資料的日期跳過（未來的日期或沒有重置的日期）
+        dayData.push({ date: dateStr, day: d, ord: null, un: null, no: null, total: null });
+        continue;
+      }
+    }
+    const total = ord + un + no;
+    dayData.push({ date: dateStr, day: d, ord, un, no, total });
+  }
+
+  const validDays = dayData.filter(d => d.total !== null);
+
+  // ── 摘要卡片 ──────────────────────────────────────────
+  const totalOrd = validDays.reduce((s, d) => s + d.ord, 0);
+  const avgOrd   = validDays.length ? Math.round(totalOrd / validDays.length) : 0;
+  const maxOrd   = validDays.length ? Math.max(...validDays.map(d => d.ord)) : 0;
+  const todayData = dayData.find(d => d.date === todayStr);
+  const todayOrd  = todayData?.ord ?? 0;
+  const todayPct  = todayData?.total ? Math.round(todayOrd / todayData.total * 100) : 0;
+
+  document.getElementById('analytics-summary').innerHTML = `
+    <div class="summary-card">
+      <div class="summary-card-label"><span style="color:var(--grn)">●</span> 今日已叫貨</div>
+      <div class="summary-card-val" style="color:var(--grn-dk)">${todayOrd}</div>
+      <div class="summary-card-sub">共 ${todayData?.total ?? 0} 家・${todayPct}%</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-card-label"><span style="color:var(--red)">●</span> 今日未叫貨</div>
+      <div class="summary-card-val" style="color:var(--red-dk)">${todayData?.un ?? 0}</div>
+      <div class="summary-card-sub">今日不叫 ${todayData?.no ?? 0} 家</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-card-label"><span style="color:var(--accent)">●</span> 月平均叫貨</div>
+      <div class="summary-card-val" style="color:var(--accent)">${avgOrd}</div>
+      <div class="summary-card-sub">共 ${validDays.length} 天資料</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-card-label"><span style="color:var(--amber)">●</span> 單日最高叫貨</div>
+      <div class="summary-card-val" style="color:var(--amber-dk)">${maxOrd}</div>
+      <div class="summary-card-sub">本月峰值</div>
+    </div>`;
+
+  if (!validDays.length) {
+    document.getElementById('analytics-chart').innerHTML =
+      '<div class="analytics-empty"><div class="analytics-empty-icon">📭</div>本月尚無叫貨記錄<br><small style="color:var(--ink3);font-size:12px;margin-top:6px;display:block;">每日按「重置今日」後才會記錄當天快照</small></div>';
+    document.getElementById('analytics-table').innerHTML = '';
+    return;
+  }
+
+  // ── SVG 折線圖 ──────────────────────────────────────
+  renderLineChart(dayData, daysInMonth);
+
+  // ── 每日明細表 ──────────────────────────────────────
+  renderAnalyticsTable(dayData);
+}
+
+function renderLineChart(dayData, daysInMonth) {
+  const W = Math.max(600, daysInMonth * 28);
+  const H = 220;
+  const PAD = { top: 20, right: 20, bottom: 36, left: 44 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top  - PAD.bottom;
+
+  const validDays = dayData.filter(d => d.total !== null);
+  if (!validDays.length) return;
+
+  const maxVal = Math.max(...validDays.map(d => Math.max(d.ord, d.un, d.no)), 1);
+  // 讓 Y 軸最大值稍大，留白
+  const yMax = Math.ceil(maxVal * 1.15 / 10) * 10 || 10;
+
+  const xPos = d => PAD.left + ((d.day - 1) / (daysInMonth - 1 || 1)) * cW;
+  const yPos = v => PAD.top + cH - (v / yMax) * cH;
+
+  // Y 軸格線
+  const yTicks = 4;
+  let gridLines = '', yLabels = '';
+  for (let i = 0; i <= yTicks; i++) {
+    const v = Math.round(yMax * i / yTicks);
+    const y = yPos(v);
+    gridLines += `<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`;
+    yLabels  += `<text x="${PAD.left - 6}" y="${y+4}" text-anchor="end" font-size="10" fill="#9ca3af">${v}</text>`;
+  }
+
+  // X 軸標籤（每 5 天顯示一次）
+  let xLabels = '';
+  dayData.forEach(d => {
+    if (d.day === 1 || d.day % 5 === 0 || d.day === daysInMonth) {
+      xLabels += `<text x="${xPos(d)}" y="${H - PAD.bottom + 16}" text-anchor="middle" font-size="10" fill="#9ca3af">${d.day}</text>`;
+    }
+  });
+
+  // 折線 + 資料點產生器
+  function makePath(key, color) {
+    const pts = validDays.map(d => `${xPos(d)},${yPos(d[key])}`);
+    const path = `M${pts.join(' L')}`;
+    // 面積填色
+    const first = validDays[0], last = validDays.at(-1);
+    const area  = `M${xPos(first)},${yPos(0)} L${pts.join(' L')} L${xPos(last)},${yPos(0)} Z`;
+    let dots = '';
+    validDays.forEach(d => {
+      dots += `<circle cx="${xPos(d)}" cy="${yPos(d[key])}" r="3" fill="${color}" stroke="white" stroke-width="1.5">
+        <title>${d.date.slice(5)}：${d[key]} 家</title>
+      </circle>`;
+    });
+    return `
+      <path d="${area}" fill="${color}" fill-opacity=".08"/>
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}`;
+  }
+
+  // 今日標示線
+  const todayEntry = dayData.find(d => d.date === todayStr);
+  let todayLine = '';
+  if (todayEntry) {
+    const tx = xPos(todayEntry);
+    todayLine = `<line x1="${tx}" y1="${PAD.top}" x2="${tx}" y2="${H-PAD.bottom}" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4,3" opacity=".5"/>
+      <text x="${tx}" y="${PAD.top - 5}" text-anchor="middle" font-size="9" fill="#6366f1" font-weight="600">今日</text>`;
+  }
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif">
+    ${gridLines}
+    ${yLabels}
+    ${xLabels}
+    <text x="${PAD.left + cW/2}" y="${H}" text-anchor="middle" font-size="11" fill="#9ca3af">日期</text>
+    ${makePath('ord', '#10b981')}
+    ${makePath('un',  '#ef4444')}
+    ${makePath('no',  '#3b82f6')}
+    ${todayLine}
+  </svg>`;
+
+  document.getElementById('analytics-chart').innerHTML = svg;
+}
+
+function renderAnalyticsTable(dayData) {
+  const validDays = dayData.filter(d => d.total !== null).reverse(); // 最新在前
+  let html = `<thead><tr style="background:var(--page);">
+    <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--ink3);border-bottom:1px solid var(--line);white-space:nowrap;">日期</th>
+    <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:#10b981;border-bottom:1px solid var(--line);">已叫貨</th>
+    <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:#ef4444;border-bottom:1px solid var(--line);">未叫貨</th>
+    <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:#3b82f6;border-bottom:1px solid var(--line);">今日不叫</th>
+    <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:var(--ink3);border-bottom:1px solid var(--line);">總計</th>
+    <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:var(--ink3);border-bottom:1px solid var(--line);">叫貨率</th>
+  </tr></thead><tbody>`;
+
+  validDays.forEach(d => {
+    const isToday = d.date === todayStr;
+    const pct = d.total ? Math.round(d.ord / d.total * 100) : 0;
+    const rowBg = isToday ? 'background:#eef2ff;' : '';
+    html += `<tr style="${rowBg}">
+      <td style="padding:7px 12px;border-bottom:1px solid var(--line2);font-weight:${isToday?700:400};color:${isToday?'var(--accent)':'var(--ink)'};">
+        ${d.date.slice(5)}${isToday ? ' <span style="font-size:10px;color:var(--accent);">(今日)</span>' : ''}
+      </td>
+      <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);font-weight:700;color:#065f46;">${d.ord}</td>
+      <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);color:#9f1239;">${d.un}</td>
+      <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);color:#1e3a8a;">${d.no}</td>
+      <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);color:var(--ink2);">${d.total}</td>
+      <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);">
+        <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
+          <div style="width:50px;height:5px;background:var(--line2);border-radius:99px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:#10b981;border-radius:99px;"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:${pct>=80?'var(--grn-dk)':pct>=50?'var(--ink2)':'var(--red-dk)'};">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('analytics-table').innerHTML = html;
 }
 
 // ══════════════════════════════════════════════════════════
