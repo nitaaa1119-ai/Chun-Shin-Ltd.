@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>忠欣 · 叫貨系統</title>
+<title>忠欣 · 打勾單系統</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -97,6 +97,73 @@ body {
   font-size: 12px; color: var(--ink3);
   margin-left: auto;
   font-variant-numeric: tabular-nums;
+}
+.user-tag {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-lt);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.user-tag:hover { background: #e0e7ff; }
+.user-tag-avatar {
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-lt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.user-tag-name {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+}
+/* 暱稱設定 Modal */
+.user-modal {
+  background: var(--white); border-radius: 18px;
+  width: 90%; max-width: 320px; padding: 24px;
+  box-shadow: var(--shadow-lg);
+  transform: scale(.94) translateY(8px);
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.overlay.open .user-modal { transform: scale(1) translateY(0); }
+.user-modal-title {
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  margin-bottom: 6px;
+}
+.user-modal-sub {
+  font-size: 12px; color: var(--ink3); margin-bottom: 16px;
+}
+.user-name-input {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--line); border-radius: var(--r-sm);
+  font-size: 16px; font-weight: 600; color: var(--ink);
+  background: var(--page); outline: none; text-align: center;
+  letter-spacing: .04em;
+  transition: border-color .15s, box-shadow .15s;
+}
+.user-name-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+  background: var(--white);
+}
+.user-icon-row {
+  display: flex; gap: 8px; justify-content: center;
+  flex-wrap: wrap; margin: 14px 0;
+}
+.user-icon-btn {
+  width: 40px; height: 40px; border-radius: var(--r-sm);
+  border: 2px solid var(--line); background: var(--page);
+  cursor: pointer; font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .12s, border-color .12s, background .12s;
+}
+.user-icon-btn:hover { transform: scale(1.15); background: var(--line2); }
+.user-icon-btn.selected {
+  border-color: var(--accent); background: var(--accent-bg);
+  transform: scale(1.1);
 }
 .sync-dot {
   width: 7px; height: 7px; border-radius: 50%;
@@ -702,12 +769,31 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   <div class="brand">
     <div class="brand-mark">忠</div>
     <div>
-      <div class="brand-name">忠欣叫貨</div>
+      <div class="brand-name">忠欣打勾單系統</div>
     </div>
   </div>
   <div id="topbar-date" class="topbar-date"></div>
+  <div class="user-tag" id="user-tag" onclick="openUserModal()" title="點擊設定暱稱">
+    <div class="user-tag-avatar" id="user-avatar">?</div>
+    <span class="user-tag-name" id="user-tag-name">設定暱稱</span>
+  </div>
   <div class="sync-dot" id="sync-dot" title="同步狀態"></div>
 </header>
+
+<!-- 暱稱設定 Modal -->
+<div class="overlay" id="user-overlay" onclick="if(event.target===this)closeUserModal()">
+  <div class="user-modal">
+    <div class="user-modal-title">👤 我是誰？</div>
+    <div class="user-modal-sub">設定暱稱和專屬圖示，你的叫貨操作會顯示在後台記錄和卡片上</div>
+    <input class="user-name-input" id="user-name-input" placeholder="輸入暱稱" maxlength="6"
+           onkeydown="if(event.key==='Enter')saveUserName()">
+    <div class="user-icon-row" id="user-icon-row"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeUserModal()">取消</button>
+      <button class="btn btn-primary" style="flex:1" onclick="saveUserName()">確定</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── STAT STRIP ───────────────────────────────── -->
 <div class="statstrip no-print">
@@ -998,6 +1084,10 @@ let dragSrcName = null;
 const HISTORY_DAYS = 6;
 const NOTICE_MAX = 20; // 最多顯示幾則留言
 
+// 操作者識別
+let currentUser = { name: '', color: '#6366f1' };
+const USER_ICONS = ['🐱','🐶','🐼','🐸','🦊','🐨','🐯','🦁','🐺','🐻','🐧','🦋','🌟','🍀','🌈','🎈'];
+
 // ══════════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════════
@@ -1026,13 +1116,25 @@ function init() {
   const nt = localStorage.getItem('zhongxin_notices_v1');
   notices = nt ? JSON.parse(nt) : [];
 
+  // 讀取操作者暱稱
+  const savedUser = localStorage.getItem('zhongxin_user_v1');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+  }
+  // 還原留言板暱稱
+  const savedAuthor = localStorage.getItem('zhongxin_notice_author');
+  if (savedAuthor) document.getElementById('notice-author').value = savedAuthor;
+
   ensureTodayEditLog();
   save(); saveHistory();
   buildFixedFilter();
-  // 還原上次暱稱
-  const savedAuthor = localStorage.getItem('zhongxin_notice_author');
-  if (savedAuthor) document.getElementById('notice-author').value = savedAuthor;
   renderAll();
+  updateUserTag();
+
+  // 第一次使用時彈出暱稱設定
+  if (!currentUser.name) {
+    setTimeout(openUserModal, 600);
+  }
 }
 
 function ensureTodayEditLog() {
@@ -1113,8 +1215,8 @@ function logEditTime(name, status) {
   const now = new Date();
   const t = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   const last = entry.editLog[name].at(-1);
-  if (last && last.time === t && last.status === status) return;
-  entry.editLog[name].push({ time: t, status });
+  if (last && last.time === t && last.status === status && last.user === currentUser.name) return;
+  entry.editLog[name].push({ time: t, status, user: currentUser.name || '?', icon: currentUser.icon || '👤' });
   saveHistory();
 }
 
@@ -1314,6 +1416,13 @@ function mkCard(n, warn3) {
   const warnTag = isWarn ? '<span class="warn3-badge">⚠ 連續3天未叫</span>' : '';
   const nn = esc(n);
 
+  // 找出今日最後操作者
+  const todayEntry = getTodayEntry();
+  const logs = todayEntry?.editLog?.[n] || [];
+  const lastLog = logs.at(-1);
+  const lastUser = lastLog?.user || '';
+  const lastIcon = lastLog?.icon || '';
+
   return `<div class="ccard ${cls}" data-name="${nn}"
     onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')"
     ondragstart="onDragStart(event,'${nn}')" ondragend="onDragEnd(event)">
@@ -1323,7 +1432,7 @@ function mkCard(n, warn3) {
     <div class="ccard-foot">
       <span class="ccard-dot"></span>
       <span>${lbl}</span>
-      ${d.date ? `<span>${d.date.slice(5)}</span>` : ''}
+      ${lastUser ? `<span style="font-size:11px;" title="${esc(lastUser)}">${esc(lastIcon)} ${esc(lastUser)}</span>` : (d.date ? `<span>${d.date.slice(5)}</span>` : '')}
     </div>
   </div>`;
 }
@@ -1565,7 +1674,14 @@ function renderTable() {
       html += '<ul class="tl-list">';
       logs.forEach(log => {
         const dc = log.status === '有叫貨' ? 'ordered' : log.status === '今日不叫貨' ? 'no-order' : 'unordered';
-        html += `<li class="tl-item"><span class="tl-dot ${dc}"></span><span class="tl-time">${esc(log.time)}</span><span class="tl-status">${esc(log.status)}</span></li>`;
+        const userIcon = log.icon || '👤';
+        const userName = log.user || '—';
+        html += `<li class="tl-item">
+          <span class="tl-dot ${dc}"></span>
+          <span class="tl-time">${esc(log.time)}</span>
+          <span class="tl-status">${esc(log.status)}</span>
+          <span class="tl-user" style="background:var(--line2);border-radius:99px;padding:1px 7px;font-size:10px;font-weight:600;color:var(--ink2);margin-left:2px;">${esc(userIcon)} ${esc(userName)}</span>
+        </li>`;
       });
       html += '</ul>';
     }
@@ -1844,6 +1960,59 @@ function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   document.getElementById(id+'-page').classList.add('active');
   btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════
+//  USER IDENTITY
+// ══════════════════════════════════════════════════════════
+function updateUserTag() {
+  const name = currentUser.name || '';
+  const icon = currentUser.icon || '👤';
+  const avatar = document.getElementById('user-avatar');
+  const tag    = document.getElementById('user-tag-name');
+  if (avatar) avatar.textContent = icon;
+  if (tag) tag.textContent = name || '設定暱稱';
+}
+
+function openUserModal() {
+  const input = document.getElementById('user-name-input');
+  input.value = currentUser.name || '';
+
+  // 繪製 icon 選擇器
+  const row = document.getElementById('user-icon-row');
+  row.innerHTML = USER_ICONS.map(ic =>
+    `<div class="user-icon-btn${ic === currentUser.icon ? ' selected' : ''}"
+      onclick="selectUserIcon('${ic}')" data-icon="${ic}">${ic}</div>`
+  ).join('');
+
+  document.getElementById('user-overlay').classList.add('open');
+  setTimeout(() => input.focus(), 150);
+}
+
+function closeUserModal() {
+  document.getElementById('user-overlay').classList.remove('open');
+}
+
+function selectUserIcon(icon) {
+  currentUser.icon = icon;
+  document.querySelectorAll('.user-icon-btn').forEach(el => {
+    el.classList.toggle('selected', el.dataset.icon === icon);
+  });
+}
+
+function saveUserName() {
+  const name = document.getElementById('user-name-input').value.trim().slice(0, 6);
+  if (!name) { document.getElementById('user-name-input').focus(); return; }
+  currentUser.name = name;
+  if (!currentUser.icon) currentUser.icon = USER_ICONS[Math.floor(Math.random() * USER_ICONS.length)];
+  localStorage.setItem('zhongxin_user_v1', JSON.stringify(currentUser));
+  // 同步留言板暱稱
+  const authorEl = document.getElementById('notice-author');
+  if (authorEl) authorEl.value = name;
+  localStorage.setItem('zhongxin_notice_author', name);
+  updateUserTag();
+  closeUserModal();
+  toast(`✅ 暱稱已設定為「${name}」`);
 }
 
 // ══════════════════════════════════════════════════════════
