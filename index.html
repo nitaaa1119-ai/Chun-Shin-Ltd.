@@ -559,21 +559,48 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .notice-board {
   background: var(--white);
   border-bottom: 1px solid var(--line);
-  padding: 10px 20px;
-  display: flex; align-items: stretch; gap: 12px;
   overflow: hidden;
 }
+.notice-board-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 20px; cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.notice-board-header:hover { background: var(--line2); }
 .notice-board-label {
   display: flex; align-items: center; gap: 6px;
   font-size: 11px; font-weight: 700; color: var(--accent);
   letter-spacing: .06em; white-space: nowrap;
-  flex-shrink: 0; padding-right: 12px;
-  border-right: 1px solid var(--line);
+  flex-shrink: 0;
 }
+.notice-badge {
+  background: var(--red); color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 1px 5px; border-radius: 99px;
+  min-width: 16px; text-align: center;
+  display: none;
+}
+.notice-badge.visible { display: inline-block; }
+.notice-preview {
+  flex: 1; font-size: 12px; color: var(--ink3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-width: 0;
+}
+.notice-chevron {
+  font-size: 10px; color: var(--ink3);
+  transition: transform .2s; flex-shrink: 0;
+}
+.notice-board.open .notice-chevron { transform: rotate(180deg); }
+.notice-body {
+  display: none;
+  padding: 0 20px 12px;
+  border-top: 1px solid var(--line2);
+}
+.notice-board.open .notice-body { display: block; }
 .notice-ticker {
-  flex: 1; overflow: hidden; position: relative;
-  display: flex; align-items: center;
-  min-height: 28px;
+  overflow: hidden; position: relative;
+  min-height: 28px; margin-bottom: 8px;
 }
 .notice-list {
   list-style: none;
@@ -611,13 +638,13 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .notice-del:hover { color: var(--red); }
 .notice-input-wrap {
   display: flex; align-items: center; gap: 6px;
-  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 .notice-input {
   padding: 5px 10px;
   border: 1px solid var(--line); border-radius: var(--r-sm);
   font-size: 13px; color: var(--ink); background: var(--page);
-  outline: none; width: 220px;
+  outline: none; flex: 1; min-width: 120px;
   transition: border-color .15s, box-shadow .15s;
 }
 .notice-input:focus {
@@ -712,16 +739,25 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 
 <!-- ── NOTICE BOARD ─────────────────────────────── -->
 <div class="notice-board no-print" id="notice-board">
-  <div class="notice-board-label">📌 留言板</div>
-  <div class="notice-ticker">
-    <ul class="notice-list" id="notice-list">
-      <li class="notice-empty" id="notice-empty">尚無留言</li>
-    </ul>
+  <!-- 收合標頭，點擊展開/收起 -->
+  <div class="notice-board-header" onclick="toggleNoticeBoard()">
+    <span class="notice-board-label">📌 留言板</span>
+    <span class="notice-badge" id="notice-badge"></span>
+    <span class="notice-preview" id="notice-preview">點此展開留言板</span>
+    <span class="notice-chevron">▼</span>
   </div>
-  <div class="notice-input-wrap">
-    <input class="notice-author-input" id="notice-author" placeholder="暱稱" maxlength="6">
-    <input class="notice-input" id="notice-input" placeholder="輸入留言…" maxlength="60" onkeydown="if(event.key==='Enter')postNotice()">
-    <button class="notice-send" onclick="postNotice()">送出</button>
+  <!-- 展開後的內容 -->
+  <div class="notice-body">
+    <div class="notice-ticker" style="margin-top:8px;">
+      <ul class="notice-list" id="notice-list">
+        <li class="notice-empty" id="notice-empty">尚無留言</li>
+      </ul>
+    </div>
+    <div class="notice-input-wrap" style="margin-top:8px;">
+      <input class="notice-author-input" id="notice-author" placeholder="暱稱" maxlength="6">
+      <input class="notice-input" id="notice-input" placeholder="輸入留言…" maxlength="60" onkeydown="if(event.key==='Enter')postNotice()">
+      <button class="notice-send" onclick="postNotice()">送出</button>
+    </div>
   </div>
 </div>
 
@@ -939,7 +975,7 @@ async function saveToCloud(key, val) {
 // ══════════════════════════════════════════════════════════
 //  INITIAL DATA
 // ══════════════════════════════════════════════════════════
-const INIT = {"彭園林森":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園三重":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園板橋":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園忠孝":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園基隆":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園八德":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園新店":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園新板":{"status":"未叫貨","date":"","fixed":"孟潔"},"彭園通安":{"status":"未叫貨","date":"","fixed":"孟潔"},"一品宴":{"status":"未叫貨","date":"","fixed":"孟潔"},"湘8老":{"status":"未叫貨","date":"","fixed":"孟潔"},"吉吉園":{"status":"未叫貨","date":"","fixed":"散單"},"豪鼎新店":{"status":"未叫貨","date":"","fixed":"散單"},"水源公館":{"status":"未叫貨","date":"","fixed":"散單"},"東方":{"status":"未叫貨","date":"","fixed":"散單"},"長春":{"status":"未叫貨","date":"","fixed":"散單"},"絕好調":{"status":"未叫貨","date":"","fixed":"散單"},"馳走屋":{"status":"未叫貨","date":"","fixed":"散單"},"悅華軒":{"status":"未叫貨","date":"","fixed":"散單"},"和民站前":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作裕隆":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作北車":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作桂北":{"status":"未叫貨","date":"","fixed":"阿巧"},"手作青埔":{"status":"未叫貨","date":"","fixed":"阿巧"},"上村北車":{"status":"未叫貨","date":"","fixed":"阿巧"},"晶麒":{"status":"未叫貨","date":"","fixed":"阿巧"},"甜蜜森林":{"status":"未叫貨","date":"","fixed":"阿巧"},"鉑宴":{"status":"未叫貨","date":"","fixed":"散單"},"桐花民生":{"status":"未叫貨","date":"","fixed":"散單"},"中國信託":{"status":"未叫貨","date":"","fixed":"學姐"},"瑞健":{"status":"未叫貨","date":"","fixed":"學姐"},"薇閣":{"status":"未叫貨","date":"","fixed":"阿巧"},"璿民":{"status":"未叫貨","date":"","fixed":"阿巧"},"MMK忠孝":{"status":"未叫貨","date":"","fixed":"阿巧"},"PAUL仁愛":{"status":"未叫貨","date":"","fixed":"阿巧"},"PAUL林口":{"status":"未叫貨","date":"","fixed":"阿巧"},"UKAI":{"status":"未叫貨","date":"","fixed":"阿巧"},"藍象央廚":{"status":"未叫貨","date":"","fixed":"散單"},"藍象新光":{"status":"未叫貨","date":"","fixed":"散單"},"藍象巨城":{"status":"未叫貨","date":"","fixed":"散單"},"藍象林口":{"status":"未叫貨","date":"","fixed":"散單"},"共同存在":{"status":"未叫貨","date":"","fixed":"散單"},"晶湯SOGO":{"status":"未叫貨","date":"","fixed":"散單"},"晶湯京站":{"status":"未叫貨","date":"","fixed":"散單"},"咖啡北車":{"status":"未叫貨","date":"","fixed":"學姐"},"咖啡士林":{"status":"未叫貨","date":"","fixed":"學姐"},"咖啡央廚":{"status":"未叫貨","date":"","fixed":"學姐"},"總督":{"status":"未叫貨","date":"","fixed":"散單"},"雙岩幸福":{"status":"未叫貨","date":"","fixed":"散單"},"八和大安":{"status":"未叫貨","date":"","fixed":"散單"},"八和敦北":{"status":"未叫貨","date":"","fixed":"散單"},"花田盛事":{"status":"有叫貨","date":"","fixed":"散單"},"芯聚苑":{"status":"未叫貨","date":"","fixed":"琪姐"},"大黑屋":{"status":"未叫貨","date":"","fixed":"散單"},"鮪一大安":{"status":"未叫貨","date":"","fixed":"散單"},"鮪一永吉":{"status":"有叫貨","date":"","fixed":"散單"},"鮪一八德":{"status":"未叫貨","date":"","fixed":"散單"},"廣泰樓":{"status":"未叫貨","date":"","fixed":"散單"},"KikiATT":{"status":"未叫貨","date":"","fixed":"琪姐"},"胡饕市府":{"status":"未叫貨","date":"","fixed":"散單"},"胡饕興安":{"status":"有叫貨","date":"","fixed":"散單"},"胡饕土城":{"status":"有叫貨","date":"","fixed":"散單"},"胡饕天母":{"status":"有叫貨","date":"","fixed":"散單"},"胡饕總部":{"status":"未叫貨","date":"","fixed":"散單"},"富善光復":{"status":"有叫貨","date":"","fixed":"散單"},"富善昆明":{"status":"未叫貨","date":"","fixed":"散單"},"富善民樂":{"status":"未叫貨","date":"","fixed":"散單"},"富善三重":{"status":"未叫貨","date":"","fixed":"散單"},"黑武大安":{"status":"未叫貨","date":"","fixed":"散單"},"黑武信義":{"status":"有叫貨","date":"","fixed":"散單"},"便當大安":{"status":"未叫貨","date":"","fixed":"散單"},"味道西寧":{"status":"有叫貨","date":"","fixed":"散單"},"味道京站":{"status":"有叫貨","date":"","fixed":"散單"},"敘香園":{"status":"未叫貨","date":"","fixed":"散單"},"通安漢堡":{"status":"未叫貨","date":"","fixed":"散單"},"大安站":{"status":"未叫貨","date":"","fixed":"散單"},"鮮來":{"status":"未叫貨","date":"","fixed":"散單"},"爍場復興":{"status":"未叫貨","date":"","fixed":"散單"},"爍場南京":{"status":"未叫貨","date":"","fixed":"散單"},"麻辣沙龍":{"status":"未叫貨","date":"","fixed":"散單"},"合點內湖":{"status":"有叫貨","date":"","fixed":"散單"},"合點京站":{"status":"有叫貨","date":"","fixed":"散單"},"合點竹北":{"status":"有叫貨","date":"","fixed":"散單"},"合點南港":{"status":"有叫貨","date":"","fixed":"散單"},"阿默咖啡":{"status":"未叫貨","date":"","fixed":"散單"},"初心文德":{"status":"未叫貨","date":"","fixed":"散單"},"榕央廚":{"status":"未叫貨","date":"","fixed":"散單"},"榕士林":{"status":"未叫貨","date":"","fixed":"散單"},"榕信義":{"status":"未叫貨","date":"","fixed":"散單"},"枝枒":{"status":"未叫貨","date":"","fixed":"散單"},"印度大江":{"status":"未叫貨","date":"","fixed":"散單"},"印度宏匯":{"status":"未叫貨","date":"","fixed":"散單"},"讚岐林口":{"status":"未叫貨","date":"","fixed":"散單"},"讚岐板橋":{"status":"未叫貨","date":"","fixed":"散單"},"椰兄央廚":{"status":"未叫貨","date":"","fixed":"散單"},"椰兄慶城":{"status":"有叫貨","date":"","fixed":"散單"},"椰兄中山":{"status":"未叫貨","date":"","fixed":"散單"},"椰兄南港":{"status":"未叫貨","date":"","fixed":"散單"},"浮島":{"status":"未叫貨","date":"","fixed":"散單"}};
+const INIT = {"彭園林森": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園三重": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園板橋": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園忠孝": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園基隆": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園八德": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園新店": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園新板": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園通安": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "一品宴": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "湘8老": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "吉吉園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "豪鼎新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "水源公館": {"status": "未叫貨", "date": "", "fixed": "散單"}, "東方": {"status": "未叫貨", "date": "", "fixed": "散單"}, "長春": {"status": "未叫貨", "date": "", "fixed": "散單"}, "絕好調": {"status": "未叫貨", "date": "", "fixed": "散單"}, "馳走屋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "悅華軒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "和民站前": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作裕隆": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作北車": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作桂北": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作青埔": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "上村北車": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "晶麒": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "甜蜜森林": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "鉑宴": {"status": "未叫貨", "date": "", "fixed": "散單"}, "桐花民生": {"status": "未叫貨", "date": "", "fixed": "散單"}, "中國信託": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "瑞健": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "薇閣": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "璿民": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "MMK忠孝": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "PAUL仁愛": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "PAUL林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "UKAI": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "藍象央廚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "藍象新光": {"status": "未叫貨", "date": "", "fixed": "散單"}, "藍象巨城": {"status": "未叫貨", "date": "", "fixed": "散單"}, "藍象林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "共同存在": {"status": "未叫貨", "date": "", "fixed": "散單"}, "晶湯SOGO": {"status": "未叫貨", "date": "", "fixed": "散單"}, "晶湯京站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "咖啡北車": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "咖啡士林": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "咖啡央廚": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "總督": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雙岩幸福": {"status": "未叫貨", "date": "", "fixed": "散單"}, "八和大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "八和敦北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "花田盛事": {"status": "未叫貨", "date": "", "fixed": "散單"}, "芯聚苑": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "大黑屋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮪一大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮪一永吉": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮪一八德": {"status": "未叫貨", "date": "", "fixed": "散單"}, "廣泰樓": {"status": "未叫貨", "date": "", "fixed": "散單"}, "KikiATT": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "胡饕市府": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕興安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕土城": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕天母": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕總部": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善光復": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善昆明": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善民樂": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善三重": {"status": "未叫貨", "date": "", "fixed": "散單"}, "黑武大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "黑武信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "便當大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "味道西寧": {"status": "未叫貨", "date": "", "fixed": "散單"}, "味道京站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "敘香園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "通安漢堡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大安站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮮來": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爍場復興": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爍場南京": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麻辣沙龍": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點內湖": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點京站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點竹北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "阿默咖啡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "初心文德": {"status": "未叫貨", "date": "", "fixed": "散單"}, "榕央廚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "榕士林": {"status": "未叫貨", "date": "", "fixed": "散單"}, "榕信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "枝枒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "印度大江": {"status": "未叫貨", "date": "", "fixed": "散單"}, "印度宏匯": {"status": "未叫貨", "date": "", "fixed": "散單"}, "讚岐林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "讚岐板橋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄央廚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄慶城": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄中山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島 森": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島 溪": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島風禾": {"status": "未叫貨", "date": "", "fixed": "散單"}, "蒔鍋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "禾林": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泉元": {"status": "未叫貨", "date": "", "fixed": "散單"}, "賀村": {"status": "未叫貨", "date": "", "fixed": "散單"}, "阿堂": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LULU": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯明林森": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯明高峰": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯明統領": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雅蒙頭份": {"status": "未叫貨", "date": "", "fixed": "散單"}, "有馬": {"status": "未叫貨", "date": "", "fixed": "散單"}, "杏桃美麗": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰迪一江": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰迪復興": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯咖林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯咖美麗": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品龜山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品青雲": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品學士": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "怡亨": {"status": "未叫貨", "date": "", "fixed": "散單"}, "高氏": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "高氏師大": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "高氏永吉": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "泰滾桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰滾南京": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰滾內湖": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰悠公館": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰悠桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "激餓": {"status": "未叫貨", "date": "", "fixed": "散單"}, "八畝田": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "福喜民權": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "福喜央廚": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "福喜南港": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "薄多南山": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "美術民權": {"status": "未叫貨", "date": "", "fixed": "散單"}, "莫凡統領": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "莫凡青埔": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "尖牙中壢": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "刁民板橋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "刁民信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "刁民松仁": {"status": "未叫貨", "date": "", "fixed": "散單"}, "刁民西門": {"status": "未叫貨", "date": "", "fixed": "散單"}, "夫婦": {"status": "未叫貨", "date": "", "fixed": "散單"}, "青亭": {"status": "未叫貨", "date": "", "fixed": "散單"}, "覺旅": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "娘子竹北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "源次郎": {"status": "未叫貨", "date": "", "fixed": "散單"}, "初心初始": {"status": "未叫貨", "date": "", "fixed": "散單"}, "瘋狂媽媽": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麵包竹北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麵包光埔": {"status": "未叫貨", "date": "", "fixed": "散單"}, "路燈師大": {"status": "未叫貨", "date": "", "fixed": "散單"}, "玖尹": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "小花園": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "屠夫新竹": {"status": "未叫貨", "date": "", "fixed": "散單"}, "屠夫大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "屠夫忠孝": {"status": "未叫貨", "date": "", "fixed": "散單"}, "放餐飲": {"status": "未叫貨", "date": "", "fixed": "散單"}, "巴菲特": {"status": "未叫貨", "date": "", "fixed": "散單"}, "揪好新竹": {"status": "未叫貨", "date": "", "fixed": "散單"}, "京都南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "京都中山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "札幌南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "嘉和央廚": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼101": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼南港": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼中和": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼新店": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼美麗": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼宏匯": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼華泰": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼時代": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "BHC巨蛋": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "BHC Att": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒巨城": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒宏匯": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒大葉": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒101": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "童媽吉": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "同一": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "這味板橋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味南山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味忠孝": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味復南": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味南西": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味南京": {"status": "未叫貨", "date": "", "fixed": "散單"}, "菊川信義": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "菊川天母": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "菊川巨城": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "橘炎": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "八色中和": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "鳥貴南西": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴信義": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴巨蛋": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴慶城": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴大葉": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "了凡": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "添好大直": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "添好松山": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "添好南港": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "Dom Dom": {"status": "未叫貨", "date": "", "fixed": "散單"}, "襌院": {"status": "未叫貨", "date": "", "fixed": "散單"}, "空蟬": {"status": "未叫貨", "date": "", "fixed": "散單"}, "興波101": {"status": "未叫貨", "date": "", "fixed": "散單"}, "興波華山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "童鍋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "牛嶼頭份": {"status": "未叫貨", "date": "", "fixed": "散單"}, "咖一味": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鉄鮮森": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "文昌幼兒": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "東華裕隆": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Goodday": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肆拾": {"status": "未叫貨", "date": "", "fixed": "散單"}, "弎禾新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Menu義式": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大溪球場": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "Bistro": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雞Soup": {"status": "未叫貨", "date": "", "fixed": "散單"}, "真‧手作": {"status": "未叫貨", "date": "", "fixed": "散單"}, "中一新店": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一南港": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一三創": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一桃園": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一三總": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一洲子": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "LIKE松江": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE天母": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE宏匯": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE中和": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE三重": {"status": "未叫貨", "date": "", "fixed": "散單"}, "魔法頭份": {"status": "未叫貨", "date": "", "fixed": "散單"}, "魔法淡水": {"status": "未叫貨", "date": "", "fixed": "散單"}, "岩島大直": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島桃園": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島大葉": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島板橋": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島大江": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島三總": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "無老中山": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "無老信義": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "無老永康": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "好蔬三總": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "享樂咖啡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "欣樂三重": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "欣樂新莊": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "小樂信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "小樂新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "品司和食": {"status": "未叫貨", "date": "", "fixed": "散單"}, "貝兒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "丹生": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "初泰新板": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "青焰": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "青焰美信": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "饌食茶樓": {"status": "未叫貨", "date": "", "fixed": "散單"}, "上品饌": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鶴橋林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "鶴橋南港": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "味穗": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "角落": {"status": "未叫貨", "date": "", "fixed": "散單"}, "饗牛": {"status": "未叫貨", "date": "", "fixed": "散單"}, "潮喆牛": {"status": "未叫貨", "date": "", "fixed": "散單"}, "立馬仁愛": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "熹極洣": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "華夏": {"status": "未叫貨", "date": "", "fixed": "散單"}, "瑪希妲": {"status": "未叫貨", "date": "", "fixed": "散單"}, "晨迷食煎": {"status": "未叫貨", "date": "", "fixed": "散單"}, "安安生魚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "秘密": {"status": "未叫貨", "date": "", "fixed": "散單"}, "小溪": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大股": {"status": "未叫貨", "date": "", "fixed": "散單"}, "今悅": {"status": "未叫貨", "date": "", "fixed": "散單"}, "港點大師": {"status": "未叫貨", "date": "", "fixed": "散單"}, "德霖": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "硬咖啡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "華航": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "富城閣": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "風車": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "青青士林": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "歐華": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "亞太北投": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "富信汐止": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "基隆長榮": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "暐順": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "捷絲旅": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "煙波": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波都會": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波宜蘭": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波蘇澳": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波傳藝": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "晶英": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "君樂": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "萬豪": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "晶宴": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "鳳凰": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "悅川": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "富立登": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "村却": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "礁溪老爺": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "力麗": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "瓏山林": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "國泰萬怡": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "慕軒敦南": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和逸民生": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和逸忠孝": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和咖1號": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和咖2號": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "國泰青埔": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "國賓林口": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "桃花園": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "米堤中壢": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "兆品": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "兄弟": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "新竹喜來": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "喜來登": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "喜來南京": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "艾麗": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "艾美": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "寒沐": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "香茅復興": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "美國學校": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏石港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "JR大飯店": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "捌伍添第": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "白金花園": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "連大烏石": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "芙洛麗": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "亞昕": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "豪景": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "大板根": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "威斯汀": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "川雅": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "美僑": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "海峽會": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "春作": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "宇方圓": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "酒沏": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "皇家": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "頤品": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "君品": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "了了": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "國聯": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "星聚延平": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "綠舞": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "福泰": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "徐州庭園": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "礁溪風華": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "YAYOI天母": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI七張": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI懷寧": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI內湖": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI春日": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI石牌": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI樹林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI淡水": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI置地": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI中崙": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI微風": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI林口": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司館前": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司西門": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司中和": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司建國": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司松江": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司永春": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司公館": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司新竹": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司美麗": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司慈雲": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司林森": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司土城": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司汐止": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司新莊": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司天母": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司宜蘭": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司中興": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司基隆": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司林口": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司內湖": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司新埔": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司石牌": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司府中": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司徐匯": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司淡水": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司三重": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司巨蛋": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司南山": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司TOGO": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月石牌": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月重新": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月樹林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月桂林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月統領": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月新店": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月永和": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月松山": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月威秀": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月凱薩": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月台茂": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月中和": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月土城": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "燒丼統領": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "蛋包南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "蛋包林口": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "築間新豐": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間南榮": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間七堵": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間雙城": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間農安": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間三民": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間復興": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間松江": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間新莊": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "韓鍋信義": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "杏子廣豐": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子新莊": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子土城": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子統領": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子新竹": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子新店": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子北車": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子京站": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子南京": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子威秀": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子內湖": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子凱薩": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子桃園": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子南港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子裕隆": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子巨城": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子徐匯": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子三重": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將新月": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將威秀": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將桃園": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將南港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛巨城": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛京站": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛裕隆": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛南港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "橋村板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "橋村大江": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗宏匯": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗信義": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗新月": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗二廠": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "壹番八德": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番樹林": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番碧潭": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番宜蘭": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番漢中": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番林口": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番桃園": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番中家": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番佳瑪": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番巨城": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番三創": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番民權": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番建國": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番新莊": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番台大": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番科教": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番松山": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番南京": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番天母": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番青埔": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番三重": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番蘆洲": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "威盛八德": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "滿庭A11": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "靚點": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩央廚": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩民權": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩一店": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩世貿": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "檀島信義": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "檀島南西": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "檀島大江": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "檀島基隆": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "吉福內湖": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "劉家宴": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "北村樹林": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "北村統領": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "北村經國": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "北村淡新": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "韓姜新店": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "韓姜中壢": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆南港": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆苗栗": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆南山": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆美麗": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "飛機林口": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "倉儲物流": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "丸龜桂林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜A8": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜站前": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜天母": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜西門": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜板橋": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜基隆": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜汐止": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜統一": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜新店": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜大直": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜巨城": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜宏匯": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜環球": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜湳雅": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜新竹": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜竹北": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜地下": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜SOGO": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜宜蘭": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜比漾": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜徐匯": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜總公": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "點8林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "點8桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "東森榮總": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雞泰石牌": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰公館": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰景美": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰永和": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰萬華": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "樂麵央廚": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵板橋": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵公園": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵西門": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵南港": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "杓文永康": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "宮武樹林": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "宮武林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "KUA 林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉老永安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉老敦南": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉老錦西": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉老竹圍": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麵老大": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉的林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的巨城": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的南港": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的忠孝": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的南西": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "六本信義": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "六本南西": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "筑前延吉": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "天沃": {"status": "未叫貨", "date": "", "fixed": "散單"}, "協和": {"status": "未叫貨", "date": "", "fixed": "散單"}, "GPC林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "GPC A8": {"status": "未叫貨", "date": "", "fixed": "散單"}, "老饕": {"status": "未叫貨", "date": "", "fixed": "散單"}, "衍選": {"status": "未叫貨", "date": "", "fixed": "散單"}, "或者": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Cobber": {"status": "未叫貨", "date": "", "fixed": "散單"}, "美味森市": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大喫": {"status": "未叫貨", "date": "", "fixed": "散單"}, "當代": {"status": "未叫貨", "date": "", "fixed": "散單"}, "老炭": {"status": "未叫貨", "date": "", "fixed": "散單"}, "斐得": {"status": "未叫貨", "date": "", "fixed": "散單"}, "島瓜": {"status": "未叫貨", "date": "", "fixed": "散單"}, "森驛": {"status": "未叫貨", "date": "", "fixed": "散單"}, "永心": {"status": "未叫貨", "date": "", "fixed": "散單"}, "老協珍": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Fra": {"status": "未叫貨", "date": "", "fixed": "散單"}, "在水": {"status": "未叫貨", "date": "", "fixed": "散單"}, "安菈": {"status": "未叫貨", "date": "", "fixed": "散單"}, "沐楓": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "義沐中美": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "義沐內湖": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "世界": {"status": "未叫貨", "date": "", "fixed": "散單"}, "貓舅舅": {"status": "未叫貨", "date": "", "fixed": "散單"}, "玉膳坊": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "極之林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "吃飯北大": {"status": "未叫貨", "date": "", "fixed": "散單"}, "杓子永和": {"status": "未叫貨", "date": "", "fixed": "散單"}, "杓子公園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "谷季": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "成真板車": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真信義": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真永康": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真復興": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真天母": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真松菸": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真迴龍": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真西門": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真藝文": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真中正": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真微風": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真南山": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "侯布雄": {"status": "未叫貨", "date": "", "fixed": "散單"}, "想想桃機": {"status": "未叫貨", "date": "", "fixed": "散單"}, "吃吃樹林": {"status": "未叫貨", "date": "", "fixed": "散單"}, "城市漢堡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "咖loopy": {"status": "未叫貨", "date": "", "fixed": "散單"}, "星馬文山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "福格": {"status": "未叫貨", "date": "", "fixed": "散單"}, "豚人": {"status": "未叫貨", "date": "", "fixed": "散單"}, "拾味食堂": {"status": "未叫貨", "date": "", "fixed": "散單"}, "蘭姐": {"status": "未叫貨", "date": "", "fixed": "散單"}, "燒肉信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "劉震新竹": {"status": "未叫貨", "date": "", "fixed": "散單"}, "海上皇宮": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爆汁內湖": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爆汁中山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爆汁信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "oie": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Petitoie": {"status": "未叫貨", "date": "", "fixed": "散單"}, "威士永春": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士微風": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士中山": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士南港": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士南京": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士天母": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士板橋": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士六張": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士松江": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "烏龍景平": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍新埔": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍土城": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍樹林": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍松江": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍化成": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍公園": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間汐止": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "極之大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雙味軒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "板橋艾美": {"status": "未叫貨", "date": "", "fixed": "琪姐"}};
 
 // ══════════════════════════════════════════════════════════
 //  STATE
@@ -1114,18 +1150,48 @@ function renderAll() {
 // ══════════════════════════════════════════════════════════
 function renderNotices() {
   const list = document.getElementById('notice-list');
-  const empty = document.getElementById('notice-empty');
   if (!notices.length) {
-    list.innerHTML = '<li class="notice-empty" id="notice-empty">尚無留言</li>';
+    list.innerHTML = '<li class="notice-empty">尚無留言</li>';
+    updateNoticeHeader(0, '');
     return;
   }
-  list.innerHTML = notices.slice(-NOTICE_MAX).reverse().map(n => `
+  const shown = notices.slice(-NOTICE_MAX).reverse();
+  list.innerHTML = shown.map(n => `
     <li class="notice-item">
       <span class="notice-author">${esc(n.author||'?')}</span>
       <span class="notice-text">${esc(n.text)}</span>
       <span class="notice-time">${esc(n.time)}</span>
       <button class="notice-del" onclick="deleteNotice('${esc(n.id)}')" title="刪除">✕</button>
     </li>`).join('');
+
+  // 更新標頭預覽（最新一則）
+  const latest = shown[0];
+  const preview = `${latest.author}：${latest.text}`;
+  updateNoticeHeader(shown.length, preview);
+}
+
+function updateNoticeHeader(count, preview) {
+  const badge   = document.getElementById('notice-badge');
+  const previewEl = document.getElementById('notice-preview');
+  if (count > 0) {
+    badge.textContent = count;
+    badge.classList.add('visible');
+    previewEl.textContent = preview;
+  } else {
+    badge.classList.remove('visible');
+    previewEl.textContent = '點此展開留言板';
+  }
+}
+
+let noticeBoardOpen = false;
+function toggleNoticeBoard() {
+  noticeBoardOpen = !noticeBoardOpen;
+  const board = document.getElementById('notice-board');
+  board.classList.toggle('open', noticeBoardOpen);
+  // 展開時自動 focus 輸入框
+  if (noticeBoardOpen) {
+    setTimeout(() => document.getElementById('notice-input').focus(), 150);
+  }
 }
 
 function postNotice() {
@@ -1297,6 +1363,10 @@ function toggleDragMode() {
 function attachDragEvents() {
   document.querySelectorAll('.ccard').forEach(el => {
     el.setAttribute('draggable', 'true');
+    // 手機 touch 事件
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd,   { passive: false });
   });
 }
 
@@ -1316,12 +1386,96 @@ function onDragEnd(e) {
 function onDragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
-  // 高亮目標卡片
   document.querySelectorAll('.ccard.drag-over').forEach(el => el.classList.remove('drag-over'));
   const target = e.target.closest('.ccard');
   if (target && target.dataset.name !== dragSrcName) {
     target.classList.add('drag-over');
   }
+}
+
+// ── 手機觸控拖曳 ──────────────────────────────────────────────────────────
+let _touchClone = null;   // 拖曳時跟隨手指的複製卡片
+let _touchSrc   = null;   // 被拖曳的原始卡片元素
+let _touchOffX  = 0;
+let _touchOffY  = 0;
+
+function onTouchStart(e) {
+  if (!dragMode) return;
+  const card = e.currentTarget;
+  dragSrcName = card.dataset.name;
+  _touchSrc = card;
+
+  const rect = card.getBoundingClientRect();
+  const touch = e.touches[0];
+  _touchOffX = touch.clientX - rect.left;
+  _touchOffY = touch.clientY - rect.top;
+
+  // 建立跟隨手指的視覺複製
+  _touchClone = card.cloneNode(true);
+  _touchClone.style.cssText = `
+    position:fixed; z-index:9999; pointer-events:none; opacity:.85;
+    width:${rect.width}px; left:${rect.left}px; top:${rect.top}px;
+    border-radius:var(--radius); box-shadow:var(--shadow-lg);
+    transition:none;
+  `;
+  document.body.appendChild(_touchClone);
+  card.classList.add('dragging');
+  e.preventDefault();
+}
+
+function onTouchMove(e) {
+  if (!_touchClone || !dragMode) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  _touchClone.style.left = (touch.clientX - _touchOffX) + 'px';
+  _touchClone.style.top  = (touch.clientY - _touchOffY) + 'px';
+
+  // 找出手指下方的目標卡片
+  _touchClone.style.display = 'none';
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  _touchClone.style.display = '';
+  document.querySelectorAll('.ccard.drag-over').forEach(c => c.classList.remove('drag-over'));
+  const target = el ? el.closest('.ccard') : null;
+  if (target && target.dataset.name !== dragSrcName) {
+    target.classList.add('drag-over');
+  }
+}
+
+function onTouchEnd(e) {
+  if (!_touchClone || !dragMode) return;
+  e.preventDefault();
+
+  // 清理複製元素
+  _touchClone.remove(); _touchClone = null;
+  if (_touchSrc) { _touchSrc.classList.remove('dragging'); _touchSrc = null; }
+
+  // 找出落點目標
+  const touch = e.changedTouches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  document.querySelectorAll('.ccard.drag-over').forEach(c => c.classList.remove('drag-over'));
+  const targetCard = el ? el.closest('.ccard') : null;
+  const targetName = targetCard ? targetCard.dataset.name : null;
+
+  if (!dragSrcName || !targetName || dragSrcName === targetName) return;
+
+  // 確認同群組
+  if (db[dragSrcName]?.fixed !== db[targetName]?.fixed) {
+    toast('⚠ 只能在同一負責人群組內調整順序', true); return;
+  }
+
+  const group = db[dragSrcName]?.fixed || '未分類';
+  const allInGroup = Object.keys(db).filter(n => (db[n].fixed || '未分類') === group);
+  let ordered = getGroupNames(group, allInGroup);
+
+  const srcIdx = ordered.indexOf(dragSrcName);
+  ordered.splice(srcIdx, 1);
+  const newTgtIdx = ordered.indexOf(targetName);
+  ordered.splice(newTgtIdx >= 0 ? newTgtIdx : ordered.length, 0, dragSrcName);
+
+  groupOrder[group] = ordered;
+  saveOrder();
+  renderGrid();
+  if (dragMode) attachDragEvents();
 }
 
 function onDrop(e, groupName) {
