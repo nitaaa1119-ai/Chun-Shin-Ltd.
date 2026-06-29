@@ -1184,23 +1184,24 @@ async function syncFromCloud() {
     const res  = await fetch(API_URL, { redirect: 'follow' });
     const data = await res.json();
 
-    const localTs  = getLocalTs();
-    const cloudTs  = parseInt(data.zhongxin_ts_v1 || '0', 10);
-    // 首次載入 或 雲端沒有 ts 或 雲端較新 → 使用雲端資料
-    const useCloud = _firstLoad || cloudTs === 0 || cloudTs > localTs;
     _firstLoad = false;
-
     let updated = false;
 
     // ── db（叫貨狀態）──
+    // ★ 不用時間戳判斷，直接比較內容差異，有差就更新
     if (data.zhongxin_v4) {
       const cloudDB    = JSON.parse(data.zhongxin_v4);
       const cloudCount = Object.keys(cloudDB).length;
       if (cloudCount >= MIN_CLIENT_COUNT) {
-        if (useCloud) {
-          db = cloudDB;
-          localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
-          updated = true;
+        if (JSON.stringify(db) !== JSON.stringify(cloudDB)) {
+          // ★ 比較「有叫貨」筆數：只有雲端 >= 本地才覆蓋，防止雲端舊資料蓋掉剛操作的本地
+          const cloudOrdered = Object.values(cloudDB).filter(v => v.status === '有叫貨').length;
+          const localOrdered = Object.values(db).filter(v => v.status === '有叫貨').length;
+          if (cloudOrdered >= localOrdered) {
+            db = cloudDB;
+            localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
+            updated = true;
+          }
         }
       } else if (Object.keys(db).length >= MIN_CLIENT_COUNT) {
         console.warn(`⚠️ 雲端只有 ${cloudCount} 位，自動修正`);
@@ -1210,19 +1211,17 @@ async function syncFromCloud() {
       }
     }
 
-    // ── historyLog（合併策略：今日 editLog 以本機筆數較多者為準）──
+    // ── historyLog（今日 editLog 以筆數較多者為準）──
     if (data.zhongxin_hist_v4) {
       const cloudHist = JSON.parse(data.zhongxin_hist_v4);
-      if (useCloud && JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
-        // 先記下本機今日的 editLog
+      if (JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
+        // 保留本機今日的 editLog（操作記錄不能被蓋掉）
         const localTodayEntry = historyLog.find(h => h.date === todayStr);
         const localEditLog    = localTodayEntry ? (localTodayEntry.editLog || {}) : {};
         const localEditCount  = Object.values(localEditLog).reduce((s, a) => s + a.length, 0);
 
-        // 以雲端為主覆蓋
         historyLog = cloudHist;
 
-        // 若本機今日 editLog 筆數 >= 雲端，保留本機（操作者剛寫入的不能被蓋掉）
         const cloudTodayEntry = historyLog.find(h => h.date === todayStr);
         if (cloudTodayEntry) {
           const cloudEditCount = Object.values(cloudTodayEntry.editLog || {}).reduce((s, a) => s + a.length, 0);
@@ -1241,14 +1240,14 @@ async function syncFromCloud() {
     // ── groupOrder ──
     if (data.zhongxin_order_v1) {
       const cloudOrder = JSON.parse(data.zhongxin_order_v1);
-      if (useCloud && JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) {
+      if (JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) {
         groupOrder = cloudOrder;
         localStorage.setItem('zhongxin_order_v1', data.zhongxin_order_v1);
         updated = true;
       }
     }
 
-    // ── notices（留言板不受 ts 控制，永遠取最新）──
+    // ── notices ──
     if (data.zhongxin_notices_v1) {
       const cloudNotices = JSON.parse(data.zhongxin_notices_v1);
       if (JSON.stringify(notices) !== JSON.stringify(cloudNotices)) {
@@ -1258,7 +1257,6 @@ async function syncFromCloud() {
       }
     }
 
-    if (useCloud) setLocalTs(cloudTs);   // 對齊基準線
     if (updated) { buildFixedFilter(); renderAll(); }
     setSyncDot('');
   } catch(e) {
