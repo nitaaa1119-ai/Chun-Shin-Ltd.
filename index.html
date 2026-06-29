@@ -1140,8 +1140,8 @@ function lockLocal(ms = 8000) {
   lockLocal._t = setTimeout(() => { _localLock = false; }, ms);
 }
 
-async function syncFromCloud(forceOverwrite = false) {
-  if (_localLock && !forceOverwrite) return;
+async function syncFromCloud() {
+  if (_localLock && !_isInitialLoad) return;
   setSyncDot('syncing');
   try {
     const res  = await fetch(API_URL, { redirect: 'follow' });
@@ -1156,9 +1156,9 @@ async function syncFromCloud(forceOverwrite = false) {
         // ★ 只有雲端「有叫貨」筆數 >= 本地才覆蓋，防止雲端舊資料蓋掉剛操作的本地
         const cloudOrdered = Object.values(cloudDB).filter(v => v.status === '有叫貨').length;
         const localOrdered = Object.values(db).filter(v => v.status === '有叫貨').length;
-        if (forceOverwrite || cloudOrdered >= localOrdered) {
-          db = cloudDB; updated = true;
-        }
+        if (_isInitialLoad || cloudOrdered >= localOrdered) {
+      db = cloudDB; updated = true;
+    }
       } else if (cloudCount < MIN_CLIENT_COUNT && localCount >= MIN_CLIENT_COUNT) {
         console.warn(`⚠️ 雲端只有 ${cloudCount} 位（舊版），自動修正`);
         saveToCloud('zhongxin_v4', db);
@@ -1233,6 +1233,7 @@ let notices = [];    // [{ id, author, text, time }]
 let editing = null;
 let dragMode = false;
 let dragSrcName = null;
+let _isInitialLoad = true;   // ← 新增：頁面剛載入旗標
 const HISTORY_DAYS = 6;
 const NOTICE_MAX = 20; // 最多顯示幾則留言
 
@@ -1304,7 +1305,7 @@ function init() {
   if (savedAuthor) document.getElementById('notice-author').value = savedAuthor;
 
   ensureTodayEditLog();
-  save(true);   // ← 初始化只存本機，不推雲端也不鎖 localLock
+  save(true);   // ← 初始化：只存本機、不推雲端、不關閉 _isInitialLoad
   buildFixedFilter();
   renderAll();
   updateUserTag();
@@ -1326,13 +1327,16 @@ function ensureTodayEditLog() {
 
 function getTodayEntry() { return historyLog.find(h => h.date === todayStr); }
 
-function save(skipCloud = false) {
+function save(fromInit = false) {
   if (Object.keys(db).length < MIN_CLIENT_COUNT) {
     console.warn('⚠️ db 只有', Object.keys(db).length, '筆，不儲存');
     return;
   }
   localStorage.setItem('zhongxin_v4', JSON.stringify(db));
-  if (!skipCloud) saveToCloud('zhongxin_v4', db);
+  if (!fromInit) {
+    _isInitialLoad = false;   // ← 使用者操作後，關閉強制覆蓋
+    saveToCloud('zhongxin_v4', db);
+  }
 }
 function saveHistory() {
   localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
@@ -2104,7 +2108,8 @@ function resetAll() {
     snapshotOnReset();
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
-    lockLocal(20000); // 重置後鎖定 20 秒，防止雲端舊資料覆蓋
+    _isInitialLoad = false;
+    lockLocal(20000);
     save(); renderAll();
     toast('✅ 今日狀態已記錄並重置');
   });
