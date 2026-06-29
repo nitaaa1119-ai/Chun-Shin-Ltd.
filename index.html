@@ -1128,6 +1128,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx5kRtwjs59cuyl5JFJd7ir
 let _syncInterval = null;
 let _isSyncing    = false;
 let _localLockUntil = 0;   // lockLocal 用：此時間戳前禁止雲端覆蓋本機
+let _firstLoad = true;         // 首次載入旗標，強制接受雲端資料
 
 // ── lockLocal：操作後短暫鎖定，防止輪詢把剛寫的資料蓋回 ──
 function lockLocal(ms) {
@@ -1185,8 +1186,9 @@ async function syncFromCloud() {
 
     const localTs  = getLocalTs();
     const cloudTs  = parseInt(data.zhongxin_ts_v1 || '0', 10);
-    // 雲端沒有 ts（ts=0，表示 GAS 白名單未開放或尚未寫入）→ 直接信任雲端
-    const useCloud = cloudTs === 0 ? true : cloudTs > localTs;
+    // 首次載入 或 雲端沒有 ts 或 雲端較新 → 使用雲端資料
+    const useCloud = _firstLoad || cloudTs === 0 || cloudTs > localTs;
+    _firstLoad = false;
 
     let updated = false;
 
@@ -1384,7 +1386,7 @@ function init() {
     if (v3data && Object.keys(v3data).length >= MIN_CLIENT_COUNT) {
       db = v3data;
     } else {
-      db = JSON.parse(JSON.stringify(INIT));
+      db = {};   // 空物件，等雲端同步覆蓋
     }
   }
 
