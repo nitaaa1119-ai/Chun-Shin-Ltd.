@@ -1127,6 +1127,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx5kRtwjs59cuyl5JFJd7ir
 
 let _syncInterval = null;
 let _isSyncing    = false;
+let _localLockUntil = 0;   // lockLocal 用：此時間戳前禁止雲端覆蓋本機
+
+// ── lockLocal：操作後短暫鎖定，防止輪詢把剛寫的資料蓋回 ──
+function lockLocal(ms) {
+  _localLockUntil = Date.now() + ms;
+}
 
 function setSyncDot(state) {
   const dot = document.getElementById('sync-dot');
@@ -1169,6 +1175,8 @@ async function _pushOne(key, value) {
 // ── 從雲端同步 ──────────────────────────────────────────
 async function syncFromCloud() {
   if (_isSyncing) return;
+  // 若剛剛有本機操作，短暫跳過，防止雲端舊資料覆蓋
+  if (Date.now() < _localLockUntil) return;
   _isSyncing = true;
   setSyncDot('syncing');
   try {
@@ -1247,6 +1255,7 @@ function save(fromInit = false) {
   }
   localStorage.setItem('zhongxin_v4', JSON.stringify(db));
   if (!fromInit) {
+    lockLocal(15000);   // 操作後鎖 15 秒，防止輪詢覆蓋
     const ts = touchTs();
     Promise.all([
       _pushOne('zhongxin_v4', db),
@@ -1258,6 +1267,7 @@ function save(fromInit = false) {
 // ── saveHistory ──────────────────────────────────────────
 function saveHistory() {
   localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+  lockLocal(15000);
   const ts = touchTs();
   Promise.all([
     _pushOne('zhongxin_hist_v4', historyLog),
@@ -1268,6 +1278,7 @@ function saveHistory() {
 // ── saveOrder ────────────────────────────────────────────
 function saveOrder() {
   localStorage.setItem('zhongxin_order_v1', JSON.stringify(groupOrder));
+  lockLocal(15000);
   const ts = touchTs();
   Promise.all([
     _pushOne('zhongxin_order_v1', groupOrder),
@@ -1399,7 +1410,7 @@ function init() {
   if (savedAuthor) document.getElementById('notice-author').value = savedAuthor;
 
   ensureTodayEditLog();
-  save(true);   // ← 初始化：只存本機、不推雲端、不關閉 _isInitialLoad
+  save(true);   // ← 初始化：只存本機，不推雲端
   buildFixedFilter();
   renderAll();
   updateUserTag();
@@ -1420,30 +1431,6 @@ function ensureTodayEditLog() {
 }
 
 function getTodayEntry() { return historyLog.find(h => h.date === todayStr); }
-
-function save(fromInit = false) {
-  if (Object.keys(db).length < MIN_CLIENT_COUNT) {
-    console.warn('⚠️ db 只有', Object.keys(db).length, '筆，不儲存');
-    return;
-  }
-  localStorage.setItem('zhongxin_v4', JSON.stringify(db));
-  if (!fromInit) {
-    _isInitialLoad = false;   // ← 使用者操作後，關閉強制覆蓋
-    saveToCloud('zhongxin_v4', db);
-  }
-}
-function saveHistory() {
-  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-  saveToCloud('zhongxin_hist_v4', historyLog);
-}
-function saveOrder() {
-  localStorage.setItem('zhongxin_order_v1', JSON.stringify(groupOrder));
-  saveToCloud('zhongxin_order_v1', groupOrder);
-}
-function saveNotices() {
-  localStorage.setItem('zhongxin_notices_v1', JSON.stringify(notices));
-  saveToCloud('zhongxin_notices_v1', notices);
-}
 
 // ══════════════════════════════════════════════════════════
 //  3-DAY WARN DETECTION  ← 核心邏輯說明於下方
@@ -2202,7 +2189,6 @@ function resetAll() {
     snapshotOnReset();
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
-    _isInitialLoad = false;
     lockLocal(20000);
     save(); renderAll();
     toast('✅ 今日狀態已記錄並重置');
@@ -2533,39 +2519,6 @@ function toast(msg, isErr) {
   _t=setTimeout(()=>el.classList.remove('show'),2500);
 }
 
-// ══════════════════════════════════════════════════════════
-//  BOOT
-// ══════════════════════════════════════════════════════════
-window.addEventListener('load', ()=>{
-  // 頁面剛載入（含手機重整）→ 強制以雲端資料覆蓋本機
-  syncFromCloud(true);
-  _syncInterval = setInterval(syncFromCloud, 6000);
-});
-init();
-  async function clearAllHistory() {
-  showConfirm('確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。', async () => {
-    toast('清除中…');
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ key: 'zhongxin_hist_v4', value: '[]' }),
-        redirect: 'follow'
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      historyLog = [];
-      localStorage.setItem('zhongxin_hist_v4', '[]');
-      ensureTodayEditLog();           // ← 重建今日空記錄
-      lockLocal(30000);               // ← 鎖 30 秒，防止雲端舊資料蓋回
-      saveHistory();                  // ← 確保空陣列推送至雲端成功
-      renderAll();
-      toast('✅ 歷史記錄已清除');
-    } catch(e) {
-      toast('❌ 清除失敗：' + e.message, true);
-    }
-  });
-}
 </script>
 </body>
 </html>
