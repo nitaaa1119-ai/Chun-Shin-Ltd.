@@ -1303,14 +1303,14 @@ async function clearAllHistory() {
       toast('清除中…');
       try {
         historyLog = [];
-        ensureTodayEditLog();
-        localStorage.setItem('zhongxin_hist_v4', '[]');
-        const ts = touchTs();   // 更新本機 ts，重整後雲端不會蓋回
+        ensureTodayEditLog();   // 建立今日空記錄
+        lockLocal(30000);       // 先鎖，再推送，防止推送途中輪詢蓋回
+        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+        const ts = touchTs();
         await Promise.all([
-          _pushOne('zhongxin_hist_v4', []),
+          _pushOne('zhongxin_hist_v4', historyLog),   // 推送含今日空記錄的版本
           _pushOne('zhongxin_ts_v1', ts)
         ]);
-        lockLocal(30000);   // 鎖 30 秒，防止輪詢把空記錄蓋回
         renderAll();
         toast('✅ 歷史記錄已清除');
       } catch(e) {
@@ -2194,7 +2194,7 @@ function resetAll() {
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
     lockLocal(20000);
-    save(); renderAll();
+    save(); saveHistory(); renderAll();   // saveHistory 確保清空的 editLog 推上雲端
     toast('✅ 今日狀態已記錄並重置');
   });
 }
