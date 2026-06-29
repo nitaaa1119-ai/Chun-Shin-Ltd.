@@ -1276,35 +1276,47 @@ function save(fromInit = false) {
   }
   localStorage.setItem('zhongxin_v4', JSON.stringify(db));
   if (!fromInit) {
-    lockLocal(15000);   // 操作後鎖 15 秒，防止輪詢覆蓋
+    lockLocal(30000);   // 推送期間保護
     const ts = touchTs();
     Promise.all([
       _pushOne('zhongxin_v4', db),
       _pushOne('zhongxin_ts_v1', ts)
-    ]).catch(() => {});
+    ]).then(() => {
+      unlockLocal();    // 推送成功立即解鎖，其他裝置馬上能同步
+    }).catch(() => {
+      unlockLocal();    // 失敗也解鎖
+    });
   }
 }
 
 // ── saveHistory ──────────────────────────────────────────
 function saveHistory() {
   localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-  lockLocal(15000);
+  lockLocal(30000);
   const ts = touchTs();
   Promise.all([
     _pushOne('zhongxin_hist_v4', historyLog),
     _pushOne('zhongxin_ts_v1', ts)
-  ]).catch(() => {});
+  ]).then(() => {
+    unlockLocal();
+  }).catch(() => {
+    unlockLocal();
+  });
 }
 
 // ── saveOrder ────────────────────────────────────────────
 function saveOrder() {
   localStorage.setItem('zhongxin_order_v1', JSON.stringify(groupOrder));
-  lockLocal(15000);
+  lockLocal(30000);
   const ts = touchTs();
   Promise.all([
     _pushOne('zhongxin_order_v1', groupOrder),
     _pushOne('zhongxin_ts_v1', ts)
-  ]).catch(() => {});
+  ]).then(() => {
+    unlockLocal();
+  }).catch(() => {
+    unlockLocal();
+  });
 }
 
 // ── saveNotices（不影響 ts）──────────────────────────────
@@ -1716,7 +1728,6 @@ function changeStatus(n, s) {
   db[n].status = s;
   db[n].date = s === '未叫貨' ? '' : todayStr;
   logEditTime(n, s);
-  lockLocal(15000);   // 操作後鎖定15秒，確保 editLog 不被雲端同步蓋掉
   save(); renderAll();
   toast(n + ' → ' + s);
 }
