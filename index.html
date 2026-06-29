@@ -1210,12 +1210,30 @@ async function syncFromCloud() {
       }
     }
 
-    // ── historyLog ──
+    // ── historyLog（合併策略：今日 editLog 以本機筆數較多者為準）──
     if (data.zhongxin_hist_v4) {
       const cloudHist = JSON.parse(data.zhongxin_hist_v4);
       if (useCloud && JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
+        // 先記下本機今日的 editLog
+        const localTodayEntry = historyLog.find(h => h.date === todayStr);
+        const localEditLog    = localTodayEntry ? (localTodayEntry.editLog || {}) : {};
+        const localEditCount  = Object.values(localEditLog).reduce((s, a) => s + a.length, 0);
+
+        // 以雲端為主覆蓋
         historyLog = cloudHist;
-        localStorage.setItem('zhongxin_hist_v4', data.zhongxin_hist_v4);
+
+        // 若本機今日 editLog 筆數 >= 雲端，保留本機（操作者剛寫入的不能被蓋掉）
+        const cloudTodayEntry = historyLog.find(h => h.date === todayStr);
+        if (cloudTodayEntry) {
+          const cloudEditCount = Object.values(cloudTodayEntry.editLog || {}).reduce((s, a) => s + a.length, 0);
+          if (localEditCount >= cloudEditCount) {
+            cloudTodayEntry.editLog = localEditLog;
+          }
+        } else if (localTodayEntry) {
+          historyLog.push(localTodayEntry);
+        }
+
+        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
         updated = true;
       }
     }
@@ -1479,6 +1497,7 @@ function snapshotOnReset() {
 }
 
 function logEditTime(name, status) {
+  ensureTodayEditLog();   // 確保今日記錄存在
   const entry = getTodayEntry();
   if (!entry) return;
   if (!entry.editLog) entry.editLog = {};
@@ -1725,7 +1744,7 @@ function rightClick(e, n) {
 function changeStatus(n, s) {
   db[n].status = s;
   db[n].date = s === '未叫貨' ? '' : todayStr;
-  save(); logEditTime(n, s); renderAll();
+  logEditTime(n, s); save(); renderAll();   // 先記錄操作時間，再一起推送
   toast(n + ' → ' + s);
 }
 
@@ -2219,8 +2238,8 @@ function updateAllDates() {
 function showConfirm(msg, onOk) {
   document.getElementById('confirm-msg').textContent=msg;
   document.getElementById('confirm-overlay').classList.add('open');
-  document.getElementById('confirm-ok').onclick=()=>{
-    document.getElementById('confirm-overlay').classList.remove('open'); onOk();
+  document.getElementById('confirm-ok').onclick=async ()=>{
+    document.getElementById('confirm-overlay').classList.remove('open'); await onOk();
   };
   document.getElementById('confirm-cancel').onclick=()=>{
     document.getElementById('confirm-overlay').classList.remove('open');
