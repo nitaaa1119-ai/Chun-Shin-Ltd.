@@ -1154,11 +1154,14 @@ async function syncFromCloud() {
       const cloudDB = JSON.parse(data.zhongxin_v4);
       const cloudCount = Object.keys(cloudDB).length;
       const localCount = Object.keys(db).length;
-      // ★ 雲端客戶數必須 >= 本機才覆蓋，防止舊資料（99位）蓋新資料（638位）
       if (cloudCount >= MIN_CLIENT_COUNT && JSON.stringify(db) !== JSON.stringify(cloudDB)) {
-        db = cloudDB; updated = true;
+        // ★ 只有雲端「有叫貨」筆數 >= 本地才覆蓋，防止雲端舊資料蓋掉剛操作的本地
+        const cloudOrdered = Object.values(cloudDB).filter(v => v.status === '有叫貨').length;
+        const localOrdered = Object.values(db).filter(v => v.status === '有叫貨').length;
+        if (cloudOrdered >= localOrdered) {
+          db = cloudDB; updated = true;
+        }
       } else if (cloudCount < MIN_CLIENT_COUNT && localCount >= MIN_CLIENT_COUNT) {
-        // 雲端是舊資料，把本機的新資料推上去修正
         console.warn(`⚠️ 雲端只有 ${cloudCount} 位（舊版），自動修正`);
         saveToCloud('zhongxin_v4', db);
       }
