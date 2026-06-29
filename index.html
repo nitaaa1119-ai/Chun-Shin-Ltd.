@@ -2438,6 +2438,27 @@ window.addEventListener('load', ()=>{
   _syncInterval = setInterval(syncFromCloud, 6000); // 6秒同步一次
 });
 init();
+  async function clearAllHistory() {
+  showConfirm('確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。', async () => {
+    toast('清除中…');
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ key: 'zhongxin_hist_v4', value: '[]' }),
+        redirect: 'follow'
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      historyLog = [];
+      saveHistory();
+      renderAll();
+      toast('✅ 歷史記錄已清除');
+    } catch(e) {
+      toast('❌ 清除失敗：' + e.message, true);
+    }
+  });
+}
 </script>
 </body>
 </html>
