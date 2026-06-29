@@ -1191,20 +1191,18 @@ async function syncFromCloud() {
     let updated = false;
 
     // ── db（叫貨狀態）──
-    // ★ 不用時間戳判斷，直接比較內容差異，有差就更新
     if (data.zhongxin_v4) {
       const cloudDB    = JSON.parse(data.zhongxin_v4);
       const cloudCount = Object.keys(cloudDB).length;
       if (cloudCount >= MIN_CLIENT_COUNT) {
-        if (JSON.stringify(db) !== JSON.stringify(cloudDB)) {
-          // ★ 比較「有叫貨」筆數：只有雲端 >= 本地才覆蓋，防止雲端舊資料蓋掉剛操作的本地
-          const cloudOrdered = Object.values(cloudDB).filter(v => v.status === '有叫貨').length;
-          const localOrdered = Object.values(db).filter(v => v.status === '有叫貨').length;
-          if (cloudOrdered >= localOrdered) {
-            db = cloudDB;
-            localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
-            updated = true;
-          }
+        // ★ 逐一比較每個客戶的 status，有任何不同就覆蓋
+        const hasDiff = Object.keys(cloudDB).some(n => {
+          return !db[n] || db[n].status !== cloudDB[n].status;
+        }) || Object.keys(db).some(n => !cloudDB[n]);
+        if (hasDiff) {
+          db = cloudDB;
+          localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
+          updated = true;
         }
       } else if (Object.keys(db).length >= MIN_CLIENT_COUNT) {
         console.warn(`⚠️ 雲端只有 ${cloudCount} 位，自動修正`);
@@ -1260,7 +1258,8 @@ async function syncFromCloud() {
       }
     }
 
-    if (updated) { buildFixedFilter(); renderAll(); }
+    // ★ 不管資料有沒有變，每次都重新渲染，確保畫面與資料一致
+    buildFixedFilter(); renderAll();
     setSyncDot('');
   } catch(e) {
     console.error('雲端同步失敗', e);
