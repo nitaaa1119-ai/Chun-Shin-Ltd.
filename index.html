@@ -1134,6 +1134,9 @@ let _firstLoad = true;         // 首次載入旗標，強制接受雲端資料
 function lockLocal(ms) {
   _localLockUntil = Date.now() + ms;
 }
+function unlockLocal() {
+  _localLockUntil = 0;
+}
 
 function setSyncDot(state) {
   const dot = document.getElementById('sync-dot');
@@ -2177,14 +2180,28 @@ function deleteClient() {
   });
 }
 
-function resetAll() {
-  showConfirm('是否確定重置今日叫貨狀態？\n系統將記錄今日最終叫貨狀態後，所有客戶恢復為「未叫貨」。', ()=>{
+async function resetAll() {
+  showConfirm('是否確定重置今日叫貨狀態？\n系統將記錄今日最終叫貨狀態後，所有客戶恢復為「未叫貨」。', async ()=>{
     snapshotOnReset();
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
-    lockLocal(20000);
-    save(); saveHistory(); renderAll();   // saveHistory 確保清空的 editLog 推上雲端
-    toast('✅ 今日狀態已記錄並重置');
+    lockLocal(30000);  // 推送期間保護，推送成功後 unlockLocal() 立即解鎖
+    localStorage.setItem('zhongxin_v4', JSON.stringify(db));
+    localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+    const ts = touchTs();
+    renderAll();
+    toast('⏳ 重置中，推送至雲端…');
+    try {
+      await Promise.all([
+        _pushOne('zhongxin_v4', db),
+        _pushOne('zhongxin_hist_v4', historyLog),
+        _pushOne('zhongxin_ts_v1', ts)
+      ]);
+      unlockLocal();   // 推送成功立即解鎖，其他裝置下一輪詢即可同步
+      toast('✅ 今日狀態已記錄並重置');
+    } catch(e) {
+      toast('❌ 推送失敗：' + e.message, true);
+    }
   });
 }
 
@@ -2225,13 +2242,14 @@ async function clearAllHistory() {
       try {
         historyLog = [];
         ensureTodayEditLog();   // 建立今日空記錄
-        lockLocal(30000);       // 先鎖，再推送，防止推送途中輪詢蓋回
+        lockLocal(30000);       // 推送期間保護，推送成功後 unlockLocal() 立即解鎖
         localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
         const ts = touchTs();
         await Promise.all([
-          _pushOne('zhongxin_hist_v4', historyLog),   // 推送含今日空記錄的版本
+          _pushOne('zhongxin_hist_v4', historyLog),
           _pushOne('zhongxin_ts_v1', ts)
         ]);
+        unlockLocal();   // 推送成功立即解鎖
         renderAll();
         toast('✅ 歷史記錄已清除');
       } catch(e) {
