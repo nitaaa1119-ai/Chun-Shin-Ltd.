@@ -1211,30 +1211,11 @@ async function syncFromCloud() {
     }
 
     // ── historyLog ──
-    // 合併策略：雲端歷史天為主，但今日的 editLog 以本機為優先（操作者剛寫入的不能被蓋掉）
     if (data.zhongxin_hist_v4) {
       const cloudHist = JSON.parse(data.zhongxin_hist_v4);
       if (useCloud && JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
-        // 保留本機今日的 editLog
-        const localTodayEntry = historyLog.find(h => h.date === todayStr);
-        const localTodayEditLog = localTodayEntry ? (localTodayEntry.editLog || {}) : {};
-        const localTodayEditCount = Object.values(localTodayEditLog).reduce((s, arr) => s + arr.length, 0);
-
         historyLog = cloudHist;
-
-        // 若本機今日 editLog 筆數 >= 雲端，以本機為準（合併回去）
-        const cloudTodayEntry = historyLog.find(h => h.date === todayStr);
-        if (cloudTodayEntry) {
-          const cloudTodayEditCount = Object.values(cloudTodayEntry.editLog || {}).reduce((s, arr) => s + arr.length, 0);
-          if (localTodayEditCount >= cloudTodayEditCount) {
-            cloudTodayEntry.editLog = localTodayEditLog;
-          }
-        } else if (localTodayEntry) {
-          // 雲端沒有今日記錄，把本機的加進去
-          historyLog.push(localTodayEntry);
-        }
-
-        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+        localStorage.setItem('zhongxin_hist_v4', data.zhongxin_hist_v4);
         updated = true;
       }
     }
@@ -1329,6 +1310,7 @@ async function clearAllHistory() {
           _pushOne('zhongxin_hist_v4', []),
           _pushOne('zhongxin_ts_v1', ts)
         ]);
+        lockLocal(30000);   // 鎖 30 秒，防止輪詢把空記錄蓋回
         renderAll();
         toast('✅ 歷史記錄已清除');
       } catch(e) {
@@ -2254,6 +2236,8 @@ function switchTab(id, btn) {
   document.getElementById(id+'-page').classList.add('active');
   btn.classList.add('active');
   if (id === 'analytics') renderAnalytics();
+  if (id === 'backend')   renderTable();     // 切到後台時重新渲染，確保反映最新操作
+  if (id === 'check')     { updateStats(); renderGrid(); }  // 切回打勾單時更新統計
 }
 
 // ══════════════════════════════════════════════════════════
