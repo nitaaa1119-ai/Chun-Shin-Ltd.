@@ -1313,31 +1313,6 @@ function saveNotices() {
   _pushOne('zhongxin_notices_v1', notices).catch(() => {});
 }
 
-// ── clearAllHistory ──────────────────────────────────────
-async function clearAllHistory() {
-  showConfirm(
-    '確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。',
-    async () => {
-      toast('清除中…');
-      try {
-        historyLog = [];
-        ensureTodayEditLog();   // 建立今日空記錄
-        lockLocal(30000);       // 先鎖，再推送，防止推送途中輪詢蓋回
-        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-        const ts = touchTs();
-        await Promise.all([
-          _pushOne('zhongxin_hist_v4', historyLog),   // 推送含今日空記錄的版本
-          _pushOne('zhongxin_ts_v1', ts)
-        ]);
-        renderAll();
-        toast('✅ 歷史記錄已清除');
-      } catch(e) {
-        toast('❌ 清除失敗：' + e.message, true);
-      }
-    }
-  );
-}
-
 // ── BOOT ─────────────────────────────────────────────────
 window.addEventListener('load', () => {
   syncFromCloud();
@@ -1744,7 +1719,9 @@ function rightClick(e, n) {
 function changeStatus(n, s) {
   db[n].status = s;
   db[n].date = s === '未叫貨' ? '' : todayStr;
-  logEditTime(n, s); save(); renderAll();   // 先記錄操作時間，再一起推送
+  logEditTime(n, s);
+  lockLocal(15000);   // 操作後鎖定15秒，確保 editLog 不被雲端同步蓋掉
+  save(); renderAll();
   toast(n + ' → ' + s);
 }
 
@@ -2244,6 +2221,31 @@ function showConfirm(msg, onOk) {
   document.getElementById('confirm-cancel').onclick=()=>{
     document.getElementById('confirm-overlay').classList.remove('open');
   };
+}
+
+// ── clearAllHistory ──────────────────────────────────────
+async function clearAllHistory() {
+  showConfirm(
+    '確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。',
+    async () => {
+      toast('清除中…');
+      try {
+        historyLog = [];
+        ensureTodayEditLog();   // 建立今日空記錄
+        lockLocal(30000);       // 先鎖，再推送，防止推送途中輪詢蓋回
+        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+        const ts = touchTs();
+        await Promise.all([
+          _pushOne('zhongxin_hist_v4', historyLog),   // 推送含今日空記錄的版本
+          _pushOne('zhongxin_ts_v1', ts)
+        ]);
+        renderAll();
+        toast('✅ 歷史記錄已清除');
+      } catch(e) {
+        toast('❌ 清除失敗：' + e.message, true);
+      }
+    }
+  );
 }
 
 // ══════════════════════════════════════════════════════════
