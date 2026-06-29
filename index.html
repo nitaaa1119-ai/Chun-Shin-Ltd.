@@ -7,7 +7,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
   --ink:       #0f0f10;
   --ink2:      #4b5563;
@@ -17,7 +16,6 @@
   --white:     #ffffff;
   --page:      #f9fafb;
   --sidebar-w: 220px;
-
   --red:       #ef4444;
   --red-bg:    #fff1f2;
   --red-bd:    #fecdd3;
@@ -32,13 +30,13 @@
   --blu-bg:    #eff6ff;
   --blu-bd:    #bfdbfe;
   --blu-dk:    #1e3a8a;
-
   --amber:     #f59e0b;
   --amber-bg:  #fffbeb;
   --amber-bd:  #fde68a;
   --amber-dk:  #78350f;
 
-  --accent:    #6366f1;   /* indigo — signature colour */
+  --accent:    #6366f1;
+  /* indigo — signature colour */
   --accent-bg: #eef2ff;
   --accent-lt: #c7d2fe;
 
@@ -82,7 +80,8 @@ body {
   width: 30px; height: 30px; border-radius: 8px;
   background: var(--accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 800; color: #fff;
+  font-size: 14px;
+  font-weight: 800; color: #fff;
   letter-spacing: -.5px;
   flex-shrink: 0;
 }
@@ -154,7 +153,8 @@ body {
   flex-wrap: wrap; margin: 14px 0;
 }
 .user-icon-btn {
-  width: 40px; height: 40px; border-radius: var(--r-sm);
+  width: 40px;
+  height: 40px; border-radius: var(--r-sm);
   border: 2px solid var(--line); background: var(--page);
   cursor: pointer; font-size: 22px;
   display: flex; align-items: center; justify-content: center;
@@ -184,7 +184,8 @@ body {
   background: var(--white);
   border-bottom: 1px solid var(--line);
   padding: 0 20px;
-  display: flex; align-items: stretch; gap: 0;
+  display: flex;
+  align-items: stretch; gap: 0;
   overflow-x: auto;
 }
 .stat-item {
@@ -275,7 +276,8 @@ body {
   padding: 7px 12px 7px 34px;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
-  font-size: 13px; color: var(--ink);
+  font-size: 13px;
+  color: var(--ink);
   background: var(--page);
   outline: none;
   transition: border-color .15s, box-shadow .15s, background .15s;
@@ -287,13 +289,15 @@ body {
 }
 .search-box input::placeholder { color: var(--ink3); }
 .search-ico {
-  position: absolute; left: 10px; top: 50%;
+  position: absolute; left: 10px;
+  top: 50%;
   transform: translateY(-50%);
   color: var(--ink3); font-size: 13px; pointer-events: none;
 }
 .filter-select {
   padding: 7px 10px;
-  border: 1px solid var(--line); border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
   font-size: 13px; background: var(--page); color: var(--ink);
   outline: none; cursor: pointer;
   transition: border-color .15s;
@@ -324,7 +328,8 @@ body {
 .btn-danger { background: var(--red-bg); color: var(--red-dk); border: 1px solid var(--red-bd); }
 .btn-danger:hover { background: #ffe4e6; }
 .btn-reset {
-  background: #fff7ed; color: #c2410c;
+  background: #fff7ed;
+  color: #c2410c;
   border: 1px solid #fed7aa;
 }
 .btn-reset:hover { background: #ffedd5; }
@@ -355,7 +360,8 @@ body {
 .warn-chip {
   background: #fff; border: 1px solid var(--amber-bd);
   color: var(--amber-dk); border-radius: var(--r-xs);
-  font-size: 12px; font-weight: 600; padding: 2px 7px;
+  font-size: 12px; font-weight: 600;
+  padding: 2px 7px;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -434,7 +440,8 @@ body {
 
 .warn3-badge {
   position: absolute; top: 5px; right: 24px;
-  font-size: 9px; font-weight: 700; letter-spacing: .03em;
+  font-size: 9px;
+  font-weight: 700; letter-spacing: .03em;
   background: #f59e0b; color: #fff;
   padding: 2px 6px; border-radius: 99px;
   pointer-events: none;
@@ -444,7 +451,8 @@ body {
   position: absolute; top: 5px; right: 5px;
   width: 18px; height: 18px; border-radius: 50%;
   background: rgba(0,0,0,.07);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center; justify-content: center;
   font-size: 10px; opacity: 0;
   transition: opacity .15s; cursor: pointer;
   border: none; color: inherit;
@@ -458,7 +466,8 @@ body {
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 thead th {
   padding: 9px 12px;
-  text-align: left; font-size: 11px; font-weight: 600;
+  text-align: left; font-size: 11px;
+  font-weight: 600;
   color: var(--ink3); letter-spacing: .05em;
   border-bottom: 1px solid var(--line);
   background: var(--page);
@@ -480,7 +489,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 }
 .badge.unordered { background: var(--red-bg);   color: var(--red-dk); }
 .badge.ordered   { background: var(--grn-bg);   color: var(--grn-dk); }
-.badge.no-order  { background: var(--blu-bg);   color: var(--blu-dk); }
+.badge.no-order  { background: var(--blu-bg); color: var(--blu-dk); }
 .badge.warn3     { background: var(--amber-bg); color: var(--amber-dk); border: 1px solid var(--amber-bd); }
 
 /* timeline */
@@ -516,7 +525,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .section-info {
   padding: 7px 20px;
   background: var(--line2); border-bottom: 1px solid var(--line);
-  font-size: 11px; color: var(--ink2);
+  font-size: 11px;
+  color: var(--ink2);
   display: flex; align-items: center; gap: 6px;
 }
 
@@ -524,7 +534,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
    TOAST
 ═══════════════════════════════════════════════════ */
 #toast {
-  position: fixed; bottom: 24px; left: 50%;
+  position: fixed; bottom: 24px;
+  left: 50%;
   transform: translateX(-50%) translateY(80px);
   background: var(--ink); color: #fff;
   padding: 10px 18px; border-radius: var(--radius);
@@ -541,7 +552,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,.30);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center;
+  justify-content: center;
   z-index: 200; opacity: 0; pointer-events: none;
   transition: opacity .18s;
   backdrop-filter: blur(3px);
@@ -559,7 +571,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .field { margin-bottom: 13px; }
 .field label {
   display: block; font-size: 11px; font-weight: 600;
-  color: var(--ink2); margin-bottom: 5px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink2); margin-bottom: 5px; letter-spacing: .04em;
+  text-transform: uppercase;
 }
 .field input, .field select {
   width: 100%; padding: 9px 12px;
@@ -612,7 +625,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   padding: 6px 12px; border-radius: var(--r-sm);
   font-size: 12px; font-weight: 500;
   border: 1px solid var(--line); background: var(--white); color: var(--ink2);
-  cursor: pointer; transition: all .15s; white-space: nowrap;
+  cursor: pointer;
+  transition: all .15s; white-space: nowrap;
 }
 .drag-toggle-btn.active {
   background: var(--accent-bg); border-color: var(--accent-lt); color: var(--accent);
@@ -637,7 +651,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .notice-board-header:hover { background: var(--line2); }
 .notice-board-label {
   display: flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 700; color: var(--accent);
+  font-size: 11px; font-weight: 700;
+  color: var(--accent);
   letter-spacing: .06em; white-space: nowrap;
   flex-shrink: 0;
 }
@@ -650,7 +665,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 }
 .notice-badge.visible { display: inline-block; }
 .notice-preview {
-  flex: 1; font-size: 12px; color: var(--ink3);
+  flex: 1;
+  font-size: 12px; color: var(--ink3);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   min-width: 0;
 }
@@ -675,7 +691,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   width: 100%;
 }
 .notice-item {
-  display: flex; align-items: baseline; gap: 8px;
+  display: flex; align-items: baseline;
+  gap: 8px;
   font-size: 13px; color: var(--ink);
   padding: 2px 0;
   border-bottom: 1px solid var(--line2);
@@ -691,12 +708,14 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   flex-shrink: 0; min-width: 36px;
 }
 .notice-time {
-  font-size: 10px; color: var(--ink3);
+  font-size: 10px;
+  color: var(--ink3);
   flex-shrink: 0; font-variant-numeric: tabular-nums;
 }
 .notice-text { flex: 1; line-height: 1.4; word-break: break-all; }
 .notice-del {
-  font-size: 11px; color: var(--ink3); cursor: pointer;
+  font-size: 11px;
+  color: var(--ink3); cursor: pointer;
   background: none; border: none; padding: 0 2px;
   opacity: 0; transition: opacity .15s;
   flex-shrink: 0;
@@ -711,7 +730,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   padding: 5px 10px;
   border: 1px solid var(--line); border-radius: var(--r-sm);
   font-size: 13px; color: var(--ink); background: var(--page);
-  outline: none; flex: 1; min-width: 120px;
+  outline: none;
+  flex: 1; min-width: 120px;
   transition: border-color .15s, box-shadow .15s;
 }
 .notice-input:focus {
@@ -723,7 +743,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   padding: 5px 12px; border-radius: var(--r-sm);
   font-size: 12px; font-weight: 600;
   background: var(--accent); color: #fff;
-  border: none; cursor: pointer;
+  border: none;
+  cursor: pointer;
   transition: background .15s;
   white-space: nowrap;
 }
@@ -735,7 +756,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   padding: 5px 8px;
   border: 1px solid var(--line); border-radius: var(--r-sm);
   font-size: 12px; color: var(--ink); background: var(--page);
-  outline: none; width: 68px;
+  outline: none;
+  width: 68px;
   transition: border-color .15s;
 }
 .notice-author-input:focus { border-color: var(--accent); }
@@ -751,13 +773,15 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
 }
 .analytics-title {
-  font-size: 15px; font-weight: 700; color: var(--ink);
+  font-size: 15px;
+  font-weight: 700; color: var(--ink);
 }
 .analytics-month-nav {
   display: flex; align-items: center; gap: 8px;
 }
 .month-btn {
-  width: 30px; height: 30px; border-radius: var(--r-sm);
+  width: 30px; height: 30px;
+  border-radius: var(--r-sm);
   border: 1px solid var(--line); background: var(--white);
   cursor: pointer; font-size: 14px; color: var(--ink2);
   display: flex; align-items: center; justify-content: center;
@@ -782,7 +806,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   margin-bottom: 16px;
 }
 .chart-legend {
-  display: flex; gap: 16px; flex-wrap: wrap;
+  display: flex;
+  gap: 16px; flex-wrap: wrap;
   margin-bottom: 14px;
 }
 .legend-item {
@@ -794,7 +819,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 }
 /* SVG 折線圖容器 */
 .chart-svg-wrap {
-  width: 100%; overflow-x: auto;
+  width: 100%;
+  overflow-x: auto;
 }
 .chart-svg-wrap svg {
   display: block; min-width: 320px;
@@ -822,7 +848,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   letter-spacing: -.5px; line-height: 1;
 }
 .summary-card-sub {
-  font-size: 11px; color: var(--ink3); margin-top: 2px;
+  font-size: 11px; color: var(--ink3);
+  margin-top: 2px;
 }
 /* 無資料提示 */
 .analytics-empty {
@@ -855,7 +882,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 </head>
 <body>
 
-<!-- ── TOP BAR ──────────────────────────────────── -->
 <header class="topbar no-print">
   <div class="brand">
     <div class="brand-mark">忠</div>
@@ -871,7 +897,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   <div class="sync-dot" id="sync-dot" title="同步狀態"></div>
 </header>
 
-<!-- 暱稱設定 Modal -->
 <div class="overlay" id="user-overlay" onclick="if(event.target===this)closeUserModal()">
   <div class="user-modal">
     <div class="user-modal-title">👤 我是誰？</div>
@@ -886,7 +911,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
-<!-- ── STAT STRIP ───────────────────────────────── -->
 <div class="statstrip no-print">
   <div class="stat-item">
     <div class="stat-label-row"><span class="stat-dot red"></span>未叫貨</div>
@@ -914,16 +938,13 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
-<!-- ── NOTICE BOARD ─────────────────────────────── -->
 <div class="notice-board no-print" id="notice-board">
-  <!-- 收合標頭，點擊展開/收起 -->
   <div class="notice-board-header" onclick="toggleNoticeBoard()">
     <span class="notice-board-label">📌 留言板</span>
     <span class="notice-badge" id="notice-badge"></span>
     <span class="notice-preview" id="notice-preview">點此展開留言板</span>
     <span class="notice-chevron">▼</span>
   </div>
-  <!-- 展開後的內容 -->
   <div class="notice-body">
     <div class="notice-ticker" style="margin-top:8px;">
       <ul class="notice-list" id="notice-list">
@@ -938,7 +959,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
-<!-- ── TABS ─────────────────────────────────────── -->
 <nav class="tabs no-print">
   <button class="tab active" onclick="switchTab('check',this)">打勾單</button>
   <button class="tab" onclick="switchTab('backend',this)">後台管理</button>
@@ -946,9 +966,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   <button class="tab" onclick="switchTab('print',this)">列印預覽</button>
 </nav>
 
-<!-- ══════════════════════════════════════════════════
-     PAGE: 打勾單
-══════════════════════════════════════════════════ -->
 <div id="check-page" class="page active">
   <div class="toolbar">
     <div class="search-box">
@@ -974,7 +991,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     </div>
   </div>
 
-  <!-- ⚠ 3天未叫警示橫幅 -->
   <div class="warn-strip" id="warn-strip">
     <span class="warn-strip-icon">⚠</span>
     <div>
@@ -987,9 +1003,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   <div id="grid-container"></div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     PAGE: 後台管理
-══════════════════════════════════════════════════ -->
 <div id="backend-page" class="page">
   <div class="toolbar">
     <div class="search-box">
@@ -1014,13 +1027,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     PAGE: 趨勢分析
-══════════════════════════════════════════════════ -->
 <div id="analytics-page" class="page">
   <div class="analytics-wrap">
-
-    <!-- 標頭：月份切換 -->
     <div class="analytics-header">
       <div class="analytics-title">📊 每月叫貨趨勢</div>
       <div class="analytics-month-nav">
@@ -1029,11 +1037,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
         <button class="month-btn" onclick="analyticsChangeMonth(1)">›</button>
       </div>
     </div>
-
-    <!-- 今日 / 當月摘要 -->
     <div class="summary-grid" id="analytics-summary"></div>
-
-    <!-- 折線圖 -->
     <div class="analytics-card">
       <div class="analytics-card-title">每日店家數量趨勢</div>
       <div class="chart-legend">
@@ -1043,21 +1047,15 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
       </div>
       <div class="chart-svg-wrap" id="analytics-chart"></div>
     </div>
-
-    <!-- 每日明細表 -->
     <div class="analytics-card">
       <div class="analytics-card-title">每日明細</div>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:13px;" id="analytics-table"></table>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     PAGE: 列印預覽
-══════════════════════════════════════════════════ -->
 <div id="print-page" class="page">
   <div class="toolbar no-print">
     <span style="font-size:14px;font-weight:600;">列印預覽</span>
@@ -1081,10 +1079,8 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast"></div>
 
-<!-- 確認 Dialog -->
 <div class="overlay" id="confirm-overlay">
   <div class="modal" style="max-width:340px;">
     <div class="modal-title" style="font-size:14px;white-space:pre-line;" id="confirm-msg"></div>
@@ -1095,7 +1091,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
-<!-- Edit Modal -->
 <div class="overlay" id="overlay" onclick="bgClose(event)">
   <div class="modal">
     <div class="modal-title" id="modal-title">新增客戶</div>
@@ -1120,110 +1115,186 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 
 <script>
 // ══════════════════════════════════════════════════════════
-//  CLOUD SYNC
+//  CLOUD SYNC — 時間戳機制（重構版）
 // ══════════════════════════════════════════════════════════
 const API_URL = "https://script.google.com/macros/s/AKfycbx5kRtwjs59cuyl5JFJd7irGIBv1vPEPSgFHgfAAChvNHi-JfBoMBBdpqbCYlYxJiU/exec";
-
-// 本地操作鎖：用戶操作後暫停雲端覆蓋，等待推送完成
-let _localLock = false;
 let _syncInterval = null;
+let _isSyncing    = false;
+let _isInitialLoad = true;
+let _lockSyncUntil = 0; // 防寫入鎖定機制
+const INIT = {}; // 初始化防呆空資料
 
 function setSyncDot(state) {
   const dot = document.getElementById('sync-dot');
   dot.className = 'sync-dot' + (state ? ' ' + state : '');
 }
 
-// 設定本地鎖：鎖定期間不讓雲端資料覆蓋本地
-function lockLocal(ms = 8000) {
-  _localLock = true;
-  clearTimeout(lockLocal._t);
-  lockLocal._t = setTimeout(() => { _localLock = false; }, ms);
+function lockLocal(ms) {
+  _lockSyncUntil = Date.now() + ms;
 }
 
-async function syncFromCloud() {
-  if (_localLock && !_isInitialLoad) return;
-  setSyncDot('syncing');
-  try {
-    const res  = await fetch(API_URL, { redirect: 'follow' });
-    const data = await res.json();
-    let updated = false;
-
-    if (data.zhongxin_v4) {
-      const cloudDB = JSON.parse(data.zhongxin_v4);
-      const cloudCount = Object.keys(cloudDB).length;
-      const localCount = Object.keys(db).length;
-      if (cloudCount >= MIN_CLIENT_COUNT && JSON.stringify(db) !== JSON.stringify(cloudDB)) {
-        // ★ 只有雲端「有叫貨」筆數 >= 本地才覆蓋，防止雲端舊資料蓋掉剛操作的本地
-        const cloudOrdered = Object.values(cloudDB).filter(v => v.status === '有叫貨').length;
-        const localOrdered = Object.values(db).filter(v => v.status === '有叫貨').length;
-        if (_isInitialLoad || cloudOrdered >= localOrdered) {
-      db = cloudDB; updated = true;
-    }
-      } else if (cloudCount < MIN_CLIENT_COUNT && localCount >= MIN_CLIENT_COUNT) {
-        console.warn(`⚠️ 雲端只有 ${cloudCount} 位（舊版），自動修正`);
-        saveToCloud('zhongxin_v4', db);
-      }
-    }
-  if (data.zhongxin_hist_v4) {
-      const cloudHist = JSON.parse(data.zhongxin_hist_v4);
-      // 非初始載入時，若本機已清空（長度=0或只有今日空記錄），不讓雲端蓋回
-      const localIsCleared = historyLog.every(h => !h.records || Object.keys(h.records).length === 0);
-      const cloudHasData   = cloudHist.some(h => h.records && Object.keys(h.records).length > 0);
-      if (_isInitialLoad && JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
-        historyLog = cloudHist;
-        localStorage.setItem('zhongxin_hist_v4', data.zhongxin_hist_v4);
-        updated = true;
-      } else if (!_isInitialLoad && !(localIsCleared && cloudHasData)) {
-        // 非初始：只在雲端資料不比本機更舊的情況下才同步
-        if (JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
-          historyLog = cloudHist;
-          localStorage.setItem('zhongxin_hist_v4', data.zhongxin_hist_v4);
-          updated = true;
-        }
-      }
-    }
-    if (data.zhongxin_order_v1) {
-      const cloudOrder = JSON.parse(data.zhongxin_order_v1);
-      if (JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) { groupOrder = cloudOrder; updated = true; }
-    }
-    if (data.zhongxin_notices_v1) {
-      const cloudNotices = JSON.parse(data.zhongxin_notices_v1);
-      if (JSON.stringify(notices) !== JSON.stringify(cloudNotices)) {
-        notices = cloudNotices; renderNotices();
-      }
-    }
-    if (updated) renderAll();
-    setSyncDot('');
-  } catch(e) {
-    console.error('雲端同步失敗', e);
-    setSyncDot('error');
-  }
+// ── 時間戳 ──────────────────────────────────────────────
+function getLocalTs() {
+  return parseInt(localStorage.getItem('zhongxin_ts_v1') || '0', 10);
+}
+function setLocalTs(ts) {
+  localStorage.setItem('zhongxin_ts_v1', String(ts));
+}
+function touchTs() {
+  const ts = Date.now();
+  setLocalTs(ts);
+  return ts;
 }
 
-async function saveToCloud(key, val) {
-  lockLocal(10000);
+// ── 單筆推送至雲端 ──────────────────────────────────────
+async function _pushOne(key, value) {
   setSyncDot('syncing');
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ key: key, value: JSON.stringify(val) }),
+      body: JSON.stringify({ key, value: JSON.stringify(value) }),
       redirect: 'follow'
     });
-    const txt = await res.text();
-    const json = JSON.parse(txt);
+    const json = await res.json();
     if (json.error) throw new Error(json.error);
     setSyncDot('');
   } catch(e) {
     console.error('儲存至雲端失敗', e);
     setSyncDot('error');
+    throw e;
   }
 }
 
-// ══════════════════════════════════════════════════════════
-//  INITIAL DATA
-// ══════════════════════════════════════════════════════════
-const INIT = {"彭園林森": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園三重": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園板橋": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園忠孝": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園基隆": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園八德": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園新店": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園新板": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "彭園通安": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "一品宴": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "湘8老": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "吉吉園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "豪鼎新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "水源公館": {"status": "未叫貨", "date": "", "fixed": "散單"}, "東方": {"status": "未叫貨", "date": "", "fixed": "散單"}, "長春": {"status": "未叫貨", "date": "", "fixed": "散單"}, "絕好調": {"status": "未叫貨", "date": "", "fixed": "散單"}, "馳走屋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "悅華軒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "和民站前": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作裕隆": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作北車": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作桂北": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "手作青埔": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "上村北車": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "晶麒": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "甜蜜森林": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "鉑宴": {"status": "未叫貨", "date": "", "fixed": "散單"}, "桐花民生": {"status": "未叫貨", "date": "", "fixed": "散單"}, "中國信託": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "瑞健": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "薇閣": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "璿民": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "MMK忠孝": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "PAUL仁愛": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "PAUL林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "UKAI": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "藍象央廚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "藍象新光": {"status": "未叫貨", "date": "", "fixed": "散單"}, "藍象巨城": {"status": "未叫貨", "date": "", "fixed": "散單"}, "藍象林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "共同存在": {"status": "未叫貨", "date": "", "fixed": "散單"}, "晶湯SOGO": {"status": "未叫貨", "date": "", "fixed": "散單"}, "晶湯京站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "咖啡北車": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "咖啡士林": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "咖啡央廚": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "總督": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雙岩幸福": {"status": "未叫貨", "date": "", "fixed": "散單"}, "八和大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "八和敦北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "花田盛事": {"status": "未叫貨", "date": "", "fixed": "散單"}, "芯聚苑": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "大黑屋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮪一大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮪一永吉": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮪一八德": {"status": "未叫貨", "date": "", "fixed": "散單"}, "廣泰樓": {"status": "未叫貨", "date": "", "fixed": "散單"}, "KikiATT": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "胡饕市府": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕興安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕土城": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕天母": {"status": "未叫貨", "date": "", "fixed": "散單"}, "胡饕總部": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善光復": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善昆明": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善民樂": {"status": "未叫貨", "date": "", "fixed": "散單"}, "富善三重": {"status": "未叫貨", "date": "", "fixed": "散單"}, "黑武大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "黑武信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "便當大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "味道西寧": {"status": "未叫貨", "date": "", "fixed": "散單"}, "味道京站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "敘香園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "通安漢堡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大安站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鮮來": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爍場復興": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爍場南京": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麻辣沙龍": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點內湖": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點京站": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點竹北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "合點南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "阿默咖啡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "初心文德": {"status": "未叫貨", "date": "", "fixed": "散單"}, "榕央廚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "榕士林": {"status": "未叫貨", "date": "", "fixed": "散單"}, "榕信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "枝枒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "印度大江": {"status": "未叫貨", "date": "", "fixed": "散單"}, "印度宏匯": {"status": "未叫貨", "date": "", "fixed": "散單"}, "讚岐林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "讚岐板橋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄央廚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄慶城": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄中山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "椰兄南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島 森": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島 溪": {"status": "未叫貨", "date": "", "fixed": "散單"}, "浮島風禾": {"status": "未叫貨", "date": "", "fixed": "散單"}, "蒔鍋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "禾林": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泉元": {"status": "未叫貨", "date": "", "fixed": "散單"}, "賀村": {"status": "未叫貨", "date": "", "fixed": "散單"}, "阿堂": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LULU": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯明林森": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯明高峰": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯明統領": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雅蒙頭份": {"status": "未叫貨", "date": "", "fixed": "散單"}, "有馬": {"status": "未叫貨", "date": "", "fixed": "散單"}, "杏桃美麗": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰迪一江": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰迪復興": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯咖林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "湯咖美麗": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品龜山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品青雲": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品學士": {"status": "未叫貨", "date": "", "fixed": "散單"}, "義品桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "怡亨": {"status": "未叫貨", "date": "", "fixed": "散單"}, "高氏": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "高氏師大": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "高氏永吉": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "泰滾桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰滾南京": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰滾內湖": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰悠公館": {"status": "未叫貨", "date": "", "fixed": "散單"}, "泰悠桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "激餓": {"status": "未叫貨", "date": "", "fixed": "散單"}, "八畝田": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "福喜民權": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "福喜央廚": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "福喜南港": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "薄多南山": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "美術民權": {"status": "未叫貨", "date": "", "fixed": "散單"}, "莫凡統領": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "莫凡青埔": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "尖牙中壢": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "刁民板橋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "刁民信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "刁民松仁": {"status": "未叫貨", "date": "", "fixed": "散單"}, "刁民西門": {"status": "未叫貨", "date": "", "fixed": "散單"}, "夫婦": {"status": "未叫貨", "date": "", "fixed": "散單"}, "青亭": {"status": "未叫貨", "date": "", "fixed": "散單"}, "覺旅": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "娘子竹北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "源次郎": {"status": "未叫貨", "date": "", "fixed": "散單"}, "初心初始": {"status": "未叫貨", "date": "", "fixed": "散單"}, "瘋狂媽媽": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麵包竹北": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麵包光埔": {"status": "未叫貨", "date": "", "fixed": "散單"}, "路燈師大": {"status": "未叫貨", "date": "", "fixed": "散單"}, "玖尹": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "小花園": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "屠夫新竹": {"status": "未叫貨", "date": "", "fixed": "散單"}, "屠夫大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "屠夫忠孝": {"status": "未叫貨", "date": "", "fixed": "散單"}, "放餐飲": {"status": "未叫貨", "date": "", "fixed": "散單"}, "巴菲特": {"status": "未叫貨", "date": "", "fixed": "散單"}, "揪好新竹": {"status": "未叫貨", "date": "", "fixed": "散單"}, "京都南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "京都中山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "札幌南港": {"status": "未叫貨", "date": "", "fixed": "散單"}, "嘉和央廚": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼101": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼南港": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼中和": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼新店": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼美麗": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼宏匯": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼華泰": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "開丼時代": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "BHC巨蛋": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "BHC Att": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒巨城": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒宏匯": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒大葉": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "胡椒101": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "童媽吉": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "同一": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "這味板橋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味南山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味忠孝": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味復南": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味南西": {"status": "未叫貨", "date": "", "fixed": "散單"}, "這味南京": {"status": "未叫貨", "date": "", "fixed": "散單"}, "菊川信義": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "菊川天母": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "菊川巨城": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "橘炎": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "八色中和": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "鳥貴南西": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴信義": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴巨蛋": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴慶城": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "鳥貴大葉": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "了凡": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "添好大直": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "添好松山": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "添好南港": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "Dom Dom": {"status": "未叫貨", "date": "", "fixed": "散單"}, "襌院": {"status": "未叫貨", "date": "", "fixed": "散單"}, "空蟬": {"status": "未叫貨", "date": "", "fixed": "散單"}, "興波101": {"status": "未叫貨", "date": "", "fixed": "散單"}, "興波華山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "童鍋": {"status": "未叫貨", "date": "", "fixed": "散單"}, "牛嶼頭份": {"status": "未叫貨", "date": "", "fixed": "散單"}, "咖一味": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鉄鮮森": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "文昌幼兒": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "東華裕隆": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Goodday": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肆拾": {"status": "未叫貨", "date": "", "fixed": "散單"}, "弎禾新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Menu義式": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大溪球場": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "Bistro": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雞Soup": {"status": "未叫貨", "date": "", "fixed": "散單"}, "真‧手作": {"status": "未叫貨", "date": "", "fixed": "散單"}, "中一新店": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一南港": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一三創": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一桃園": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一三總": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "中一洲子": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "LIKE松江": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE天母": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE宏匯": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE中和": {"status": "未叫貨", "date": "", "fixed": "散單"}, "LIKE三重": {"status": "未叫貨", "date": "", "fixed": "散單"}, "魔法頭份": {"status": "未叫貨", "date": "", "fixed": "散單"}, "魔法淡水": {"status": "未叫貨", "date": "", "fixed": "散單"}, "岩島大直": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島桃園": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島大葉": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島板橋": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島大江": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "岩島三總": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "無老中山": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "無老信義": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "無老永康": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "好蔬三總": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "享樂咖啡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "欣樂三重": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "欣樂新莊": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "小樂信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "小樂新店": {"status": "未叫貨", "date": "", "fixed": "散單"}, "品司和食": {"status": "未叫貨", "date": "", "fixed": "散單"}, "貝兒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "丹生": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "初泰新板": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "青焰": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "青焰美信": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "饌食茶樓": {"status": "未叫貨", "date": "", "fixed": "散單"}, "上品饌": {"status": "未叫貨", "date": "", "fixed": "散單"}, "鶴橋林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "鶴橋南港": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "味穗": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "角落": {"status": "未叫貨", "date": "", "fixed": "散單"}, "饗牛": {"status": "未叫貨", "date": "", "fixed": "散單"}, "潮喆牛": {"status": "未叫貨", "date": "", "fixed": "散單"}, "立馬仁愛": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "熹極洣": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "華夏": {"status": "未叫貨", "date": "", "fixed": "散單"}, "瑪希妲": {"status": "未叫貨", "date": "", "fixed": "散單"}, "晨迷食煎": {"status": "未叫貨", "date": "", "fixed": "散單"}, "安安生魚": {"status": "未叫貨", "date": "", "fixed": "散單"}, "秘密": {"status": "未叫貨", "date": "", "fixed": "散單"}, "小溪": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大股": {"status": "未叫貨", "date": "", "fixed": "散單"}, "今悅": {"status": "未叫貨", "date": "", "fixed": "散單"}, "港點大師": {"status": "未叫貨", "date": "", "fixed": "散單"}, "德霖": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "硬咖啡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "華航": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "富城閣": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "風車": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "青青士林": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "歐華": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "亞太北投": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "富信汐止": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "基隆長榮": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "暐順": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "捷絲旅": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "煙波": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波都會": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波宜蘭": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波蘇澳": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "煙波傳藝": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "晶英": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "君樂": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "萬豪": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "晶宴": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "鳳凰": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "悅川": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "富立登": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "村却": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "礁溪老爺": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "力麗": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "瓏山林": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "國泰萬怡": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "慕軒敦南": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和逸民生": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和逸忠孝": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和咖1號": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "和咖2號": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "國泰青埔": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "國賓林口": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "桃花園": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "米堤中壢": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "兆品": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "兄弟": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "新竹喜來": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "喜來登": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "喜來南京": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "艾麗": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "艾美": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "寒沐": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "香茅復興": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "美國學校": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏石港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "JR大飯店": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "捌伍添第": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "白金花園": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "連大烏石": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "芙洛麗": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "亞昕": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "豪景": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "大板根": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "威斯汀": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "川雅": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "美僑": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "海峽會": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "春作": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "宇方圓": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "酒沏": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "皇家": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "頤品": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "君品": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "了了": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "國聯": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "星聚延平": {"status": "未叫貨", "date": "", "fixed": "慈慧"}, "綠舞": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "福泰": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "徐州庭園": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "礁溪風華": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "YAYOI天母": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI七張": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI懷寧": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI內湖": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI春日": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI石牌": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI樹林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI淡水": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI置地": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI中崙": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI微風": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI林口": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "YAYOI南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司館前": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司西門": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司中和": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司建國": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司松江": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司永春": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司公館": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司新竹": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司美麗": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司慈雲": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司林森": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司土城": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司汐止": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司新莊": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司天母": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司宜蘭": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司中興": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司基隆": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司林口": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司內湖": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司新埔": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司石牌": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司府中": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司徐匯": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司淡水": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司三重": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司巨蛋": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司南山": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "壽司TOGO": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月石牌": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月重新": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月樹林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月桂林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月統領": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月新店": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月永和": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月松山": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月威秀": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月凱薩": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月台茂": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月中和": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "花月土城": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "燒丼統領": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "蛋包南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "蛋包林口": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "築間新豐": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間南榮": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間七堵": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間雙城": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間農安": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間三民": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間復興": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間松江": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間新莊": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "韓鍋信義": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "杏子廣豐": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子新莊": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子土城": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子統領": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子新竹": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子新店": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子北車": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子京站": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子南京": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子威秀": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子內湖": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子凱薩": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子桃園": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子南港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子裕隆": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子巨城": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子徐匯": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "杏子三重": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將新月": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將威秀": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將桃園": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "王將南港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛巨城": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛京站": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛裕隆": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "勝牛南港": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "橋村板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "橋村大江": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗板橋": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗宏匯": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗信義": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗新月": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "銀穗二廠": {"status": "未叫貨", "date": "", "fixed": "阿密"}, "壹番八德": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番樹林": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番碧潭": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番宜蘭": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番漢中": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番林口": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番桃園": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番中家": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番佳瑪": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番巨城": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番三創": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番民權": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番建國": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番新莊": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番台大": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番科教": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番松山": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番南京": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番天母": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番青埔": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番三重": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "壹番蘆洲": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "威盛八德": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "滿庭A11": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "靚點": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩央廚": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩民權": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩一店": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "尚碩世貿": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "檀島信義": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "檀島南西": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "檀島大江": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "檀島基隆": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "吉福內湖": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "劉家宴": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "北村樹林": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "北村統領": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "北村經國": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "北村淡新": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "韓姜新店": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "韓姜中壢": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆南港": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆苗栗": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆南山": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "涓豆美麗": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "飛機林口": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "倉儲物流": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "丸龜桂林": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜A8": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜站前": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜天母": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜西門": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜南港": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜板橋": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜基隆": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜汐止": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜統一": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜新店": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜大直": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜巨城": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜宏匯": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜環球": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜湳雅": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜新竹": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜竹北": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜地下": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜SOGO": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜宜蘭": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜比漾": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜徐匯": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "丸龜總公": {"status": "未叫貨", "date": "", "fixed": "芊芊"}, "點8林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "點8桃園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "東森榮總": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雞泰石牌": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰公館": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰景美": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰永和": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "雞泰萬華": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "樂麵央廚": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵板橋": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵公園": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵西門": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "樂麵南港": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "杓文永康": {"status": "未叫貨", "date": "", "fixed": "學姐"}, "宮武樹林": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "宮武林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "KUA 林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉老永安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉老敦南": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉老錦西": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉老竹圍": {"status": "未叫貨", "date": "", "fixed": "散單"}, "麵老大": {"status": "未叫貨", "date": "", "fixed": "散單"}, "肉的林口": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的巨城": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的南港": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的忠孝": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "肉的南西": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "六本信義": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "六本南西": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "筑前延吉": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "天沃": {"status": "未叫貨", "date": "", "fixed": "散單"}, "協和": {"status": "未叫貨", "date": "", "fixed": "散單"}, "GPC林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "GPC A8": {"status": "未叫貨", "date": "", "fixed": "散單"}, "老饕": {"status": "未叫貨", "date": "", "fixed": "散單"}, "衍選": {"status": "未叫貨", "date": "", "fixed": "散單"}, "或者": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Cobber": {"status": "未叫貨", "date": "", "fixed": "散單"}, "美味森市": {"status": "未叫貨", "date": "", "fixed": "散單"}, "大喫": {"status": "未叫貨", "date": "", "fixed": "散單"}, "當代": {"status": "未叫貨", "date": "", "fixed": "散單"}, "老炭": {"status": "未叫貨", "date": "", "fixed": "散單"}, "斐得": {"status": "未叫貨", "date": "", "fixed": "散單"}, "島瓜": {"status": "未叫貨", "date": "", "fixed": "散單"}, "森驛": {"status": "未叫貨", "date": "", "fixed": "散單"}, "永心": {"status": "未叫貨", "date": "", "fixed": "散單"}, "老協珍": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Fra": {"status": "未叫貨", "date": "", "fixed": "散單"}, "在水": {"status": "未叫貨", "date": "", "fixed": "散單"}, "安菈": {"status": "未叫貨", "date": "", "fixed": "散單"}, "沐楓": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "義沐中美": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "義沐內湖": {"status": "未叫貨", "date": "", "fixed": "琪姐"}, "世界": {"status": "未叫貨", "date": "", "fixed": "散單"}, "貓舅舅": {"status": "未叫貨", "date": "", "fixed": "散單"}, "玉膳坊": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "極之林口": {"status": "未叫貨", "date": "", "fixed": "散單"}, "吃飯北大": {"status": "未叫貨", "date": "", "fixed": "散單"}, "杓子永和": {"status": "未叫貨", "date": "", "fixed": "散單"}, "杓子公園": {"status": "未叫貨", "date": "", "fixed": "散單"}, "谷季": {"status": "未叫貨", "date": "", "fixed": "阿巧"}, "成真板車": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真信義": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真永康": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真復興": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真天母": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真松菸": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真迴龍": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真西門": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真藝文": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真中正": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真微風": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "成真南山": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "侯布雄": {"status": "未叫貨", "date": "", "fixed": "散單"}, "想想桃機": {"status": "未叫貨", "date": "", "fixed": "散單"}, "吃吃樹林": {"status": "未叫貨", "date": "", "fixed": "散單"}, "城市漢堡": {"status": "未叫貨", "date": "", "fixed": "散單"}, "咖loopy": {"status": "未叫貨", "date": "", "fixed": "散單"}, "星馬文山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "福格": {"status": "未叫貨", "date": "", "fixed": "散單"}, "豚人": {"status": "未叫貨", "date": "", "fixed": "散單"}, "拾味食堂": {"status": "未叫貨", "date": "", "fixed": "散單"}, "蘭姐": {"status": "未叫貨", "date": "", "fixed": "散單"}, "燒肉信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "劉震新竹": {"status": "未叫貨", "date": "", "fixed": "散單"}, "海上皇宮": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爆汁內湖": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爆汁中山": {"status": "未叫貨", "date": "", "fixed": "散單"}, "爆汁信義": {"status": "未叫貨", "date": "", "fixed": "散單"}, "oie": {"status": "未叫貨", "date": "", "fixed": "散單"}, "Petitoie": {"status": "未叫貨", "date": "", "fixed": "散單"}, "威士永春": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士微風": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士中山": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士南港": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士南京": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士天母": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士板橋": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士六張": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "威士松江": {"status": "未叫貨", "date": "", "fixed": "下雨天"}, "烏龍景平": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍新埔": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍土城": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍樹林": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍松江": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍化成": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "烏龍公園": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "築間汐止": {"status": "未叫貨", "date": "", "fixed": "孟潔"}, "極之大安": {"status": "未叫貨", "date": "", "fixed": "散單"}, "雙味軒": {"status": "未叫貨", "date": "", "fixed": "散單"}, "板橋艾美": {"status": "未叫貨", "date": "", "fixed": "琪姐"}};
+// ── 從雲端同步 ──────────────────────────────────────────
+async function syncFromCloud(force = false) {
+  if (_isSyncing || Date.now() < _lockSyncUntil) return;
+  _isSyncing = true;
+  setSyncDot('syncing');
+  try {
+    const res  = await fetch(API_URL, { redirect: 'follow' });
+    const data = await res.json();
+    const localTs  = getLocalTs();
+    const cloudTs  = parseInt(data.zhongxin_ts_v1 || '0', 10);
+    const useCloud = force || cloudTs > localTs;
+
+    let updated = false;
+    if (data.zhongxin_v4) {
+      const cloudDB    = JSON.parse(data.zhongxin_v4);
+      const cloudCount = Object.keys(cloudDB).length;
+      if (cloudCount >= MIN_CLIENT_COUNT) {
+        if (useCloud) {
+          db = cloudDB;
+          localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
+          updated = true;
+        }
+      } else if (Object.keys(db).length >= MIN_CLIENT_COUNT) {
+        console.warn(`⚠️ 雲端只有 ${cloudCount} 位，自動修正`);
+        _isSyncing = false;
+        save();
+        return;
+      }
+    }
+
+    if (data.zhongxin_hist_v4) {
+      const cloudHist = JSON.parse(data.zhongxin_hist_v4);
+      if (useCloud && JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
+        historyLog = cloudHist;
+        localStorage.setItem('zhongxin_hist_v4', data.zhongxin_hist_v4);
+        updated = true;
+      }
+    }
+
+    if (data.zhongxin_order_v1) {
+      const cloudOrder = JSON.parse(data.zhongxin_order_v1);
+      if (useCloud && JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) {
+        groupOrder = cloudOrder;
+        localStorage.setItem('zhongxin_order_v1', data.zhongxin_order_v1);
+        updated = true;
+      }
+    }
+
+    if (data.zhongxin_notices_v1) {
+      const cloudNotices = JSON.parse(data.zhongxin_notices_v1);
+      if (JSON.stringify(notices) !== JSON.stringify(cloudNotices)) {
+        notices = cloudNotices;
+        localStorage.setItem('zhongxin_notices_v1', data.zhongxin_notices_v1);
+        renderNotices();
+      }
+    }
+
+    if (useCloud) setLocalTs(cloudTs);
+    if (updated) { buildFixedFilter(); renderAll(); }
+    setSyncDot('');
+  } catch(e) {
+    console.error('雲端同步失敗', e);
+    setSyncDot('error');
+  } finally {
+    _isSyncing = false;
+  }
+}
+
+// ── 資料儲存 ────────────────────────────────────────────
+function save(fromInit = false) {
+  if (Object.keys(db).length < MIN_CLIENT_COUNT) {
+    console.warn('⚠️ db 只有', Object.keys(db).length, '筆，不儲存');
+    return;
+  }
+  localStorage.setItem('zhongxin_v4', JSON.stringify(db));
+  if (!fromInit) {
+    _isInitialLoad = false;
+    const ts = touchTs();
+    Promise.all([
+      _pushOne('zhongxin_v4', db),
+      _pushOne('zhongxin_ts_v1', ts)
+    ]).catch(() => {});
+  }
+}
+
+function saveHistory() {
+  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+  const ts = touchTs();
+  Promise.all([
+    _pushOne('zhongxin_hist_v4', historyLog),
+    _pushOne('zhongxin_ts_v1', ts)
+  ]).catch(() => {});
+}
+
+function saveOrder() {
+  localStorage.setItem('zhongxin_order_v1', JSON.stringify(groupOrder));
+  const ts = touchTs();
+  Promise.all([
+    _pushOne('zhongxin_order_v1', groupOrder),
+    _pushOne('zhongxin_ts_v1', ts)
+  ]).catch(() => {});
+}
+
+function saveNotices() {
+  localStorage.setItem('zhongxin_notices_v1', JSON.stringify(notices));
+  _pushOne('zhongxin_notices_v1', notices).catch(() => {});
+}
+
+// ── 清除歷史紀錄 ────────────────────────────────────────
+async function clearAllHistory() {
+  showConfirm('確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。', async () => {
+    toast('清除中…');
+    try {
+      historyLog = [];
+      ensureTodayEditLog();
+      localStorage.setItem('zhongxin_hist_v4', '[]');
+      const ts = touchTs();
+      lockLocal(30000); // 鎖定30秒，防止雲端蓋回舊資料
+      await Promise.all([
+        _pushOne('zhongxin_hist_v4', []),
+        _pushOne('zhongxin_ts_v1', ts)
+      ]);
+      renderAll();
+      toast('✅ 歷史記錄已清除');
+    } catch(e) {
+      toast('❌ 清除失敗：' + e.message, true);
+    }
+  });
+}
 
 // ══════════════════════════════════════════════════════════
 //  STATE
@@ -1238,36 +1309,29 @@ const todayISO = today.getFullYear() + '-' +
 
 let db = {};
 let historyLog = [];
-let groupOrder = {}; // { groupName: [clientName, ...] }
-let notices = [];    // [{ id, author, text, time }]
+let groupOrder = {};
+let notices = [];
 let editing = null;
 let dragMode = false;
 let dragSrcName = null;
-let _isInitialLoad = true;   // ← 新增：頁面剛載入旗標
 const HISTORY_DAYS = 6;
-const NOTICE_MAX = 20; // 最多顯示幾則留言
+const NOTICE_MAX = 20;
 
-// 操作者識別
 let currentUser = { name: '', color: '#6366f1' };
 const USER_ICONS = ['🐱','🐶','🐼','🐸','🦊','🐨','🐯','🦁','🐺','🐻','🐧','🦋','🌟','🍀','🌈','🎈'];
-
-// ★ 資料版本控制：本機客戶數若低於此值，視為舊資料自動清除
-const MIN_CLIENT_COUNT = 600; // 638位，設600作為安全下限
+const MIN_CLIENT_COUNT = 600;
 
 // ══════════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════════
 function init() {
   document.getElementById('topbar-date').textContent = todayStr;
-
-  // ★ 啟動時先檢查本機資料是否為舊版（客戶數 < MIN_CLIENT_COUNT）
   const v4raw = localStorage.getItem('zhongxin_v4');
   if (v4raw) {
     try {
       const localDB = JSON.parse(v4raw);
       const localCount = Object.keys(localDB).length;
       if (localCount < MIN_CLIENT_COUNT) {
-        // 舊資料！清除本機，等 syncFromCloud 從雲端拉新資料
         console.warn(`⚠️ 本機資料只有 ${localCount} 位（舊版），自動清除`);
         localStorage.removeItem('zhongxin_v4');
         localStorage.removeItem('zhongxin_v3');
@@ -1281,7 +1345,6 @@ function init() {
     }
   }
 
-  // 若本機沒有資料（或剛清除），先用 INIT 初始化，等雲端同步覆蓋
   if (!Object.keys(db).length) {
     const v3 = localStorage.getItem('zhongxin_v3');
     const v3data = v3 ? JSON.parse(v3) : null;
@@ -1305,22 +1368,19 @@ function init() {
 
   const nt = localStorage.getItem('zhongxin_notices_v1');
   notices = nt ? JSON.parse(nt) : [];
-
-  // 讀取操作者暱稱
+  
   const savedUser = localStorage.getItem('zhongxin_user_v1');
   if (savedUser) { currentUser = JSON.parse(savedUser); }
 
-  // 還原留言板暱稱
   const savedAuthor = localStorage.getItem('zhongxin_notice_author');
   if (savedAuthor) document.getElementById('notice-author').value = savedAuthor;
 
   ensureTodayEditLog();
-  save(true);   // ← 初始化：只存本機、不推雲端、不關閉 _isInitialLoad
+  save(true);
   buildFixedFilter();
   renderAll();
   updateUserTag();
 
-  // 第一次使用時彈出暱稱設定
   if (!currentUser.name) {
     setTimeout(openUserModal, 600);
   }
@@ -1337,49 +1397,21 @@ function ensureTodayEditLog() {
 
 function getTodayEntry() { return historyLog.find(h => h.date === todayStr); }
 
-function save(fromInit = false) {
-  if (Object.keys(db).length < MIN_CLIENT_COUNT) {
-    console.warn('⚠️ db 只有', Object.keys(db).length, '筆，不儲存');
-    return;
-  }
-  localStorage.setItem('zhongxin_v4', JSON.stringify(db));
-  if (!fromInit) {
-    _isInitialLoad = false;   // ← 使用者操作後，關閉強制覆蓋
-    saveToCloud('zhongxin_v4', db);
-  }
-}
-function saveHistory() {
-  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-  saveToCloud('zhongxin_hist_v4', historyLog);
-}
-function saveOrder() {
-  localStorage.setItem('zhongxin_order_v1', JSON.stringify(groupOrder));
-  saveToCloud('zhongxin_order_v1', groupOrder);
-}
-function saveNotices() {
-  localStorage.setItem('zhongxin_notices_v1', JSON.stringify(notices));
-  saveToCloud('zhongxin_notices_v1', notices);
-}
-
 // ══════════════════════════════════════════════════════════
-//  3-DAY WARN DETECTION  ← 核心邏輯說明於下方
+//  3-DAY WARN DETECTION
 // ══════════════════════════════════════════════════════════
 function getWarn3Set() {
   const warn = new Set();
-  // 只看「已完成重置」的歷史天（排除今天）
   const completed = historyLog
     .filter(h => h.date !== todayStr && h.records && Object.keys(h.records).length > 0)
     .sort((a, b) => a.date < b.date ? -1 : 1);
-
-  // 需要至少 3 天已重置的歷史才能判斷
+  
   if (completed.length < 3) return warn;
-
-  const recent3 = completed.slice(-3); // 最近3天
+  const recent3 = completed.slice(-3);
 
   Object.keys(db).forEach(n => {
     const missedAll3 = recent3.every(h => {
       const s = h.records[n];
-      // 該天：未叫貨 或 根本沒記錄（表示當天也沒叫）
       return !s || s === '未叫貨';
     });
     if (missedAll3) warn.add(n);
@@ -1441,7 +1473,6 @@ function renderAll() {
   renderTable();
   renderPrint();
   renderNotices();
-  // 只在分析頁面顯示時才渲染（避免效能問題）
   if (document.getElementById('analytics-page').classList.contains('active')) {
     renderAnalytics();
   }
@@ -1465,8 +1496,7 @@ function renderNotices() {
       <span class="notice-time">${esc(n.time)}</span>
       <button class="notice-del" onclick="deleteNotice('${esc(n.id)}')" title="刪除">✕</button>
     </li>`).join('');
-
-  // 更新標頭預覽（最新一則）
+    
   const latest = shown[0];
   const preview = `${latest.author}：${latest.text}`;
   updateNoticeHeader(shown.length, preview);
@@ -1490,7 +1520,6 @@ function toggleNoticeBoard() {
   noticeBoardOpen = !noticeBoardOpen;
   const board = document.getElementById('notice-board');
   board.classList.toggle('open', noticeBoardOpen);
-  // 展開時自動 focus 輸入框
   if (noticeBoardOpen) {
     setTimeout(() => document.getElementById('notice-input').focus(), 150);
   }
@@ -1511,7 +1540,6 @@ function postNotice() {
   input.value = '';
   saveNotices();
   renderNotices();
-  // 儲存暱稱供下次使用
   localStorage.setItem('zhongxin_notice_author', author);
 }
 
@@ -1536,8 +1564,7 @@ function updateStats() {
   document.getElementById('c-tot').textContent  = tot;
   document.getElementById('prog').style.width   = pct + '%';
   document.getElementById('prog-pct').textContent = pct + '%';
-
-  // ⚠ 警示橫幅
+  
   const warnNames = [...warn3].filter(n => db[n] && db[n].status === '未叫貨');
   const strip = document.getElementById('warn-strip');
   const namesEl = document.getElementById('warn-names');
@@ -1552,10 +1579,8 @@ function updateStats() {
 // ══════════════════════════════════════════════════════════
 //  GRID
 // ══════════════════════════════════════════════════════════
-// 取得群組內依儲存順序排列的客戶名稱
 function getGroupNames(groupName, allNamesInGroup) {
   const saved = groupOrder[groupName] || [];
-  // 合併：saved 中有的依序，saved 沒有的（新增的）補到後面
   const savedSet = new Set(saved);
   const ordered = saved.filter(n => allNamesInGroup.includes(n));
   allNamesInGroup.forEach(n => { if (!savedSet.has(n)) ordered.push(n); });
@@ -1567,8 +1592,8 @@ function renderGrid() {
   const ff = document.getElementById('filter-fixed').value;
   const container = document.getElementById('grid-container');
   const warn3 = getWarn3Set();
-
   const fs = document.getElementById('filter-status').value;
+  
   const names = Object.keys(db).filter(n => {
     const d = db[n];
     if (q && !n.toLowerCase().includes(q)) return false;
@@ -1577,13 +1602,12 @@ function renderGrid() {
     if (fs && d.status !== fs) return false;
     return true;
   });
-
+  
   if (!names.length) {
     container.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>查無符合條件的客戶</div>';
     return;
   }
 
-  // 先依 fixed 分組
   const rawGroups = {};
   names.forEach(n => { const g = db[n].fixed || '未分類'; (rawGroups[g] = rawGroups[g] || []).push(n); });
 
@@ -1599,8 +1623,6 @@ function renderGrid() {
     html += '</div></div>';
   });
   container.innerHTML = html;
-
-  // 若拖曳模式啟動中，重新附加拖曳事件
   if (dragMode) attachDragEvents();
 }
 
@@ -1610,19 +1632,18 @@ function mkCard(n, warn3) {
   let cls, lbl;
   if (d.status === '有叫貨')        { cls = 'ordered';   lbl = '已叫貨'; }
   else if (d.status === '今日不叫貨') { cls = 'no-order';  lbl = '不叫'; }
-  else if (isWarn)                   { cls = 'warn3';      lbl = '連續未叫'; }
-  else                               { cls = 'unordered';  lbl = '未叫貨'; }
+  else if (isWarn)                   { cls = 'warn3'; lbl = '連續未叫'; }
+  else                               { cls = 'unordered'; lbl = '未叫貨'; }
 
   const warnTag = isWarn ? '<span class="warn3-badge">⚠ 連續3天未叫</span>' : '';
   const nn = esc(n);
-
-  // 找出今日最後操作者
+  
   const todayEntry = getTodayEntry();
   const logs = todayEntry?.editLog?.[n] || [];
   const lastLog = logs.at(-1);
   const lastUser = lastLog?.user || '';
   const lastIcon = lastLog?.icon || '';
-
+  
   return `<div class="ccard ${cls}" data-name="${nn}"
     onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')"
     ondragstart="onDragStart(event,'${nn}')" ondragend="onDragEnd(event)">
@@ -1638,7 +1659,7 @@ function mkCard(n, warn3) {
 }
 
 function toggle(n) {
-  if (dragMode) return; // 拖曳模式中停用點擊
+  if (dragMode) return;
   if (db[n].status === '未叫貨')     changeStatus(n, '有叫貨');
   else if (db[n].status === '有叫貨') changeStatus(n, '未叫貨');
 }
@@ -1672,7 +1693,6 @@ function toggleDragMode() {
 function attachDragEvents() {
   document.querySelectorAll('.ccard').forEach(el => {
     el.setAttribute('draggable', 'true');
-    // 手機 touch 事件
     el.addEventListener('touchstart', onTouchStart, { passive: false });
     el.addEventListener('touchmove',  onTouchMove,  { passive: false });
     el.addEventListener('touchend',   onTouchEnd,   { passive: false });
@@ -1702,9 +1722,8 @@ function onDragOver(e) {
   }
 }
 
-// ── 手機觸控拖曳 ──────────────────────────────────────────────────────────
-let _touchClone = null;   // 拖曳時跟隨手指的複製卡片
-let _touchSrc   = null;   // 被拖曳的原始卡片元素
+let _touchClone = null;
+let _touchSrc   = null;
 let _touchOffX  = 0;
 let _touchOffY  = 0;
 
@@ -1719,13 +1738,11 @@ function onTouchStart(e) {
   _touchOffX = touch.clientX - rect.left;
   _touchOffY = touch.clientY - rect.top;
 
-  // 建立跟隨手指的視覺複製
   _touchClone = card.cloneNode(true);
   _touchClone.style.cssText = `
-    position:fixed; z-index:9999; pointer-events:none; opacity:.85;
-    width:${rect.width}px; left:${rect.left}px; top:${rect.top}px;
-    border-radius:var(--radius); box-shadow:var(--shadow-lg);
-    transition:none;
+    position:fixed; z-index:9999; pointer-events:none;
+    opacity:.85; width:${rect.width}px; left:${rect.left}px; top:${rect.top}px;
+    border-radius:var(--radius); box-shadow:var(--shadow-lg); transition:none;
   `;
   document.body.appendChild(_touchClone);
   card.classList.add('dragging');
@@ -1738,8 +1755,7 @@ function onTouchMove(e) {
   const touch = e.touches[0];
   _touchClone.style.left = (touch.clientX - _touchOffX) + 'px';
   _touchClone.style.top  = (touch.clientY - _touchOffY) + 'px';
-
-  // 找出手指下方的目標卡片
+  
   _touchClone.style.display = 'none';
   const el = document.elementFromPoint(touch.clientX, touch.clientY);
   _touchClone.style.display = '';
@@ -1754,11 +1770,9 @@ function onTouchEnd(e) {
   if (!_touchClone || !dragMode) return;
   e.preventDefault();
 
-  // 清理複製元素
   _touchClone.remove(); _touchClone = null;
   if (_touchSrc) { _touchSrc.classList.remove('dragging'); _touchSrc = null; }
 
-  // 找出落點目標
   const touch = e.changedTouches[0];
   const el = document.elementFromPoint(touch.clientX, touch.clientY);
   document.querySelectorAll('.ccard.drag-over').forEach(c => c.classList.remove('drag-over'));
@@ -1766,8 +1780,6 @@ function onTouchEnd(e) {
   const targetName = targetCard ? targetCard.dataset.name : null;
 
   if (!dragSrcName || !targetName || dragSrcName === targetName) return;
-
-  // 確認同群組
   if (db[dragSrcName]?.fixed !== db[targetName]?.fixed) {
     toast('⚠ 只能在同一負責人群組內調整順序', true); return;
   }
@@ -1794,14 +1806,13 @@ function onDrop(e, groupName) {
   const targetCard = e.target.closest('.ccard');
   const targetName = targetCard ? targetCard.dataset.name : null;
   if (!dragSrcName || dragSrcName === targetName) return;
-
-  // 確認兩張卡片在同一群組
+  
   if (db[dragSrcName]?.fixed !== db[targetName]?.fixed &&
       !(db[dragSrcName]?.fixed === undefined && db[targetName]?.fixed === undefined)) {
-    toast('⚠ 只能在同一負責人群組內調整順序', true); return;
+    toast('⚠ 只能在同一負責人群組內調整順序', true);
+    return;
   }
 
-  // 取得目前排序，將 src 插入到 target 前
   const group = db[dragSrcName]?.fixed || '未分類';
   const allInGroup = Object.keys(db).filter(n => (db[n].fixed || '未分類') === group);
   let ordered = getGroupNames(group, allInGroup);
@@ -1893,7 +1904,6 @@ function renderTable() {
     else if (streak) html += `<span style="font-size:12px;color:var(--ink3);">${streak}天</span>`;
     else             html += '<span style="color:var(--line);">—</span>';
     html += '</td>';
-
     const nn = esc(n);
     html += `<td style="white-space:nowrap;">
       <button class="btn btn-ghost btn-sm" onclick="openEditModal(null,'${nn}')">編輯</button>
@@ -1925,7 +1935,6 @@ let importedWbData = null;
 function renderPrint() { importedWbData ? renderPrintFromExcel() : renderPrintDefault(); }
 
 function renderPrintDefault() {
-  // 未匯入 Excel 時，顯示提示而非預設表格
   document.getElementById('print-table').innerHTML = '';
   const wrap = document.getElementById('print-placeholder');
   if (wrap) wrap.style.display = 'flex';
@@ -1938,23 +1947,24 @@ function importExcel(input) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      // 保留原始 arrayBuffer，匯出時直接在原始 workbook 上改，才能保住格式
       const rawBuf = e.target.result;
       const wb = XLSX.read(new Uint8Array(rawBuf), {
         type: 'array',
-        cellStyles: true,   // 保留儲存格樣式
-        cellNF: true,       // 保留數字格式
-        cellDates: true,    // 保留日期格式
+        cellStyles: true,
+        cellNF: true,
+        cellDates: true,
       });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
       if (!rows.length) { statusEl.textContent='⚠ 檔案無資料'; return; }
+      
       const headerRow = rows[0];
       const todayDay  = today.getDate();
       const todayColIndices = [];
       headerRow.forEach((v,i) => { if (v===todayDay) todayColIndices.push(i); });
+      
       if (!todayColIndices.length) { statusEl.textContent=`⚠ 找不到今日（${todayDay}日）欄位`; return; }
-      // 同時保留原始 wb 物件，供匯出時直接修改使用
+      
       importedWbData = { rows, todayColIndices, headerRow, wb, wsName: wb.SheetNames[0] };
       document.getElementById('btn-export-excel').style.display='inline-flex';
       statusEl.style.color='var(--grn)';
@@ -1972,11 +1982,13 @@ function renderPrintFromExcel() {
   const CPG=7, warn3=getWarn3Set();
   const ordSet = new Set(Object.keys(db).filter(n => db[n].status==='有叫貨'));
   let html='<thead><tr>';
+  
   headerRow.forEach((v,c) => {
     const it = todayColIndices.includes(c);
     html += `<th style="${it?'background:#dbeafe;':''}">${esc(v!=null?String(v):'')}</th>`;
   });
   html += '</tr></thead><tbody>';
+  
   for (let r=1;r<rows.length;r++) {
     const row=rows[r]; if(!row||row.every(v=>v===null)) continue;
     html+='<tr>';
@@ -2004,29 +2016,22 @@ function exportExcel() {
   const { rows, todayColIndices, wb, wsName } = importedWbData;
   const CPG = 7;
   const ordSet = new Set(Object.keys(db).filter(n => db[n].status === '有叫貨'));
-
-  // 直接操作原始 worksheet，不重建，才能保住儲存格格式、合併、樣式
   const ws = wb.Sheets[wsName];
-
+  
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
     if (!row) continue;
     for (const c of todayColIndices) {
-      // 找到同列最近一個名稱欄
       let cn = null;
       for (let nc = c - 1; nc >= 0; nc--) {
         if (nc % CPG === 0 && row[nc] != null) { cn = String(row[nc]); break; }
       }
-      // 將 Excel 欄列索引轉成儲存格位址 (e.g. r=1,c=3 → D2)
       const cellAddr = XLSX.utils.encode_cell({ r: r, c: c });
       if (cn && ordSet.has(cn)) {
-        // 有叫貨：寫入 "V"，保留原有儲存格其他屬性（格式、樣式）
         if (!ws[cellAddr]) ws[cellAddr] = {};
-        ws[cellAddr].v = 'V';   // 值
-        ws[cellAddr].t = 's';   // 類型：string
-        // 如果原始儲存格有樣式物件，保留它；否則不覆蓋
+        ws[cellAddr].v = 'V';
+        ws[cellAddr].t = 's';
       } else {
-        // 未叫貨：清空該格的值（保留儲存格物件讓格式留著）
         if (ws[cellAddr]) {
           ws[cellAddr].v = '';
           ws[cellAddr].t = 's';
@@ -2038,8 +2043,6 @@ function exportExcel() {
   const ds = today.getFullYear() +
     String(today.getMonth()+1).padStart(2,'0') +
     String(today.getDate()).padStart(2,'0');
-
-  // 用 bookType:'xlsx' 寫出，保留所有原始格式
   XLSX.writeFile(wb, '打勾單_' + ds + '.xlsx', { bookType: 'xlsx', type: 'binary' });
   toast('✅ Excel 已匯出（原始格式保留）');
 }
@@ -2129,7 +2132,6 @@ function resetAll() {
 //  UPDATE ALL DATES
 // ══════════════════════════════════════════════════════════
 function updateAllDates() {
-  // 只更新狀態為「有叫貨」或「今日不叫貨」的客戶日期（未叫貨不異動）
   const targets = Object.keys(db).filter(n => db[n].status !== '未叫貨');
   if (!targets.length) { toast('目前沒有已叫貨或今日不叫的客戶'); return; }
   showConfirm(`將 ${targets.length} 位已叫貨／今日不叫貨的客戶日期更新為今日（${todayStr}）？`, ()=>{
@@ -2179,14 +2181,11 @@ function updateUserTag() {
 function openUserModal() {
   const input = document.getElementById('user-name-input');
   input.value = currentUser.name || '';
-
-  // 繪製 icon 選擇器
   const row = document.getElementById('user-icon-row');
   row.innerHTML = USER_ICONS.map(ic =>
     `<div class="user-icon-btn${ic === currentUser.icon ? ' selected' : ''}"
       onclick="selectUserIcon('${ic}')" data-icon="${ic}">${ic}</div>`
   ).join('');
-
   document.getElementById('user-overlay').classList.add('open');
   setTimeout(() => input.focus(), 150);
 }
@@ -2208,7 +2207,7 @@ function saveUserName() {
   currentUser.name = name;
   if (!currentUser.icon) currentUser.icon = USER_ICONS[Math.floor(Math.random() * USER_ICONS.length)];
   localStorage.setItem('zhongxin_user_v1', JSON.stringify(currentUser));
-  // 同步留言板暱稱
+  
   const authorEl = document.getElementById('notice-author');
   if (authorEl) authorEl.value = name;
   localStorage.setItem('zhongxin_notice_author', name);
@@ -2221,12 +2220,12 @@ function saveUserName() {
 //  ANALYTICS
 // ══════════════════════════════════════════════════════════
 let analyticsYear  = today.getFullYear();
-let analyticsMonth = today.getMonth(); // 0-indexed
+let analyticsMonth = today.getMonth();
 
 function analyticsChangeMonth(delta) {
   analyticsMonth += delta;
   if (analyticsMonth < 0)  { analyticsMonth = 11; analyticsYear--; }
-  if (analyticsMonth > 11) { analyticsMonth = 0;  analyticsYear++; }
+  if (analyticsMonth > 11) { analyticsMonth = 0; analyticsYear++; }
   renderAnalytics();
 }
 
@@ -2235,25 +2234,20 @@ function renderAnalytics() {
   const monthStr = `${y}年 ${m+1}月`;
   document.getElementById('analytics-month-label').textContent = monthStr;
 
-  // 取得該月所有日期的資料
-  // historyLog: [{date:'2025/07/01', records:{name:status}}, ...]
-  // 今日資料從 db 直接取
   const daysInMonth = new Date(y, m+1, 0).getDate();
-  const dayData = []; // [{date, ord, un, no, total}]
+  const dayData = [];
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     let ord=0, un=0, no=0;
 
     if (dateStr === todayStr) {
-      // 今日：從當前 db 取
       Object.values(db).forEach(v => {
         if (v.status === '有叫貨')     ord++;
         else if (v.status === '今日不叫貨') no++;
         else un++;
       });
     } else {
-      // 歷史：從 historyLog 取
       const entry = historyLog.find(h => h.date === dateStr);
       if (entry && entry.records) {
         const total = Object.keys(db).length;
@@ -2262,11 +2256,9 @@ function renderAnalytics() {
           else if (s === '今日不叫貨') no++;
           else un++;
         });
-        // 有些客戶可能沒有記錄，視為未叫貨
         const recorded = ord + un + no;
         un += Math.max(0, total - recorded);
       } else {
-        // 無資料的日期跳過（未來的日期或沒有重置的日期）
         dayData.push({ date: dateStr, day: d, ord: null, un: null, no: null, total: null });
         continue;
       }
@@ -2276,15 +2268,13 @@ function renderAnalytics() {
   }
 
   const validDays = dayData.filter(d => d.total !== null);
-
-  // ── 摘要卡片 ──────────────────────────────────────────
   const totalOrd = validDays.reduce((s, d) => s + d.ord, 0);
   const avgOrd   = validDays.length ? Math.round(totalOrd / validDays.length) : 0;
   const maxOrd   = validDays.length ? Math.max(...validDays.map(d => d.ord)) : 0;
   const todayData = dayData.find(d => d.date === todayStr);
   const todayOrd  = todayData?.ord ?? 0;
   const todayPct  = todayData?.total ? Math.round(todayOrd / todayData.total * 100) : 0;
-
+  
   document.getElementById('analytics-summary').innerHTML = `
     <div class="summary-card">
       <div class="summary-card-label"><span style="color:var(--grn)">●</span> 今日已叫貨</div>
@@ -2306,7 +2296,7 @@ function renderAnalytics() {
       <div class="summary-card-val" style="color:var(--amber-dk)">${maxOrd}</div>
       <div class="summary-card-sub">本月峰值</div>
     </div>`;
-
+    
   if (!validDays.length) {
     document.getElementById('analytics-chart').innerHTML =
       '<div class="analytics-empty"><div class="analytics-empty-icon">📭</div>本月尚無叫貨記錄<br><small style="color:var(--ink3);font-size:12px;margin-top:6px;display:block;">每日按「重置今日」後才會記錄當天快照</small></div>';
@@ -2314,10 +2304,7 @@ function renderAnalytics() {
     return;
   }
 
-  // ── SVG 折線圖 ──────────────────────────────────────
   renderLineChart(dayData, daysInMonth);
-
-  // ── 每日明細表 ──────────────────────────────────────
   renderAnalyticsTable(dayData);
 }
 
@@ -2327,18 +2314,14 @@ function renderLineChart(dayData, daysInMonth) {
   const PAD = { top: 20, right: 20, bottom: 36, left: 44 };
   const cW = W - PAD.left - PAD.right;
   const cH = H - PAD.top  - PAD.bottom;
-
   const validDays = dayData.filter(d => d.total !== null);
   if (!validDays.length) return;
 
   const maxVal = Math.max(...validDays.map(d => Math.max(d.ord, d.un, d.no)), 1);
-  // 讓 Y 軸最大值稍大，留白
   const yMax = Math.ceil(maxVal * 1.15 / 10) * 10 || 10;
-
   const xPos = d => PAD.left + ((d.day - 1) / (daysInMonth - 1 || 1)) * cW;
   const yPos = v => PAD.top + cH - (v / yMax) * cH;
-
-  // Y 軸格線
+  
   const yTicks = 4;
   let gridLines = '', yLabels = '';
   for (let i = 0; i <= yTicks; i++) {
@@ -2348,19 +2331,16 @@ function renderLineChart(dayData, daysInMonth) {
     yLabels  += `<text x="${PAD.left - 6}" y="${y+4}" text-anchor="end" font-size="10" fill="#9ca3af">${v}</text>`;
   }
 
-  // X 軸標籤（每 5 天顯示一次）
   let xLabels = '';
   dayData.forEach(d => {
     if (d.day === 1 || d.day % 5 === 0 || d.day === daysInMonth) {
       xLabels += `<text x="${xPos(d)}" y="${H - PAD.bottom + 16}" text-anchor="middle" font-size="10" fill="#9ca3af">${d.day}</text>`;
     }
   });
-
-  // 折線 + 資料點產生器
+  
   function makePath(key, color) {
     const pts = validDays.map(d => `${xPos(d)},${yPos(d[key])}`);
     const path = `M${pts.join(' L')}`;
-    // 面積填色
     const first = validDays[0], last = validDays.at(-1);
     const area  = `M${xPos(first)},${yPos(0)} L${pts.join(' L')} L${xPos(last)},${yPos(0)} Z`;
     let dots = '';
@@ -2375,7 +2355,6 @@ function renderLineChart(dayData, daysInMonth) {
       ${dots}`;
   }
 
-  // 今日標示線
   const todayEntry = dayData.find(d => d.date === todayStr);
   let todayLine = '';
   if (todayEntry) {
@@ -2394,12 +2373,11 @@ function renderLineChart(dayData, daysInMonth) {
     ${makePath('no',  '#3b82f6')}
     ${todayLine}
   </svg>`;
-
   document.getElementById('analytics-chart').innerHTML = svg;
 }
 
 function renderAnalyticsTable(dayData) {
-  const validDays = dayData.filter(d => d.total !== null).reverse(); // 最新在前
+  const validDays = dayData.filter(d => d.total !== null).reverse();
   let html = `<thead><tr style="background:var(--page);">
     <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--ink3);border-bottom:1px solid var(--line);white-space:nowrap;">日期</th>
     <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:#10b981;border-bottom:1px solid var(--line);">已叫貨</th>
@@ -2408,7 +2386,7 @@ function renderAnalyticsTable(dayData) {
     <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:var(--ink3);border-bottom:1px solid var(--line);">總計</th>
     <th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:600;color:var(--ink3);border-bottom:1px solid var(--line);">叫貨率</th>
   </tr></thead><tbody>`;
-
+  
   validDays.forEach(d => {
     const isToday = d.date === todayStr;
     const pct = d.total ? Math.round(d.ord / d.total * 100) : 0;
@@ -2453,35 +2431,10 @@ function toast(msg, isErr) {
 //  BOOT
 // ══════════════════════════════════════════════════════════
 window.addEventListener('load', ()=>{
-  // 頁面剛載入（含手機重整）→ 強制以雲端資料覆蓋本機
   syncFromCloud(true);
   _syncInterval = setInterval(syncFromCloud, 6000);
 });
 init();
-  async function clearAllHistory() {
-  showConfirm('確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。', async () => {
-    toast('清除中…');
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ key: 'zhongxin_hist_v4', value: '[]' }),
-        redirect: 'follow'
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      historyLog = [];
-      localStorage.setItem('zhongxin_hist_v4', '[]');
-      ensureTodayEditLog();           // ← 重建今日空記錄
-      lockLocal(30000);               // ← 鎖 30 秒，防止雲端舊資料蓋回
-      saveHistory();                  // ← 確保空陣列推送至雲端成功
-      renderAll();
-      toast('✅ 歷史記錄已清除');
-    } catch(e) {
-      toast('❌ 清除失敗：' + e.message, true);
-    }
-  });
-}
 </script>
 </body>
 </html>
