@@ -1185,7 +1185,8 @@ async function syncFromCloud() {
 
     const localTs  = getLocalTs();
     const cloudTs  = parseInt(data.zhongxin_ts_v1 || '0', 10);
-    const useCloud = cloudTs > localTs;   // ← 唯一判斷規則
+    // 雲端沒有 ts（ts=0，表示 GAS 白名單未開放或尚未寫入）→ 直接信任雲端
+    const useCloud = cloudTs === 0 ? true : cloudTs > localTs;
 
     let updated = false;
 
