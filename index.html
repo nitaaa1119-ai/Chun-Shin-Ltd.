@@ -1195,9 +1195,12 @@ async function syncFromCloud() {
       const cloudDB    = JSON.parse(data.zhongxin_v4);
       const cloudCount = Object.keys(cloudDB).length;
       if (cloudCount >= MIN_CLIENT_COUNT) {
-        // ★ 逐一比較每個客戶的 status，有任何不同就覆蓋
+        // ★ 比較 status 和 fixed，任何欄位不同就覆蓋
         const hasDiff = Object.keys(cloudDB).some(n => {
-          return !db[n] || db[n].status !== cloudDB[n].status;
+          return !db[n]
+            || db[n].status !== cloudDB[n].status
+            || db[n].fixed  !== cloudDB[n].fixed
+            || db[n].date   !== cloudDB[n].date;
         }) || Object.keys(db).some(n => !cloudDB[n]);
         if (hasDiff) {
           db = cloudDB;
