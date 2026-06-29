@@ -2564,6 +2564,11 @@ window.addEventListener('load', () => {
   _syncInterval = setInterval(syncFromCloud, 6000);
 });
 
+// ★ 頁面從背景回到前景時立即同步（手機切回來不用等 6 秒）
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) syncFromCloud();
+});
+
 </script>
 </body>
 </html>
