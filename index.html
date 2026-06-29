@@ -165,6 +165,10 @@ body {
   border-color: var(--accent); background: var(--accent-bg);
   transform: scale(1.1);
 }
+.sync-wrap {
+  display: flex; align-items: center; gap: 5px;
+  flex-shrink: 0;
+}
 .sync-dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--grn);
@@ -173,6 +177,13 @@ body {
 }
 .sync-dot.syncing { background: var(--amber); animation: pulse-dot 1s infinite; }
 .sync-dot.error   { background: var(--red); }
+.sync-label {
+  font-size: 11px; color: var(--ink3);
+  transition: color .3s;
+  white-space: nowrap;
+}
+.sync-dot.syncing + .sync-label { color: var(--amber); }
+.sync-dot.error   + .sync-label { color: var(--red); }
 @keyframes pulse-dot {
   0%,100% { opacity: 1; } 50% { opacity: .3; }
 }
@@ -868,7 +879,10 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <div class="user-tag-avatar" id="user-avatar">?</div>
     <span class="user-tag-name" id="user-tag-name">設定暱稱</span>
   </div>
-  <div class="sync-dot" id="sync-dot" title="同步狀態"></div>
+  <div class="sync-wrap">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span class="sync-label" id="sync-label">已同步</span>
+  </div>
 </header>
 
 <!-- 暱稱設定 Modal -->
@@ -1139,8 +1153,14 @@ function unlockLocal() {
 }
 
 function setSyncDot(state) {
-  const dot = document.getElementById('sync-dot');
+  const dot   = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
   dot.className = 'sync-dot' + (state ? ' ' + state : '');
+  if (label) {
+    if (state === 'syncing') label.textContent = '同步中…';
+    else if (state === 'error') label.textContent = '同步失敗';
+    else label.textContent = '已同步';
+  }
 }
 
 // ── 時間戳：每次本機有實質操作時更新 ───────────────────
