@@ -2090,7 +2090,7 @@ function deleteClient() {
       if(h.editLog) delete h.editLog[editing];
     });
     delete db[editing]; closeModal();
-    buildFixedFilter(); save(); saveHistory(); renderAll();
+    buildFixedFilter(); save(); renderAll();
     toast('已刪除 '+editing);
   });
 }
