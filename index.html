@@ -1311,11 +1311,6 @@ function saveNotices() {
   _pushOne('zhongxin_notices_v1', notices).catch(() => {});
 }
 
-// ── BOOT ─────────────────────────────────────────────────
-window.addEventListener('load', () => {
-  syncFromCloud();
-  _syncInterval = setInterval(syncFromCloud, 6000);
-});
 // ══════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════
@@ -2543,6 +2538,13 @@ function toast(msg, isErr) {
   el.classList.add('show'); clearTimeout(_t);
   _t=setTimeout(()=>el.classList.remove('show'),2500);
 }
+
+// ── BOOT ─────────────────────────────────────────────────
+init();
+window.addEventListener('load', () => {
+  syncFromCloud();
+  _syncInterval = setInterval(syncFromCloud, 6000);
+});
 
 </script>
 </body>
