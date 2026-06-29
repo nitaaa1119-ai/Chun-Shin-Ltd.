@@ -1140,10 +1140,8 @@ function lockLocal(ms = 8000) {
   lockLocal._t = setTimeout(() => { _localLock = false; }, ms);
 }
 
-async function syncFromCloud() {
-  // 本地有未推送完的操作時，跳過這次同步，避免覆蓋
-  if (_localLock) return;
-
+async function syncFromCloud(forceOverwrite = false) {
+  if (_localLock && !forceOverwrite) return;
   setSyncDot('syncing');
   try {
     const res  = await fetch(API_URL, { redirect: 'follow' });
@@ -1158,7 +1156,7 @@ async function syncFromCloud() {
         // ★ 只有雲端「有叫貨」筆數 >= 本地才覆蓋，防止雲端舊資料蓋掉剛操作的本地
         const cloudOrdered = Object.values(cloudDB).filter(v => v.status === '有叫貨').length;
         const localOrdered = Object.values(db).filter(v => v.status === '有叫貨').length;
-        if (cloudOrdered >= localOrdered) {
+        if (forceOverwrite || cloudOrdered >= localOrdered) {
           db = cloudDB; updated = true;
         }
       } else if (cloudCount < MIN_CLIENT_COUNT && localCount >= MIN_CLIENT_COUNT) {
@@ -1306,7 +1304,7 @@ function init() {
   if (savedAuthor) document.getElementById('notice-author').value = savedAuthor;
 
   ensureTodayEditLog();
-  save();
+  save(true);   // ← 初始化只存本機，不推雲端也不鎖 localLock
   buildFixedFilter();
   renderAll();
   updateUserTag();
@@ -1328,14 +1326,13 @@ function ensureTodayEditLog() {
 
 function getTodayEntry() { return historyLog.find(h => h.date === todayStr); }
 
-function save() {
-  // ★ 只有資料量正確才儲存，防止意外寫入舊資料
+function save(skipCloud = false) {
   if (Object.keys(db).length < MIN_CLIENT_COUNT) {
     console.warn('⚠️ db 只有', Object.keys(db).length, '筆，不儲存');
     return;
   }
   localStorage.setItem('zhongxin_v4', JSON.stringify(db));
-  saveToCloud('zhongxin_v4', db);
+  if (!skipCloud) saveToCloud('zhongxin_v4', db);
 }
 function saveHistory() {
   localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
@@ -2441,8 +2438,9 @@ function toast(msg, isErr) {
 //  BOOT
 // ══════════════════════════════════════════════════════════
 window.addEventListener('load', ()=>{
-  syncFromCloud();
-  _syncInterval = setInterval(syncFromCloud, 6000); // 6秒同步一次
+  // 頁面剛載入（含手機重整）→ 強制以雲端資料覆蓋本機
+  syncFromCloud(true);
+  _syncInterval = setInterval(syncFromCloud, 6000);
 });
 init();
   async function clearAllHistory() {
