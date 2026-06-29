@@ -1121,7 +1121,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 // ══════════════════════════════════════════════════════════
 //  CLOUD SYNC
 // ══════════════════════════════════════════════════════════
-const API_URL = "https://script.google.com/macros/s/AKfycbwJZ1N0SayvqAG76N0TAqocmqm-qOiwUryaLSBEUO-qeGF0vZ-eMs0JWs1z2cTBQGU/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx5kRtwjs59cuyl5JFJd7irGIBv1vPEPSgFHgfAAChvNHi-JfBoMBBdpqbCYlYxJiU/exec";
 
 // 本地操作鎖：用戶操作後暫停雲端覆蓋，等待推送完成
 let _localLock = false;
@@ -1188,9 +1188,15 @@ async function saveToCloud(key, val) {
   lockLocal(10000);
   setSyncDot('syncing');
   try {
-    const qs = 'action=set&key=' + encodeURIComponent(key) +
-                '&value=' + encodeURIComponent(JSON.stringify(val));
-    await fetch(API_URL + '?' + qs, { redirect: 'follow' });
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ key: key, value: JSON.stringify(val) }),
+      redirect: 'follow'
+    });
+    const txt = await res.text();
+    const json = JSON.parse(txt);
+    if (json.error) throw new Error(json.error);
     setSyncDot('');
   } catch(e) {
     console.error('儲存至雲端失敗', e);
