@@ -991,7 +991,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
      PAGE: 後台管理
 ══════════════════════════════════════════════════ -->
 <div id="backend-page" class="page">
-  <button class="btn btn-danger btn-sm" onclick="clearAllHistory()" style="margin-left:4px;">🗑 清除歷史記錄</button>
   <div class="toolbar">
     <div class="search-box">
       <span class="search-ico">🔍</span>
@@ -1002,6 +1001,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
       只顯示3天未叫
     </label>
     <button class="btn btn-ghost ml-auto" onclick="openAddModal()">＋ 新增客戶</button>
+    <button class="btn btn-danger btn-sm" onclick="clearAllHistory()">🗑 清除歷史記錄</button>
   </div>
   <div class="section-info">
     📋 條列每次叫貨狀態的變更時間點・連續3天未叫貨以 <strong style="color:var(--amber-dk);">⚠ 橙底</strong> 標示
