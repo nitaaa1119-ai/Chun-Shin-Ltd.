@@ -2108,7 +2108,7 @@ function resetAll() {
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
     lockLocal(20000); // 重置後鎖定 20 秒，防止雲端舊資料覆蓋
-    save(); ; renderAll();
+    save(); renderAll();
     toast('✅ 今日狀態已記錄並重置');
   });
 }
@@ -2458,7 +2458,7 @@ init();
       const json = await res.json();
       if (json.error) throw new Error(json.error);
       historyLog = [];
-      saveHistory();
+      localStorage.setItem('zhongxin_hist_v4', '[]');
       renderAll();
       toast('✅ 歷史記錄已清除');
     } catch(e) {
