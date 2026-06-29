@@ -1464,7 +1464,8 @@ function snapshotOnReset() {
     historyLog.push(entry);
     if (historyLog.length > HISTORY_DAYS) historyLog = historyLog.slice(-HISTORY_DAYS);
   }
-  saveHistory();
+  // ★ 不在這裡推送，由呼叫者（resetAll）統一推送
+  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
 }
 
 function logEditTime(name, status) {
@@ -2200,6 +2201,7 @@ async function resetAll() {
       unlockLocal();   // 推送成功立即解鎖，其他裝置下一輪詢即可同步
       toast('✅ 今日狀態已記錄並重置');
     } catch(e) {
+      unlockLocal();   // 推送失敗也要解鎖，不然其他裝置永遠無法同步
       toast('❌ 推送失敗：' + e.message, true);
     }
   });
@@ -2253,6 +2255,7 @@ async function clearAllHistory() {
         renderAll();
         toast('✅ 歷史記錄已清除');
       } catch(e) {
+        unlockLocal();   // 推送失敗也要解鎖
         toast('❌ 清除失敗：' + e.message, true);
       }
     }
