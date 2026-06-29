@@ -1185,14 +1185,12 @@ async function syncFromCloud() {
 }
 
 async function saveToCloud(key, val) {
-  lockLocal(10000); // 推送開始，鎖定 10 秒，防止同步覆蓋
+  lockLocal(10000);
   setSyncDot('syncing');
   try {
-    await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ key, value: JSON.stringify(val) }),
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-    });
+    const qs = 'action=set&key=' + encodeURIComponent(key) +
+                '&value=' + encodeURIComponent(JSON.stringify(val));
+    await fetch(API_URL + '?' + qs, { redirect: 'follow' });
     setSyncDot('');
   } catch(e) {
     console.error('儲存至雲端失敗', e);
