@@ -2089,8 +2089,8 @@ function renderPrintFromExcel() {
         ct=(iw?'⚠ ':'')+esc(cn);
         cs='font-weight:600;text-align:left;padding-left:6px;white-space:nowrap;'+(iw?'background:#fffbeb;color:var(--amber-dk);':'');
       } else if (it) {
-        let cn=null;
-        for (let nc=c-1;nc>=0;nc--) { if(nc%CPG===0&&row[nc]!=null){cn=String(row[nc]);break;} }
+        const groupStart = c - (c % CPG);
+        const cn = row[groupStart] != null ? String(row[groupStart]) : null;
         if(cn&&ordSet.has(cn)){ct='V';cs='font-weight:700;color:var(--grn);background:var(--grn-bg)';} else cs='background:var(--blu-bg);';
       }
       html+=`<td style="${cs}">${ct}</td>`;
@@ -2113,11 +2113,10 @@ function exportExcel() {
     const row = rows[r];
     if (!row) continue;
     for (const c of todayColIndices) {
-      // 找到同列最近一個名稱欄
+      // 找到同一組（CPG欄）內的名稱欄，不可跨組往前找
+      const groupStart = c - (c % CPG);
       let cn = null;
-      for (let nc = c - 1; nc >= 0; nc--) {
-        if (nc % CPG === 0 && row[nc] != null) { cn = String(row[nc]); break; }
-      }
+      if (row[groupStart] != null) cn = String(row[groupStart]);
       // 將 Excel 欄列索引轉成儲存格位址 (e.g. r=1,c=3 → D2)
       const cellAddr = XLSX.utils.encode_cell({ r: r, c: c });
       if (cn && ordSet.has(cn)) {
