@@ -1196,6 +1196,26 @@ async function _pushOne(key, value) {
   }
 }
 
+// ── 單一客戶更新（不會被其他裝置整包覆寫蓋掉，需 GAS v5）──
+async function _pushUpdateClient(name, status, date) {
+  setSyncDot('syncing');
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'updateClient', name, status, date }),
+      redirect: 'follow'
+    });
+    const json = JSON.parse(await res.text());
+    if (json.error) throw new Error(json.error);
+    setSyncDot('');
+  } catch(e) {
+    console.error('更新客戶狀態失敗', e);
+    setSyncDot('error');
+    throw e;
+  }
+}
+
 // ── 從雲端同步 ──────────────────────────────────────────
 async function syncFromCloud() {
   if (_isSyncing) return;
@@ -1747,12 +1767,22 @@ function rightClick(e, n) {
   if (dragMode) return;
   changeStatus(n, db[n].status === '今日不叫貨' ? '未叫貨' : '今日不叫貨');
 }
-function changeStatus(n, s) {
+async function changeStatus(n, s) {
   db[n].status = s;
   db[n].date = s === '未叫貨' ? '' : todayStr;
   logEditTime(n, s);
-  save(); renderAll();
+  localStorage.setItem('zhongxin_v4', JSON.stringify(db));
+  renderAll();
   toast(n + ' → ' + s);
+
+  // ★ 改用單一客戶更新，不會被其他裝置的整包覆寫蓋掉
+  lockLocal(15000);
+  try {
+    await _pushUpdateClient(n, db[n].status, db[n].date);
+    unlockLocal();
+  } catch(e) {
+    unlockLocal();
+  }
 }
 
 // ── 拖曳模式 ──────────────────────────────────────────────────────────────
