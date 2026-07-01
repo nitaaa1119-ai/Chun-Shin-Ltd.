@@ -454,11 +454,12 @@ body {
 .edit-btn {
   position: absolute; top: 4px; right: 4px;
   width: 26px; height: 26px; border-radius: 50%;
-  background: rgba(0,0,0,.10);
+  background: rgba(255,255,255,.6);
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; opacity: 0;
   transition: opacity .15s; cursor: pointer;
   border: none; color: inherit;
+  padding: 3px;
 }
 .ccard:hover .edit-btn { opacity: 1; }
 
@@ -1785,7 +1786,7 @@ function mkCard(n, warn3) {
     onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')"
     ondragstart="onDragStart(event,'${nn}')" ondragend="onDragEnd(event)">
     ${warnTag}
-    <button class="edit-btn" onclick="openEditModal(event,'${nn}')">✏</button>
+    <button class="edit-btn" onclick="openEditModal(event,'${nn}')" title="編輯"><img src="pen.png" style="width:100%;height:100%;display:block;" alt="編輯"></button>
     <div class="ccard-name">${nn}</div>
     <div class="ccard-foot">
       <span class="ccard-dot"></span>
