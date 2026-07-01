@@ -481,6 +481,7 @@ tbody td {
   color: var(--ink); vertical-align: middle;
 }
 tbody tr:hover td { background: var(--line2); }
+tbody td[onclick]:hover { background: var(--accent-bg) !important; transform: scale(1.1); transition: transform .1s; }
 tbody tr.row-warn td { background: #fffbeb; }
 tbody tr.row-warn:hover td { background: #fef3c7; }
 
@@ -2028,12 +2029,25 @@ function renderTable() {
 
     pastDates.forEach(dt => {
       const hist = sortedHist.find(h => h.date === dt);
-      const s = hist && hist.records ? (hist.records[n] || '—') : '—';
-      let cs = 'text-align:center;font-size:12px;', lbl = s;
-      if (s === '有叫貨')       { cs += 'color:var(--grn-dk);font-weight:700;'; lbl = '✓'; }
-      else if (s === '今日不叫貨') { cs += 'color:var(--blu-dk);'; lbl = '不叫'; }
-      else                      { cs += 'color:var(--line);'; lbl = '—'; }
-      html += `<td style="${cs}">${lbl}</td>`;
+      const s = hist && hist.records ? (hist.records[n] || '未叫貨') : null;
+      let cs = 'text-align:center;font-size:12px;cursor:pointer;user-select:none;', lbl, title;
+      if (!hist || !hist.records) {
+        cs += 'color:var(--line2);cursor:default;';
+        lbl = '—'; title = '無歷史資料';
+        html += `<td style="${cs}" title="${title}">${lbl}</td>`;
+      } else if (s === '有叫貨') {
+        cs += 'color:var(--grn-dk);font-weight:700;';
+        lbl = '✓'; title = '點擊改為未叫貨';
+        html += `<td style="${cs}" title="${title}" onclick="toggleHistoryStatus('${nn}','${dt}','有叫貨')">${lbl}</td>`;
+      } else if (s === '今日不叫貨') {
+        cs += 'color:var(--blu-dk);';
+        lbl = '不叫'; title = '點擊改為有叫貨';
+        html += `<td style="${cs}" title="${title}" onclick="toggleHistoryStatus('${nn}','${dt}','今日不叫貨')">${lbl}</td>`;
+      } else {
+        cs += 'color:var(--ink3);';
+        lbl = '—'; title = '點擊改為有叫貨';
+        html += `<td style="${cs}" title="${title}" onclick="toggleHistoryStatus('${nn}','${dt}','未叫貨')">${lbl}</td>`;
+      }
     });
 
     const logs = todayEditLog[n] || [];
@@ -2073,6 +2087,35 @@ function renderTable() {
   const colSpan = 4 + pastDates.length + 2;
   document.getElementById('backend-tbody').innerHTML = html ||
     `<tr><td colspan="${colSpan}" style="text-align:center;color:var(--ink3);padding:32px">查無資料</td></tr>`;
+}
+
+// ── 歷史欄位點擊切換叫貨狀態 ────────────────────────────
+async function toggleHistoryStatus(clientName, dateStr, currentStatus) {
+  // 切換邏輯：未叫貨 → 有叫貨 → 今日不叫貨 → 未叫貨
+  let nextStatus;
+  if (currentStatus === '未叫貨')     nextStatus = '有叫貨';
+  else if (currentStatus === '有叫貨') nextStatus = '未叫貨';
+  else                                nextStatus = '有叫貨';  // 今日不叫貨 → 有叫貨
+
+  // 找到該日期的歷史記錄並更新
+  const entry = historyLog.find(h => h.date === dateStr);
+  if (!entry || !entry.records) return;
+
+  entry.records[clientName] = nextStatus;
+
+  // 更新 localStorage 並推送雲端
+  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+  lockLocal(15000);
+  try {
+    await _pushOne('zhongxin_hist_v4', historyLog);
+    unlockLocal();
+  } catch(e) {
+    unlockLocal();
+    toast('❌ 推送失敗，請重試', true);
+  }
+
+  renderAll();
+  toast(`${clientName} ${dateStr.slice(5)} → ${nextStatus}`);
 }
 
 function confirmDeleteHistory(n) {
