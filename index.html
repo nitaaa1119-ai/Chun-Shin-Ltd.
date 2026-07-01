@@ -2424,12 +2424,25 @@ function updateAllDates() {
 // ══════════════════════════════════════════════════════════
 function showConfirm(msg, onOk) {
   document.getElementById('confirm-msg').textContent=msg;
+
+  // 暫時隱藏其他開著的 overlay，讓確認視窗跳到最前面
+  const otherOverlays = ['overlay','user-overlay','manual-overlay']
+    .map(id => document.getElementById(id))
+    .filter(el => el && el.classList.contains('open'));
+  otherOverlays.forEach(el => el.style.visibility = 'hidden');
+
   document.getElementById('confirm-overlay').classList.add('open');
-  document.getElementById('confirm-ok').onclick=async ()=>{
-    document.getElementById('confirm-overlay').classList.remove('open'); await onOk();
-  };
-  document.getElementById('confirm-cancel').onclick=()=>{
+
+  const cleanup = () => {
     document.getElementById('confirm-overlay').classList.remove('open');
+    otherOverlays.forEach(el => el.style.visibility = '');
+  };
+
+  document.getElementById('confirm-ok').onclick = async () => {
+    cleanup(); await onOk();
+  };
+  document.getElementById('confirm-cancel').onclick = () => {
+    cleanup();
   };
 }
 
