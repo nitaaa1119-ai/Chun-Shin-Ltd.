@@ -452,11 +452,11 @@ body {
   box-shadow: 0 1px 3px rgba(245,158,11,.4);
 }
 .edit-btn {
-  position: absolute; top: 5px; right: 5px;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: rgba(0,0,0,.07);
+  position: absolute; top: 4px; right: 4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(0,0,0,.10);
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; opacity: 0;
+  font-size: 14px; opacity: 0;
   transition: opacity .15s; cursor: pointer;
   border: none; color: inherit;
 }
@@ -1796,8 +1796,9 @@ function mkCard(n, warn3) {
 
 function toggle(n) {
   if (dragMode) return; // 拖曳模式中停用點擊
-  if (db[n].status === '未叫貨')     changeStatus(n, '有叫貨');
-  else if (db[n].status === '有叫貨') changeStatus(n, '未叫貨');
+  // ★ 只允許「未叫貨 → 有叫貨」，已叫貨要進編輯 modal 才能改回
+  if (db[n].status === '未叫貨') changeStatus(n, '有叫貨');
+  // 已叫貨：不做任何事，讓使用者點右上角 ✏ 編輯
 }
 function rightClick(e, n) {
   e.preventDefault();
