@@ -2012,6 +2012,7 @@ function renderTable() {
   let html = '';
   Object.keys(db).forEach(n => {
     const d = db[n];
+    const nn = esc(n);  // ★ 提前定義，供歷史欄位 onclick 使用
     if (q && !n.toLowerCase().includes(q) && !(d.fixed||'').toLowerCase().includes(q)) return;
     const isWarn = warn3.has(n);
     if (onlyWarn && !isWarn) return;
@@ -2077,7 +2078,6 @@ function renderTable() {
     else             html += '<span style="color:var(--line);">—</span>';
     html += '</td>';
 
-    const nn = esc(n);
     html += `<td style="white-space:nowrap;">
       <button class="btn btn-ghost btn-sm" onclick="openEditModal(null,'${nn}')">編輯</button>
       <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="confirmDeleteHistory('${nn}')">刪除</button>
