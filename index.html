@@ -536,6 +536,10 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 /* ═══════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════ */
+#confirm-overlay {
+  z-index: 20000;  /* 確認視窗永遠在最上層 */
+}
+
 #toast {
   position: fixed; bottom: 24px; left: 50%;
   transform: translateX(-50%) translateY(80px);
