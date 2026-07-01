@@ -1811,16 +1811,66 @@ async function changeStatus(n, s) {
   db[n].date = s === '未叫貨' ? '' : todayStr;
   logEditTime(n, s);
   localStorage.setItem('zhongxin_v4', JSON.stringify(db));
-  renderAll();
+
+  // ★ 只更新這張卡片的樣式，不重建整個 grid，避免畫面閃跳
+  updateCardDOM(n);
+  updateStats();   // 更新頂部數字統計
   toast(n + ' → ' + s);
 
-  // ★ 改用單一客戶更新，不會被其他裝置的整包覆寫蓋掉
+  // 推送到雲端（單一客戶更新）
   lockLocal(15000);
   try {
     await _pushUpdateClient(n, db[n].status, db[n].date);
     unlockLocal();
   } catch(e) {
     unlockLocal();
+  }
+}
+
+// 只更新單張卡片的 DOM，不重建整個 grid
+function updateCardDOM(n) {
+  const card = document.querySelector(`.ccard[data-name="${CSS.escape(n)}"]`);
+  if (!card) return;
+
+  const d = db[n];
+  const warn3 = getWarn3Set();
+  const isWarn = warn3.has(n) && d.status === '未叫貨';
+
+  let cls, lbl;
+  if (d.status === '有叫貨')        { cls = 'ordered';   lbl = '已叫貨'; }
+  else if (d.status === '今日不叫貨') { cls = 'no-order';  lbl = '不叫'; }
+  else if (isWarn)                   { cls = 'warn3';      lbl = '連續未叫'; }
+  else                               { cls = 'unordered';  lbl = '未叫貨'; }
+
+  // 更新 class
+  card.className = `ccard ${cls}`;
+
+  // 更新底部標籤文字
+  const foot = card.querySelector('.ccard-foot');
+  if (foot) {
+    const todayEntry = getTodayEntry();
+    const logs = todayEntry?.editLog?.[n] || [];
+    const lastLog = logs.at(-1);
+    const lastUser = lastLog?.user || '';
+    const lastIcon = lastLog?.icon || '';
+    foot.innerHTML = `
+      <span class="ccard-dot"></span>
+      <span>${lbl}</span>
+      ${lastUser
+        ? `<span style="font-size:11px;" title="${esc(lastUser)}">${esc(lastIcon)} ${esc(lastUser)}</span>`
+        : (d.date ? `<span>${d.date.slice(5)}</span>` : '')}
+    `;
+  }
+
+  // 更新 warn badge
+  const existingBadge = card.querySelector('.warn3-badge');
+  if (isWarn && !existingBadge) {
+    const badge = document.createElement('span');
+    badge.className = 'warn3-badge';
+    badge.textContent = '⚠ 連續3天未叫';
+    card.insertBefore(badge, card.firstChild);
+  } else if (!isWarn && existingBadge) {
+    existingBadge.remove();
   }
 }
 
