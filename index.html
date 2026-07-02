@@ -638,6 +638,40 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 .drag-toggle-btn.active:hover { background: #e0e7ff; }
 
 /* ═══════════════════════════════════════════════════
+   SERIES STRIP
+═══════════════════════════════════════════════════ */
+.series-strip {
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 0 20px;
+  display: flex; align-items: stretch; gap: 0;
+  overflow-x: auto;
+}
+.series-item {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 8px 18px 8px 0;
+  margin-right: 18px;
+  border-right: 1px solid var(--line);
+  white-space: nowrap;
+  min-width: 80px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.series-item:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+.series-item:hover { background: var(--accent-bg); }
+.series-item.active { background: var(--accent-bg); }
+.series-label {
+  font-size: 11px; font-weight: 700; color: var(--accent);
+  margin-bottom: 3px; letter-spacing: .04em;
+}
+.series-nums {
+  display: flex; align-items: baseline; gap: 4px;
+}
+.series-ordered { font-size: 18px; font-weight: 800; color: var(--grn-dk); letter-spacing: -.5px; }
+.series-total   { font-size: 11px; color: var(--ink3); }
+.series-pct     { font-size: 11px; font-weight: 600; color: var(--grn); }
+
+/* ═══════════════════════════════════════════════════
    NOTICE BOARD
 ═══════════════════════════════════════════════════ */
 .notice-board {
@@ -933,6 +967,9 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <span class="prog-label" id="prog-pct">0%</span>
   </div>
 </div>
+
+<!-- ── SERIES STRIP ─────────────────────────────── -->
+<div class="series-strip no-print" id="series-strip"></div>
 
 <!-- ── NOTICE BOARD ─────────────────────────────── -->
 <div class="notice-board no-print" id="notice-board">
@@ -1600,6 +1637,7 @@ function buildFixedFilter() {
 // ══════════════════════════════════════════════════════════
 function renderAll() {
   updateStats();
+  renderSeriesStrip();
   renderGrid();
   renderTable();
   renderPrint();
@@ -1683,6 +1721,73 @@ function deleteNotice(id) {
   saveNotices(); renderNotices();
 }
 
+// ── 系列統計 ────────────────────────────────────────────
+const SERIES_LIST = [
+  { key: '壽司郎', label: '壽司郎' },   // 壽司開頭，排除壽司郎
+  { key: '杏子',   label: '杏子' },
+  { key: '銀穗',   label: '銀穗' },
+  { key: 'YAYOI',  label: 'YAYOI' },
+  { key: '花月嵐', label: '花月嵐' },   // 花月開頭 + 燒丼統領、蛋包林口、蛋包南港
+];
+
+let _activeSeriesKey = null;  // 目前選中的系列（null = 無篩選）
+
+// 花月嵐系列：花月開頭 + 3個獨立客戶
+const HANAGETSU_EXTRA = ['燒丼統領', '蛋包林口', '蛋包南港'];
+
+function getSeriesMembers(key) {
+  if (key === '壽司郎') {
+    // 壽司開頭，但排除壽司郎（壽司郎是不同品牌）
+    return Object.keys(db).filter(n => n.startsWith('壽司') && !n.startsWith('壽司郎'));
+  }
+  if (key === '花月嵐') {
+    // 花月開頭（排除花月嵐本身如果有的話）+ 3個獨立客戶
+    return Object.keys(db).filter(n =>
+      (n.startsWith('花月') && !n.startsWith('花月嵐')) ||
+      HANAGETSU_EXTRA.includes(n)
+    );
+  }
+  return Object.keys(db).filter(n => n.startsWith(key));
+}
+
+function renderSeriesStrip() {
+  const strip = document.getElementById('series-strip');
+  if (!strip) return;
+
+  let html = '';
+  SERIES_LIST.forEach(({ key, label }) => {
+    const members = getSeriesMembers(key);
+    const total   = members.length;
+    const ordered = members.filter(n => db[n].status === '有叫貨').length;
+    const pct     = total ? Math.round(ordered / total * 100) : 0;
+    const isActive = _activeSeriesKey === key;
+
+    html += `<div class="series-item${isActive ? ' active' : ''}" onclick="toggleSeriesFilter('${key}')">
+      <div class="series-label">${label}${isActive ? ' ✕' : ''}</div>
+      <div class="series-nums">
+        <span class="series-ordered">${ordered}</span>
+        <span class="series-total">／${total}</span>
+        <span class="series-pct">${pct}%</span>
+      </div>
+    </div>`;
+  });
+
+  strip.innerHTML = html;
+}
+
+function toggleSeriesFilter(key) {
+  // 點同一個系列 → 取消篩選；點不同系列 → 切換篩選
+  _activeSeriesKey = (_activeSeriesKey === key) ? null : key;
+
+  // 聯動「打勾單」頁面：用精確的系列成員名稱做篩選
+  // 清空搜尋欄，改用 _activeSeriesKey 讓 renderGrid 判斷
+  const qInput = document.getElementById('q-front');
+  qInput.value = '';  // 清空搜尋欄，避免 startsWith 誤篩
+
+  renderSeriesStrip();
+  renderGrid();
+}
+
 function updateStats() {
   const names = Object.keys(db);
   const tot = names.length;
@@ -1731,10 +1836,14 @@ function renderGrid() {
   const container = document.getElementById('grid-container');
   const warn3 = getWarn3Set();
 
+  // ★ 系列篩選的精確成員名單
+  const seriesMembers = _activeSeriesKey ? new Set(getSeriesMembers(_activeSeriesKey)) : null;
+
   const fs = document.getElementById('filter-status').value;
   const names = Object.keys(db).filter(n => {
     const d = db[n];
-    if (q && !n.toLowerCase().includes(q)) return false;
+    if (seriesMembers && !seriesMembers.has(n)) return false;  // 系列精確篩選
+    if (!seriesMembers && q && !n.toLowerCase().includes(q)) return false;  // 搜尋欄（無系列篩選時才用）
     if (ff && d.fixed !== ff) return false;
     if (fs === 'warn3') return warn3.has(n) && d.status === '未叫貨';
     if (fs && d.status !== fs) return false;
