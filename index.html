@@ -1723,28 +1723,41 @@ function deleteNotice(id) {
 
 // ── 系列統計 ────────────────────────────────────────────
 const SERIES_LIST = [
-  { key: '壽司郎', label: '壽司郎' },   // 壽司開頭，排除壽司郎
+  { key: '壽司郎', label: '壽司郎' },
   { key: '杏子',   label: '杏子' },
   { key: '銀穗',   label: '銀穗' },
   { key: 'YAYOI',  label: 'YAYOI' },
-  { key: '花月嵐', label: '花月嵐' },   // 花月開頭 + 燒丼統領、蛋包林口、蛋包南港
+  { key: '花月嵐', label: '花月嵐' },
 ];
 
-let _activeSeriesKey = null;  // 目前選中的系列（null = 無篩選）
+let _activeSeriesKey = null;
 
-// 花月嵐系列：花月開頭 + 3個獨立客戶
-const HANAGETSU_EXTRA = ['燒丼統領', '蛋包林口', '蛋包南港'];
+const SERIES_EXTRA = {
+  '杏子':  ['勝牛', '王將'],           // 額外包含勝牛、王將開頭
+  '花月嵐': ['燒丼統領', '蛋包林口', '蛋包南港'],  // 額外包含這3個
+};
 
 function getSeriesMembers(key) {
+  const extra = SERIES_EXTRA[key] || [];
+
   if (key === '壽司郎') {
-    // 壽司開頭，但排除壽司郎（壽司郎是不同品牌）
+    // 壽司開頭，排除壽司郎
     return Object.keys(db).filter(n => n.startsWith('壽司') && !n.startsWith('壽司郎'));
   }
+  if (key === 'YAYOI') {
+    // YAYOI 開頭（相容全形/半形，直接搜 Ya 開頭也抓）
+    return Object.keys(db).filter(n => n.startsWith('YAYOI') || n.startsWith('Ya'));
+  }
   if (key === '花月嵐') {
-    // 花月開頭（排除花月嵐本身如果有的話）+ 3個獨立客戶
     return Object.keys(db).filter(n =>
       (n.startsWith('花月') && !n.startsWith('花月嵐')) ||
-      HANAGETSU_EXTRA.includes(n)
+      extra.includes(n)
+    );
+  }
+  if (key === '杏子') {
+    return Object.keys(db).filter(n =>
+      n.startsWith('杏子') ||
+      extra.some(prefix => n.startsWith(prefix))
     );
   }
   return Object.keys(db).filter(n => n.startsWith(key));
