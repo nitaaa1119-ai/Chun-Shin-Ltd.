@@ -1733,8 +1733,8 @@ const SERIES_LIST = [
 let _activeSeriesKey = null;
 
 const SERIES_EXTRA = {
-  '杏子':  ['勝牛', '王將'],           // 額外包含勝牛、王將開頭
-  '花月嵐': ['燒丼統領', '蛋包林口', '蛋包南港'],  // 額外包含這3個
+  '杏子':  ['勝牛', '王將', '橋村'],   // 額外包含勝牛、王將、橋村開頭
+  '花月嵐': ['燒丼統領', '蛋包林口', '蛋包南港'],
 };
 
 function getSeriesMembers(key) {
@@ -2191,9 +2191,11 @@ function renderTable() {
     const d = db[n];
     const nn = esc(n);  // ★ 提前定義，供歷史欄位 onclick 使用
     if (q && !n.toLowerCase().includes(q) && !(d.fixed||'').toLowerCase().includes(q)) return;
-    const isWarn = warn3.has(n);
+    // ★ 今日已叫貨或今日不叫貨，不視為3天未叫警告
+    const isWarn = warn3.has(n) && d.status === '未叫貨';
     if (onlyWarn && !isWarn) return;
 
+    // 連續未叫天數：從最近一次重置往回數，直到出現「有叫貨」或「今日不叫貨」為止
     let streak = 0;
     for (let i = sortedHist.length-1; i >= 0; i--) {
       const s = sortedHist[i].records && sortedHist[i].records[n];
@@ -2250,9 +2252,9 @@ function renderTable() {
 
     html += `<td style="text-align:center;"><span class="badge ${bc}">${d.status}</span></td>`;
     html += '<td style="text-align:center;">';
-    if (isWarn)      html += `<span class="warn-pill">⚠ ${streak}天</span>`;
-    else if (streak) html += `<span style="font-size:12px;color:var(--ink3);">${streak}天</span>`;
-    else             html += '<span style="color:var(--line);">—</span>';
+    if (isWarn)                          html += `<span class="warn-pill">⚠ ${streak}天</span>`;
+    else if (streak && d.status === '未叫貨') html += `<span style="font-size:12px;color:var(--ink3);">${streak}天</span>`;
+    else                                 html += '<span style="color:var(--line);">—</span>';
     html += '</td>';
 
     html += `<td style="white-space:nowrap;">
