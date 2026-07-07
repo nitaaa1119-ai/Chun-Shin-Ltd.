@@ -1296,6 +1296,10 @@ async function syncFromCloud() {
             diffNames.forEach(n => { if (db[n]) updateCardDOM(n); });
             updateStats();
             renderSeriesStrip();
+            // ★ 後台管理開著時同步更新，確保不同裝置看到一致狀態
+            if (document.getElementById('backend-page').classList.contains('active')) {
+              renderTable();
+            }
           }
           // 注意：不設 updated = true，避免觸發 renderAll() 重建整個 grid
         }
@@ -1452,26 +1456,21 @@ function saveManualWarn3() {
 }
 
 // ── clearAllHistory ──────────────────────────────────────
-async function clearAllHistory() {
+function clearAllHistory() {
   showConfirm(
     '確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。',
-    async () => {
-      toast('清除中…');
-      try {
-        historyLog = [];
-        ensureTodayEditLog();   // 建立今日空記錄
-        lockLocal(30000);       // 先鎖，再推送，防止推送途中輪詢蓋回
-        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-        const ts = touchTs();
-        await Promise.all([
-          _pushOne('zhongxin_hist_v4', historyLog),   // 推送含今日空記錄的版本
-          _pushOne('zhongxin_ts_v1', ts)
-        ]);
-        renderAll();
-        toast('✅ 歷史記錄已清除');
-      } catch(e) {
-        toast('❌ 清除失敗：' + e.message, true);
-      }
+    () => {
+      historyLog = [];
+      ensureTodayEditLog();
+      localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+      renderAll();
+      toast('✅ 歷史記錄已清除，同步中…');
+      // 推送到雲端，其他裝置 6 秒內同步
+      const ts = touchTs();
+      pushInBackground(
+        () => _pushOne('zhongxin_hist_v4', historyLog),
+        () => _pushOne('zhongxin_ts_v1', ts)
+      );
     }
   );
 }
