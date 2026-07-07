@@ -1315,23 +1315,26 @@ async function syncFromCloud() {
     if (data.zhongxin_hist_v4) {
       const cloudHist = JSON.parse(data.zhongxin_hist_v4);
       if (useCloud && JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
-        // 先記下本機今日的 editLog
         const localTodayEntry = historyLog.find(h => h.date === todayStr);
         const localEditLog    = localTodayEntry ? (localTodayEntry.editLog || {}) : {};
         const localEditCount  = Object.values(localEditLog).reduce((s, a) => s + a.length, 0);
 
-        // 以雲端為主覆蓋
         historyLog = cloudHist;
 
-        // 若本機今日 editLog 筆數 >= 雲端，保留本機（操作者剛寫入的不能被蓋掉）
         const cloudTodayEntry = historyLog.find(h => h.date === todayStr);
-        if (cloudTodayEntry) {
-          const cloudEditCount = Object.values(cloudTodayEntry.editLog || {}).reduce((s, a) => s + a.length, 0);
-          if (localEditCount >= cloudEditCount) {
-            cloudTodayEntry.editLog = localEditLog;
-          }
-        } else if (localTodayEntry) {
-          historyLog.push(localTodayEntry);
+
+        // ★ 用 clearedAt 判斷是否為「清除操作」，避免誤判「今天剛開始 editLog 還是空的」
+        const cloudWasCleared = !!(cloudTodayEntry && cloudTodayEntry.clearedAt);
+        const cloudEditCount  = cloudTodayEntry
+          ? Object.values(cloudTodayEntry.editLog || {}).reduce((s, a) => s + a.length, 0)
+          : 0;
+
+        if (cloudWasCleared) {
+          // 明確的清除操作：直接接受雲端，本機 editLog 一起清空
+        } else if (localEditCount > cloudEditCount) {
+          // 本機操作比雲端多，保留本機 editLog
+          if (cloudTodayEntry) cloudTodayEntry.editLog = localEditLog;
+          else if (localTodayEntry) historyLog.push(localTodayEntry);
         }
 
         localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
@@ -1460,12 +1463,14 @@ function clearAllHistory() {
   showConfirm(
     '確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。',
     () => {
+      // ★ 完全清空歷史，包含今日 editLog
       historyLog = [];
-      ensureTodayEditLog();
+      // ★ 加入 clearedAt 時間戳，讓其他裝置能明確識別這是「清除操作」
+      historyLog.push({ date: todayStr, records: {}, editLog: {}, clearedAt: Date.now() });
       localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
       renderAll();
       toast('✅ 歷史記錄已清除，同步中…');
-      // 推送到雲端，其他裝置 6 秒內同步
+      // ★ 更新 ts 確保其他裝置的 useCloud = true，強制接受新資料
       const ts = touchTs();
       pushInBackground(
         () => _pushOne('zhongxin_hist_v4', historyLog),
