@@ -1278,6 +1278,33 @@ async function _pushUpdateClient(name, status, date) {
   }
 }
 
+// ── 重置日原子性推送（對應 GAS action=resetDay）──────────
+// 一次 POST 在伺服器 Lock 內寫入四個 key，不會被其他裝置插隊
+async function _pushResetDay(dbData, histData, warnData, tsVal) {
+  setSyncDot('syncing');
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action:       'resetDay',
+        db:           JSON.stringify(dbData),
+        hist:         JSON.stringify(histData),
+        warnOverride: JSON.stringify(warnData),
+        ts:           String(tsVal)
+      }),
+      redirect: 'follow'
+    });
+    const json = JSON.parse(await res.text());
+    if (json.error) throw new Error(json.error);
+    setSyncDot('');
+  } catch(e) {
+    console.error('重置推送失敗', e);
+    setSyncDot('error');
+    throw e;
+  }
+}
+
 // ── 從雲端同步 ──────────────────────────────────────────
 async function syncFromCloud() {
   if (_isSyncing) return;
@@ -2630,12 +2657,9 @@ async function resetAll() {
     renderAll();
     toast('⏳ 重置中，推送至雲端…');
     try {
-      await Promise.all([
-        _pushOne('zhongxin_v4', db),
-        _pushOne('zhongxin_hist_v4', historyLog),
-        _pushOne('zhongxin_warn3_v1', warnOverride),
-        _pushOne('zhongxin_ts_v1', ts)
-      ]);
+      // ★ 使用 action=resetDay，在 GAS LockService 內原子性寫入全部四個 key
+      //    避免四次獨立 POST 之間被其他裝置插隊覆蓋
+      await _pushResetDay(db, historyLog, warnOverride, ts);
       unlockLocal();
       toast('✅ 今日狀態已記錄並重置，三天未叫警示已更新');
     } catch(e) {
