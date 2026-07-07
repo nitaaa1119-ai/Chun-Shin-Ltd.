@@ -447,14 +447,14 @@ body {
   box-shadow: 0 1px 3px rgba(245,158,11,.4);
 }
 .edit-btn {
-  position: absolute; top: 5px; right: 5px;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: rgba(0,0,0,.07);
+  position: absolute; top: 4px; right: 4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,.7);
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; opacity: 0;
-  transition: opacity .15s; cursor: pointer;
-  border: none; color: inherit;
+  opacity: 0; transition: opacity .15s; cursor: pointer;
+  border: none; padding: 4px;
 }
+.edit-btn img { width: 100%; height: 100%; display: block; }
 .ccard:hover .edit-btn { opacity: 1; }
 
 /* ═══════════════════════════════════════════════════
@@ -2006,7 +2006,7 @@ function mkCard(n, warn3) {
     onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')"
     ondragstart="onDragStart(event,'${nn}')" ondragend="onDragEnd(event)">
     ${warnTag}
-    <button class="edit-btn" onclick="openEditModal(event,'${nn}')">✏</button>
+    <button class="edit-btn" onclick="openEditModal(event,'${nn}')" title="編輯"><img src="edit.png" alt="編輯"></button>
     <div class="ccard-name">${nn}</div>
     <div class="ccard-foot">
       <span class="ccard-dot"></span>
@@ -2293,7 +2293,7 @@ function renderTable() {
     const warnBtnLabel = isManualWarn ? '✅ 已標示' : '⚠ 標示未叫';
     const warnBtnColor = isManualWarn ? 'background:#fef3c7;color:#d97706;border:1px solid #d97706;' : '';
     html += `<td style="white-space:nowrap;">
-      <button class="btn btn-ghost btn-sm" onclick="openEditModal(null,'${nn}')">編輯</button>
+      <button class="btn btn-ghost btn-sm" onclick="openEditModal(null,'${nn}')" title="編輯" style="padding:3px 7px;"><img src="edit.png" alt="編輯" style="width:16px;height:16px;vertical-align:middle;"></button>
       <button class="btn btn-sm" style="margin-left:4px;${warnBtnColor}" onclick="toggleManualWarn3('${nn}')">${warnBtnLabel}</button>
       <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="confirmDeleteHistory('${nn}')">刪除</button>
     </td></tr>`;
