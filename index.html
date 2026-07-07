@@ -2494,7 +2494,11 @@ function exportExcel() {
     for (const c of todayColIndices) {
       // ★ 只在同一組（CPG欄）內找名稱欄，不跨組
       const groupStart = c - (c % CPG);
-      const cn = (row[groupStart] != null) ? String(row[groupStart]) : null;
+      const rawCn = row[groupStart];
+      // 排除月份標題（例如「7月」）和非字串值，只接受真正的客戶名稱
+      const cn = (rawCn != null && typeof rawCn === 'string' && !rawCn.match(/^\d+月$/) && rawCn.trim() !== '')
+        ? rawCn.trim()
+        : null;
 
       const cellAddr = XLSX.utils.encode_cell({ r: r, c: c });
 
