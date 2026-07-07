@@ -1170,6 +1170,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <div class="field"><label>日期</label><input type="date" id="m-date"></div>
     <div class="modal-actions">
       <button class="btn btn-danger modal-actions-left" id="btn-del" style="display:none" onclick="deleteClient()">刪除</button>
+      <button class="btn modal-actions-left" id="btn-warn-toggle" style="display:none;background:#fffbeb;color:#78350f;border:1px solid #fde68a;" onclick="modalToggleWarn()">⚠ 標示三天未叫</button>
       <button class="btn btn-ghost" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="saveClient()">儲存</button>
     </div>
@@ -1372,6 +1373,16 @@ async function syncFromCloud() {
       }
     }
 
+    // ── warnOverride（手動三天未叫標示）──
+    if (data.zhongxin_warn3_v1) {
+      const cloudWarn = JSON.parse(data.zhongxin_warn3_v1);
+      if (JSON.stringify(warnOverride) !== JSON.stringify(cloudWarn)) {
+        warnOverride = cloudWarn;
+        localStorage.setItem('zhongxin_warn3_v1', data.zhongxin_warn3_v1);
+        updated = true;
+      }
+    }
+
     // ★ 不管資料有沒有變，每次都重新渲染，確保畫面與資料一致
     buildFixedFilter(); renderAll();
     setSyncDot('');
@@ -1444,6 +1455,12 @@ function saveManualData() {
   _pushOne('zhongxin_manual_v1', manualData).catch(() => {});
 }
 
+// ── saveWarnOverride（手動三天未叫標示，不影響 ts）──────
+function saveWarnOverride() {
+  localStorage.setItem('zhongxin_warn3_v1', JSON.stringify(warnOverride));
+  _pushOne('zhongxin_warn3_v1', warnOverride).catch(() => {});
+}
+
 // ══════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════
@@ -1460,6 +1477,7 @@ let historyLog = [];
 let groupOrder = {}; // { groupName: [clientName, ...] }
 let notices = [];    // [{ id, author, text, time }]
 let manualData = {}; // { '2026/06/30': { ord, un, no } } 手動輸入的趨勢數據
+let warnOverride = {}; // { clientName: true/false } 手動標示/解除三天未叫警示
 let editing = null;
 let dragMode = false;
 let dragSrcName = null;
@@ -1528,6 +1546,9 @@ function init() {
   const md = localStorage.getItem('zhongxin_manual_v1');
   manualData = md ? JSON.parse(md) : {};
 
+  const wo = localStorage.getItem('zhongxin_warn3_v1');
+  warnOverride = wo ? JSON.parse(wo) : {};
+
   // 讀取操作者暱稱
   const savedUser = localStorage.getItem('zhongxin_user_v1');
   if (savedUser) { currentUser = JSON.parse(savedUser); }
@@ -1564,22 +1585,67 @@ function getTodayEntry() { return historyLog.find(h => h.date === todayStr); }
 // ══════════════════════════════════════════════════════════
 function getWarn3Set() {
   const warn = new Set();
-  // 只看「已完成重置」的歷史天（排除今天）
+
+  // ── 1. 從歷史快照自動計算（雲端同步的 historyLog）──────
   const completed = historyLog
     .filter(h => h.date !== todayStr && h.records && Object.keys(h.records).length > 0)
     .sort((a, b) => a.date < b.date ? -1 : 1);
 
-  // 需要至少 3 天已重置的歷史才能判斷
-  if (completed.length < 3) return warn;
-
-  const recent3 = completed.slice(-3); // 最近3天
-
-  Object.keys(db).forEach(n => {
-    const missedAll3 = recent3.every(h => {
-      const s = h.records[n];
-      // 該天：未叫貨 或 根本沒記錄（表示當天也沒叫）
-      return !s || s === '未叫貨';
+  if (completed.length >= 3) {
+    const recent3 = completed.slice(-3);
+    Object.keys(db).forEach(n => {
+      const missedAll3 = recent3.every(h => {
+        const s = h.records[n];
+        return !s || s === '未叫貨';
+      });
+      if (missedAll3) warn.add(n);
     });
+  }
+
+  // ── 2. 套用手動標示覆蓋（warnOverride）─────────────────
+  //    warnOverride[n] = true  → 強制加入警示（即使歷史不足3天）
+  //    warnOverride[n] = false → 手動解除警示（即使自動計算為 warn）
+  Object.keys(warnOverride).forEach(n => {
+    if (warnOverride[n] === true)  warn.add(n);
+    if (warnOverride[n] === false) warn.delete(n);
+  });
+
+  return warn;
+}
+
+// ── 切換某客戶的手動三天未叫標示 ────────────────────────
+function toggleWarnOverride(n) {
+  const autoWarn = getWarn3SetAuto();         // 先取得自動判斷結果
+  const currentlyWarned = getWarn3Set().has(n);
+
+  if (currentlyWarned) {
+    // 目前警示中 → 手動解除
+    warnOverride[n] = false;
+    toast(`✅ 已解除「${n}」的三天未叫警示`);
+  } else {
+    // 目前無警示 → 手動加入
+    warnOverride[n] = true;
+    toast(`⚠ 已手動標示「${n}」為三天未叫`);
+  }
+
+  // 若 override 與自動結果相同，移除 override 讓自動計算主導
+  if (autoWarn.has(n) && warnOverride[n] === true)  delete warnOverride[n];
+  if (!autoWarn.has(n) && warnOverride[n] === false) { /* 保留，自動沒警示但手動解除無意義，也清掉 */ delete warnOverride[n]; }
+
+  saveWarnOverride();
+  updateStats(); renderGrid();
+}
+
+// 僅做自動計算（不套 override），供 toggleWarnOverride 內部使用
+function getWarn3SetAuto() {
+  const warn = new Set();
+  const completed = historyLog
+    .filter(h => h.date !== todayStr && h.records && Object.keys(h.records).length > 0)
+    .sort((a, b) => a.date < b.date ? -1 : 1);
+  if (completed.length < 3) return warn;
+  const recent3 = completed.slice(-3);
+  Object.keys(db).forEach(n => {
+    const missedAll3 = recent3.every(h => { const s = h.records[n]; return !s || s === '未叫貨'; });
     if (missedAll3) warn.add(n);
   });
   return warn;
@@ -1898,7 +1964,10 @@ function mkCard(n, warn3) {
   else if (isWarn)                   { cls = 'warn3';      lbl = '連續未叫'; }
   else                               { cls = 'unordered';  lbl = '未叫貨'; }
 
-  const warnTag = isWarn ? '<span class="warn3-badge">⚠ 連續3天未叫</span>' : '';
+  const isManualWarn = isWarn && warnOverride[n] === true;
+  const warnTag = isWarn
+    ? `<span class="warn3-badge">${isManualWarn ? '⚠ 手動標示' : '⚠ 連續3天未叫'}</span>`
+    : '';
   const nn = esc(n);
 
   // 找出今日最後操作者
@@ -1991,11 +2060,14 @@ function updateCardDOM(n) {
 
   // 更新 warn badge
   const existingBadge = card.querySelector('.warn3-badge');
+  const isManualWarn = isWarn && warnOverride[n] === true;
   if (isWarn && !existingBadge) {
     const badge = document.createElement('span');
     badge.className = 'warn3-badge';
-    badge.textContent = '⚠ 連續3天未叫';
+    badge.textContent = isManualWarn ? '⚠ 手動標示' : '⚠ 連續3天未叫';
     card.insertBefore(badge, card.firstChild);
+  } else if (isWarn && existingBadge) {
+    existingBadge.textContent = isManualWarn ? '⚠ 手動標示' : '⚠ 連續3天未叫';
   } else if (!isWarn && existingBadge) {
     existingBadge.remove();
   }
@@ -2257,8 +2329,14 @@ function renderTable() {
     else                                 html += '<span style="color:var(--line);">—</span>';
     html += '</td>';
 
+    const isWarnNow = warn3.has(n);
+    const warnBtnLbl  = isWarnNow ? '✅ 解除警示' : '⚠ 標示未叫3天';
+    const warnBtnStyle = isWarnNow
+      ? 'background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;'
+      : 'background:#fffbeb;color:#78350f;border:1px solid #fde68a;';
     html += `<td style="white-space:nowrap;">
       <button class="btn btn-ghost btn-sm" onclick="openEditModal(null,'${nn}')">編輯</button>
+      <button class="btn btn-sm" style="margin-left:4px;${warnBtnStyle}" onclick="toggleWarnOverride('${nn}');renderTable();">${warnBtnLbl}</button>
       <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="confirmDeleteHistory('${nn}')">刪除</button>
     </td></tr>`;
   });
@@ -2445,6 +2523,7 @@ function openAddModal() {
   document.getElementById('m-fixed').value='';
   document.getElementById('m-date').value=todayISO;
   document.getElementById('btn-del').style.display='none';
+  document.getElementById('btn-warn-toggle').style.display='none';
   document.getElementById('overlay').classList.add('open');
   setTimeout(()=>document.getElementById('m-name').focus(),100);
 }
@@ -2458,7 +2537,33 @@ function openEditModal(e, n) {
   document.getElementById('m-fixed').value=d.fixed||'';
   document.getElementById('m-date').value=(d.date||'').replace(/\//g,'-')||todayISO;
   document.getElementById('btn-del').style.display='inline-flex';
+  // 顯示三天未叫手動標示按鈕，並更新文字
+  const warnBtn = document.getElementById('btn-warn-toggle');
+  warnBtn.style.display = 'inline-flex';
+  updateWarnToggleBtn(n);
   document.getElementById('overlay').classList.add('open');
+}
+
+// 更新 modal 內的 warn 按鈕文字與樣式
+function updateWarnToggleBtn(n) {
+  const btn = document.getElementById('btn-warn-toggle');
+  if (!btn || !n) return;
+  const isWarn = getWarn3Set().has(n);
+  if (isWarn) {
+    btn.textContent = '✅ 解除三天未叫警示';
+    btn.style.background = '#ecfdf5'; btn.style.color = '#065f46'; btn.style.borderColor = '#a7f3d0';
+  } else {
+    btn.textContent = '⚠ 手動標示三天未叫';
+    btn.style.background = '#fffbeb'; btn.style.color = '#78350f'; btn.style.borderColor = '#fde68a';
+  }
+}
+
+// modal 內按鈕觸發
+function modalToggleWarn() {
+  if (!editing) return;
+  toggleWarnOverride(editing);
+  updateWarnToggleBtn(editing);
+  closeModal();
 }
 function closeModal() { document.getElementById('overlay').classList.remove('open'); }
 function bgClose(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
@@ -2505,10 +2610,20 @@ function deleteClient() {
 
 async function resetAll() {
   showConfirm('是否確定重置今日叫貨狀態？\n系統將記錄今日最終叫貨狀態後，所有客戶恢復為「未叫貨」。', async ()=>{
+    // ① 快照今日狀態到 historyLog
     snapshotOnReset();
+
+    // ② 快照後清除「手動標示=true」的 override（自動計算已可接管）
+    //    保留「手動解除=false」的 override（讓某些客戶強制不顯示警示）
+    Object.keys(warnOverride).forEach(n => {
+      if (warnOverride[n] === true) delete warnOverride[n];
+    });
+    localStorage.setItem('zhongxin_warn3_v1', JSON.stringify(warnOverride));
+
+    // ③ 重置所有客戶狀態為未叫貨
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
-    lockLocal(30000);  // 推送期間保護，推送成功後 unlockLocal() 立即解鎖
+    lockLocal(30000);
     localStorage.setItem('zhongxin_v4', JSON.stringify(db));
     localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
     const ts = touchTs();
@@ -2518,12 +2633,13 @@ async function resetAll() {
       await Promise.all([
         _pushOne('zhongxin_v4', db),
         _pushOne('zhongxin_hist_v4', historyLog),
+        _pushOne('zhongxin_warn3_v1', warnOverride),
         _pushOne('zhongxin_ts_v1', ts)
       ]);
-      unlockLocal();   // 推送成功立即解鎖，其他裝置下一輪詢即可同步
-      toast('✅ 今日狀態已記錄並重置');
+      unlockLocal();
+      toast('✅ 今日狀態已記錄並重置，三天未叫警示已更新');
     } catch(e) {
-      unlockLocal();   // 推送失敗也要解鎖，不然其他裝置永遠無法同步
+      unlockLocal();
       toast('❌ 推送失敗：' + e.message, true);
     }
   });
