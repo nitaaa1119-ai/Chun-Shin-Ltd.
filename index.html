@@ -2019,8 +2019,8 @@ function mkCard(n, warn3) {
 
 function toggle(n) {
   if (dragMode) return; // 拖曳模式中停用點擊
-  if (db[n].status === '未叫貨')     changeStatus(n, '有叫貨');
-  else if (db[n].status === '有叫貨') changeStatus(n, '未叫貨');
+  // ★ 只允許「未叫貨 → 有叫貨」，已叫貨點擊不做任何事
+  if (db[n].status === '未叫貨') changeStatus(n, '有叫貨');
 }
 function rightClick(e, n) {
   e.preventDefault();
