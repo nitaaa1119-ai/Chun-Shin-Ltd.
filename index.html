@@ -165,6 +165,9 @@ body {
   border-color: var(--accent); background: var(--accent-bg);
   transform: scale(1.1);
 }
+.sync-wrap {
+  display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+}
 .sync-dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--grn);
@@ -173,6 +176,9 @@ body {
 }
 .sync-dot.syncing { background: var(--amber); animation: pulse-dot 1s infinite; }
 .sync-dot.error   { background: var(--red); }
+.sync-label {
+  font-size: 11px; color: var(--ink3); transition: color .3s; white-space: nowrap;
+}
 @keyframes pulse-dot {
   0%,100% { opacity: 1; } 50% { opacity: .3; }
 }
@@ -895,7 +901,10 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <div class="user-tag-avatar" id="user-avatar">?</div>
     <span class="user-tag-name" id="user-tag-name">設定暱稱</span>
   </div>
-  <div class="sync-dot" id="sync-dot" title="同步狀態"></div>
+  <div class="sync-wrap">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span class="sync-label" id="sync-label">已同步</span>
+  </div>
 </header>
 
 <!-- 暱稱設定 Modal -->
@@ -1188,8 +1197,14 @@ function unlockLocal() {
 }
 
 function setSyncDot(state) {
-  const dot = document.getElementById('sync-dot');
+  const dot   = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
   dot.className = 'sync-dot' + (state ? ' ' + state : '');
+  if (label) {
+    if (state === 'syncing') { label.textContent = '同步中…'; label.style.color = 'var(--amber)'; }
+    else if (state === 'error') { label.textContent = '同步失敗'; label.style.color = 'var(--red)'; }
+    else { label.textContent = '已同步'; label.style.color = 'var(--ink3)'; }
+  }
 }
 
 // ── 時間戳：每次本機有實質操作時更新 ───────────────────
@@ -1267,9 +1282,22 @@ async function syncFromCloud() {
       const cloudCount = Object.keys(cloudDB).length;
       if (cloudCount >= MIN_CLIENT_COUNT) {
         if (useCloud) {
-          db = cloudDB;
-          localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
-          updated = true;
+          // ★ 只更新有差異的卡片，不整個 grid 重建，避免綠色卡片閃回
+          const diffNames = Object.keys(cloudDB).filter(n =>
+            !db[n]
+            || db[n].status !== cloudDB[n].status
+            || db[n].fixed  !== cloudDB[n].fixed
+            || db[n].date   !== cloudDB[n].date
+          ).concat(Object.keys(db).filter(n => !cloudDB[n]));
+
+          if (diffNames.length > 0) {
+            db = cloudDB;
+            localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
+            diffNames.forEach(n => { if (db[n]) updateCardDOM(n); });
+            updateStats();
+            renderSeriesStrip();
+          }
+          // 注意：不設 updated = true，避免觸發 renderAll() 重建整個 grid
         }
       } else if (Object.keys(db).length >= MIN_CLIENT_COUNT) {
         console.warn(`⚠️ 雲端只有 ${cloudCount} 位，自動修正`);
@@ -2380,31 +2408,32 @@ function exportExcel() {
   const CPG = 7;
   const ordSet = new Set(Object.keys(db).filter(n => db[n].status === '有叫貨'));
 
-  // 直接操作原始 worksheet，不重建，才能保住儲存格格式、合併、樣式
+  // 直接操作原始 worksheet，完整保留原始格式、字型、格線、合併儲存格
   const ws = wb.Sheets[wsName];
 
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
     if (!row) continue;
     for (const c of todayColIndices) {
-      // 找到同列最近一個名稱欄
-      let cn = null;
-      for (let nc = c - 1; nc >= 0; nc--) {
-        if (nc % CPG === 0 && row[nc] != null) { cn = String(row[nc]); break; }
-      }
-      // 將 Excel 欄列索引轉成儲存格位址 (e.g. r=1,c=3 → D2)
+      // ★ 只在同一組（CPG欄）內找名稱欄，不跨組
+      const groupStart = c - (c % CPG);
+      const cn = (row[groupStart] != null) ? String(row[groupStart]) : null;
+
       const cellAddr = XLSX.utils.encode_cell({ r: r, c: c });
+
       if (cn && ordSet.has(cn)) {
-        // 有叫貨：寫入 "V"，保留原有儲存格其他屬性（格式、樣式）
+        // 有叫貨：寫入 V，完整保留原儲存格樣式（s 屬性）
         if (!ws[cellAddr]) ws[cellAddr] = {};
-        ws[cellAddr].v = 'V';   // 值
-        ws[cellAddr].t = 's';   // 類型：string
-        // 如果原始儲存格有樣式物件，保留它；否則不覆蓋
+        // 只更新值和類型，樣式 (ws[cellAddr].s) 完全不動
+        ws[cellAddr].v = 'V';
+        ws[cellAddr].t = 's';
+        if (ws[cellAddr].w !== undefined) ws[cellAddr].w = 'V'; // 顯示值
       } else {
-        // 未叫貨：清空該格的值（保留儲存格物件讓格式留著）
+        // 未叫貨：清空值，樣式完全保留
         if (ws[cellAddr]) {
           ws[cellAddr].v = '';
           ws[cellAddr].t = 's';
+          if (ws[cellAddr].w !== undefined) ws[cellAddr].w = '';
         }
       }
     }
@@ -2414,9 +2443,13 @@ function exportExcel() {
     String(today.getMonth()+1).padStart(2,'0') +
     String(today.getDate()).padStart(2,'0');
 
-  // 用 bookType:'xlsx' 寫出，保留所有原始格式
-  XLSX.writeFile(wb, '打勾單_' + ds + '.xlsx', { bookType: 'xlsx', type: 'binary' });
-  toast('✅ Excel 已匯出（原始格式保留）');
+  // ★ 用 xlsx 格式寫出，完整保留原始格式（格線、字型、合併儲存格）
+  XLSX.writeFile(wb, '打勾單_' + ds + '.xlsx', {
+    bookType: 'xlsx',
+    type: 'binary',
+    cellStyles: true    // 保留儲存格樣式
+  });
+  toast('✅ Excel 已匯出');
 }
 
 // ══════════════════════════════════════════════════════════
