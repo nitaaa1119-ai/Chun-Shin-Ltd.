@@ -1058,6 +1058,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
         <span class="month-label" id="analytics-month-label"></span>
         <button class="month-btn" onclick="analyticsChangeMonth(1)">›</button>
       </div>
+      <button class="btn btn-ghost btn-sm" onclick="openManualDataModal()" style="margin-left:auto;">✏ 手動輸入數據</button>
     </div>
 
     <!-- 今日 / 當月摘要 -->
@@ -1308,6 +1309,16 @@ async function syncFromCloud() {
       }
     }
 
+    // ── manualData（手動輸入趨勢數據）──
+    if (data.zhongxin_manual_v1) {
+      const cloudManual = JSON.parse(data.zhongxin_manual_v1);
+      if (JSON.stringify(manualData) !== JSON.stringify(cloudManual)) {
+        manualData = cloudManual;
+        localStorage.setItem('zhongxin_manual_v1', data.zhongxin_manual_v1);
+        updated = true;
+      }
+    }
+
     if (useCloud) setLocalTs(cloudTs);   // 對齊基準線
     if (updated) { buildFixedFilter(); renderAll(); }
     setSyncDot('');
@@ -1363,6 +1374,11 @@ function saveNotices() {
   _pushOne('zhongxin_notices_v1', notices).catch(() => {});
 }
 
+function saveManualData() {
+  localStorage.setItem('zhongxin_manual_v1', JSON.stringify(manualData));
+  _pushOne('zhongxin_manual_v1', manualData).catch(() => {});
+}
+
 // ── clearAllHistory ──────────────────────────────────────
 async function clearAllHistory() {
   showConfirm(
@@ -1409,6 +1425,7 @@ let db = {};
 let historyLog = [];
 let groupOrder = {}; // { groupName: [clientName, ...] }
 let notices = [];    // [{ id, author, text, time }]
+let manualData = {}; // { 'YYYY/MM/DD': { ord, un, no } } 手動輸入的趨勢數據
 let editing = null;
 let dragMode = false;
 let dragSrcName = null;
@@ -1473,6 +1490,9 @@ function init() {
 
   const nt = localStorage.getItem('zhongxin_notices_v1');
   notices = nt ? JSON.parse(nt) : [];
+
+  const md = localStorage.getItem('zhongxin_manual_v1');
+  manualData = md ? JSON.parse(md) : {};
 
   // 讀取操作者暱稱
   const savedUser = localStorage.getItem('zhongxin_user_v1');
@@ -2471,6 +2491,51 @@ function saveUserName() {
 let analyticsYear  = today.getFullYear();
 let analyticsMonth = today.getMonth(); // 0-indexed
 
+// ── 手動輸入趨勢數據 Modal ──────────────────────────────
+function openManualDataModal() {
+  const today = new Date();
+  const iso = today.toISOString().slice(0,10);
+  document.getElementById('manual-date').value = iso;
+  fillManualFormFromDate(iso);
+  document.getElementById('manual-overlay').classList.add('open');
+}
+function closeManualDataModal() {
+  document.getElementById('manual-overlay').classList.remove('open');
+}
+function fillManualFormFromDate(iso) {
+  const dateStr = iso.replace(/-/g, '/');
+  const ex = manualData[dateStr];
+  document.getElementById('manual-ord').value = ex ? ex.ord : '';
+  document.getElementById('manual-un').value  = ex ? ex.un  : '';
+  document.getElementById('manual-no').value  = ex ? ex.no  : '';
+  document.getElementById('btn-manual-del').style.display = ex ? 'inline-flex' : 'none';
+}
+function saveManualDataForm() {
+  const iso = document.getElementById('manual-date').value;
+  if (!iso) { alert('請選擇日期'); return; }
+  const dateStr = iso.replace(/-/g, '/');
+  manualData[dateStr] = {
+    ord: parseInt(document.getElementById('manual-ord').value) || 0,
+    un:  parseInt(document.getElementById('manual-un').value)  || 0,
+    no:  parseInt(document.getElementById('manual-no').value)  || 0,
+  };
+  saveManualData();
+  closeManualDataModal();
+  renderAnalytics();
+  toast('✅ ' + dateStr + ' 數據已儲存');
+}
+function deleteManualData() {
+  const iso = document.getElementById('manual-date').value;
+  const dateStr = iso.replace(/-/g, '/');
+  showConfirm('確定刪除 ' + dateStr + ' 的手動數據？\n刪除後將恢復自動計算。', () => {
+    delete manualData[dateStr];
+    saveManualData();
+    closeManualDataModal();
+    renderAnalytics();
+    toast('已刪除，恢復自動計算');
+  });
+}
+
 function analyticsChangeMonth(delta) {
   analyticsMonth += delta;
   if (analyticsMonth < 0)  { analyticsMonth = 11; analyticsYear--; }
@@ -2492,6 +2557,15 @@ function renderAnalytics() {
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     let ord=0, un=0, no=0;
+
+    // ★ 優先使用手動輸入數據
+    if (manualData[dateStr]) {
+      ord = manualData[dateStr].ord || 0;
+      un  = manualData[dateStr].un  || 0;
+      no  = manualData[dateStr].no  || 0;
+      dayData.push({ date: dateStr, day: d, ord, un, no, total: ord+un+no, manual: true });
+      continue;
+    }
 
     if (dateStr === todayStr) {
       // 今日：從當前 db 取
@@ -2696,6 +2770,23 @@ function toast(msg, isErr) {
   el.classList.add('show'); clearTimeout(_t);
   _t=setTimeout(()=>el.classList.remove('show'),2500);
 }
+
+<!-- 手動輸入趨勢數據 Modal -->
+<div class="overlay" id="manual-overlay" onclick="if(event.target===this)closeManualDataModal()">
+  <div class="modal">
+    <div class="modal-title">✏ 手動輸入每日數據</div>
+    <div class="field"><label>日期</label><input type="date" id="manual-date"></div>
+    <div class="field"><label>已叫貨家數</label><input type="number" id="manual-ord" min="0" placeholder="0"></div>
+    <div class="field"><label>未叫貨家數</label><input type="number" id="manual-un" min="0" placeholder="0"></div>
+    <div class="field"><label>今日不叫家數</label><input type="number" id="manual-no" min="0" placeholder="0"></div>
+    <div style="font-size:11px;color:var(--ink3);margin-top:-6px;margin-bottom:13px;">填寫後該日期的趨勢圖將優先使用此數據</div>
+    <div class="modal-actions">
+      <button class="btn btn-danger modal-actions-left" id="btn-manual-del" style="display:none" onclick="deleteManualData()">刪除此筆</button>
+      <button class="btn btn-ghost" onclick="closeManualDataModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveManualDataForm()">儲存</button>
+    </div>
+  </div>
+</div>
 
 </script>
 </body>
