@@ -165,10 +165,6 @@ body {
   border-color: var(--accent); background: var(--accent-bg);
   transform: scale(1.1);
 }
-.sync-wrap {
-  display: flex; align-items: center; gap: 5px;
-  flex-shrink: 0;
-}
 .sync-dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--grn);
@@ -177,13 +173,6 @@ body {
 }
 .sync-dot.syncing { background: var(--amber); animation: pulse-dot 1s infinite; }
 .sync-dot.error   { background: var(--red); }
-.sync-label {
-  font-size: 11px; color: var(--ink3);
-  transition: color .3s;
-  white-space: nowrap;
-}
-.sync-dot.syncing + .sync-label { color: var(--amber); }
-.sync-dot.error   + .sync-label { color: var(--red); }
 @keyframes pulse-dot {
   0%,100% { opacity: 1; } 50% { opacity: .3; }
 }
@@ -452,14 +441,13 @@ body {
   box-shadow: 0 1px 3px rgba(245,158,11,.4);
 }
 .edit-btn {
-  position: absolute; top: 4px; right: 4px;
-  width: 26px; height: 26px; border-radius: 50%;
-  background: rgba(255,255,255,.6);
+  position: absolute; top: 5px; right: 5px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,0,0,.07);
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; opacity: 0;
+  font-size: 10px; opacity: 0;
   transition: opacity .15s; cursor: pointer;
   border: none; color: inherit;
-  padding: 3px;
 }
 .ccard:hover .edit-btn { opacity: 1; }
 
@@ -482,7 +470,6 @@ tbody td {
   color: var(--ink); vertical-align: middle;
 }
 tbody tr:hover td { background: var(--line2); }
-tbody td[onclick]:hover { background: var(--accent-bg) !important; transform: scale(1.1); transition: transform .1s; }
 tbody tr.row-warn td { background: #fffbeb; }
 tbody tr.row-warn:hover td { background: #fef3c7; }
 
@@ -536,10 +523,6 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 /* ═══════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════ */
-#confirm-overlay {
-  z-index: 20000;  /* 確認視窗永遠在最上層 */
-}
-
 #toast {
   position: fixed; bottom: 24px; left: 50%;
   transform: translateX(-50%) translateY(80px);
@@ -559,7 +542,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   position: fixed; inset: 0;
   background: rgba(0,0,0,.30);
   display: flex; align-items: center; justify-content: center;
-  z-index: 10000; opacity: 0; pointer-events: none;
+  z-index: 200; opacity: 0; pointer-events: none;
   transition: opacity .18s;
   backdrop-filter: blur(3px);
 }
@@ -652,21 +635,14 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   padding: 8px 18px 8px 0;
   margin-right: 18px;
   border-right: 1px solid var(--line);
-  white-space: nowrap;
-  min-width: 80px;
-  cursor: pointer;
-  transition: background .15s;
+  white-space: nowrap; min-width: 80px;
+  cursor: pointer; transition: background .15s;
 }
 .series-item:last-child { border-right: none; margin-right: 0; padding-right: 0; }
 .series-item:hover { background: var(--accent-bg); }
 .series-item.active { background: var(--accent-bg); }
-.series-label {
-  font-size: 11px; font-weight: 700; color: var(--accent);
-  margin-bottom: 3px; letter-spacing: .04em;
-}
-.series-nums {
-  display: flex; align-items: baseline; gap: 4px;
-}
+.series-label { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+.series-nums { display: flex; align-items: baseline; gap: 4px; }
 .series-ordered { font-size: 18px; font-weight: 800; color: var(--grn-dk); letter-spacing: -.5px; }
 .series-total   { font-size: 11px; color: var(--ink3); }
 .series-pct     { font-size: 11px; font-weight: 600; color: var(--grn); }
@@ -919,10 +895,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <div class="user-tag-avatar" id="user-avatar">?</div>
     <span class="user-tag-name" id="user-tag-name">設定暱稱</span>
   </div>
-  <div class="sync-wrap">
-    <div class="sync-dot" id="sync-dot"></div>
-    <span class="sync-label" id="sync-label">已同步</span>
-  </div>
+  <div class="sync-dot" id="sync-dot" title="同步狀態"></div>
 </header>
 
 <!-- 暱稱設定 Modal -->
@@ -1176,6 +1149,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   </div>
 </div>
 
+
 <!-- 手動輸入趨勢數據 Modal -->
 <div class="overlay" id="manual-overlay" onclick="if(event.target===this)closeManualDataModal()">
   <div class="modal">
@@ -1184,7 +1158,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <div class="field"><label>已叫貨家數</label><input type="number" id="manual-ord" min="0" placeholder="0"></div>
     <div class="field"><label>未叫貨家數</label><input type="number" id="manual-un" min="0" placeholder="0"></div>
     <div class="field"><label>今日不叫家數</label><input type="number" id="manual-no" min="0" placeholder="0"></div>
-    <div style="font-size:11px;color:var(--ink3);margin-top:-6px;margin-bottom:13px;">填寫後該日期的趨勢圖將優先使用此數據，覆蓋自動計算結果</div>
+    <div style="font-size:11px;color:var(--ink3);margin-top:-6px;margin-bottom:13px;">填寫後該日期的趨勢圖將優先使用此數據</div>
     <div class="modal-actions">
       <button class="btn btn-danger modal-actions-left" id="btn-manual-del" style="display:none" onclick="deleteManualData()">刪除此筆</button>
       <button class="btn btn-ghost" onclick="closeManualDataModal()">取消</button>
@@ -1214,14 +1188,8 @@ function unlockLocal() {
 }
 
 function setSyncDot(state) {
-  const dot   = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
+  const dot = document.getElementById('sync-dot');
   dot.className = 'sync-dot' + (state ? ' ' + state : '');
-  if (label) {
-    if (state === 'syncing') label.textContent = '同步中…';
-    else if (state === 'error') label.textContent = '同步失敗';
-    else label.textContent = '已同步';
-  }
 }
 
 // ── 時間戳：每次本機有實質操作時更新 ───────────────────
@@ -1239,7 +1207,6 @@ function touchTs() {
 
 // ── 單筆推送至雲端（相容原始 GAS 介面）─────────────────
 async function _pushOne(key, value) {
-  setSyncDot('syncing');
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -1249,17 +1216,14 @@ async function _pushOne(key, value) {
     });
     const json = JSON.parse(await res.text());
     if (json.error) throw new Error(json.error);
-    setSyncDot('');
   } catch(e) {
     console.error('儲存至雲端失敗', e);
-    setSyncDot('error');
     throw e;
   }
 }
 
-// ── 單一客戶更新（不會被其他裝置整包覆寫蓋掉，需 GAS v5）──
+// ── 單一客戶更新 ─────────────────────────────────────────
 async function _pushUpdateClient(name, status, date) {
-  setSyncDot('syncing');
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -1269,10 +1233,8 @@ async function _pushUpdateClient(name, status, date) {
     });
     const json = JSON.parse(await res.text());
     if (json.error) throw new Error(json.error);
-    setSyncDot('');
   } catch(e) {
     console.error('更新客戶狀態失敗', e);
-    setSyncDot('error');
     throw e;
   }
 }
@@ -1281,14 +1243,22 @@ async function _pushUpdateClient(name, status, date) {
 async function syncFromCloud() {
   if (_isSyncing) return;
   // 若剛剛有本機操作，短暫跳過，防止雲端舊資料覆蓋
-  if (Date.now() < _localLockUntil) return;
+  if (Date.now() < _localLockUntil) {
+    setSyncDot('');   // ★ 鎖定期間也要把 dot 設回正常，不顯示「同步中」
+    return;
+  }
   _isSyncing = true;
   setSyncDot('syncing');
   try {
     const res  = await fetch(API_URL, { redirect: 'follow' });
     const data = await res.json();
 
+    const localTs  = getLocalTs();
+    const cloudTs  = parseInt(data.zhongxin_ts_v1 || '0', 10);
+    // 首次載入 或 雲端沒有 ts 或 雲端較新 → 使用雲端資料
+    const useCloud = _firstLoad || cloudTs === 0 || cloudTs > localTs;
     _firstLoad = false;
+
     let updated = false;
 
     // ── db（叫貨狀態）──
@@ -1296,14 +1266,7 @@ async function syncFromCloud() {
       const cloudDB    = JSON.parse(data.zhongxin_v4);
       const cloudCount = Object.keys(cloudDB).length;
       if (cloudCount >= MIN_CLIENT_COUNT) {
-        // ★ 比較 status 和 fixed，任何欄位不同就覆蓋
-        const hasDiff = Object.keys(cloudDB).some(n => {
-          return !db[n]
-            || db[n].status !== cloudDB[n].status
-            || db[n].fixed  !== cloudDB[n].fixed
-            || db[n].date   !== cloudDB[n].date;
-        }) || Object.keys(db).some(n => !cloudDB[n]);
-        if (hasDiff) {
+        if (useCloud) {
           db = cloudDB;
           localStorage.setItem('zhongxin_v4', data.zhongxin_v4);
           updated = true;
@@ -1316,17 +1279,19 @@ async function syncFromCloud() {
       }
     }
 
-    // ── historyLog（今日 editLog 以筆數較多者為準）──
+    // ── historyLog（合併策略：今日 editLog 以本機筆數較多者為準）──
     if (data.zhongxin_hist_v4) {
       const cloudHist = JSON.parse(data.zhongxin_hist_v4);
-      if (JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
-        // 保留本機今日的 editLog（操作記錄不能被蓋掉）
+      if (useCloud && JSON.stringify(historyLog) !== JSON.stringify(cloudHist)) {
+        // 先記下本機今日的 editLog
         const localTodayEntry = historyLog.find(h => h.date === todayStr);
         const localEditLog    = localTodayEntry ? (localTodayEntry.editLog || {}) : {};
         const localEditCount  = Object.values(localEditLog).reduce((s, a) => s + a.length, 0);
 
+        // 以雲端為主覆蓋
         historyLog = cloudHist;
 
+        // 若本機今日 editLog 筆數 >= 雲端，保留本機（操作者剛寫入的不能被蓋掉）
         const cloudTodayEntry = historyLog.find(h => h.date === todayStr);
         if (cloudTodayEntry) {
           const cloudEditCount = Object.values(cloudTodayEntry.editLog || {}).reduce((s, a) => s + a.length, 0);
@@ -1345,14 +1310,14 @@ async function syncFromCloud() {
     // ── groupOrder ──
     if (data.zhongxin_order_v1) {
       const cloudOrder = JSON.parse(data.zhongxin_order_v1);
-      if (JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) {
+      if (useCloud && JSON.stringify(groupOrder) !== JSON.stringify(cloudOrder)) {
         groupOrder = cloudOrder;
         localStorage.setItem('zhongxin_order_v1', data.zhongxin_order_v1);
         updated = true;
       }
     }
 
-    // ── notices ──
+    // ── notices（留言板不受 ts 控制，永遠取最新）──
     if (data.zhongxin_notices_v1) {
       const cloudNotices = JSON.parse(data.zhongxin_notices_v1);
       if (JSON.stringify(notices) !== JSON.stringify(cloudNotices)) {
@@ -1372,8 +1337,8 @@ async function syncFromCloud() {
       }
     }
 
-    // ★ 不管資料有沒有變，每次都重新渲染，確保畫面與資料一致
-    buildFixedFilter(); renderAll();
+    if (useCloud) setLocalTs(cloudTs);   // 對齊基準線
+    if (updated) { buildFixedFilter(); renderAll(); }
     setSyncDot('');
   } catch(e) {
     console.error('雲端同步失敗', e);
@@ -1390,16 +1355,12 @@ function save(fromInit = false) {
   }
   localStorage.setItem('zhongxin_v4', JSON.stringify(db));
   if (!fromInit) {
-    lockLocal(30000);   // 推送期間保護
+    lockLocal(30000);
     const ts = touchTs();
     Promise.all([
       _pushOne('zhongxin_v4', db),
       _pushOne('zhongxin_ts_v1', ts)
-    ]).then(() => {
-      unlockLocal();    // 推送成功立即解鎖，其他裝置馬上能同步
-    }).catch(() => {
-      unlockLocal();    // 失敗也解鎖
-    });
+    ]).then(() => { unlockLocal(); }).catch(() => { unlockLocal(); });
   }
 }
 
@@ -1411,11 +1372,7 @@ function saveHistory() {
   Promise.all([
     _pushOne('zhongxin_hist_v4', historyLog),
     _pushOne('zhongxin_ts_v1', ts)
-  ]).then(() => {
-    unlockLocal();
-  }).catch(() => {
-    unlockLocal();
-  });
+  ]).then(() => { unlockLocal(); }).catch(() => { unlockLocal(); });
 }
 
 // ── saveOrder ────────────────────────────────────────────
@@ -1426,11 +1383,7 @@ function saveOrder() {
   Promise.all([
     _pushOne('zhongxin_order_v1', groupOrder),
     _pushOne('zhongxin_ts_v1', ts)
-  ]).then(() => {
-    unlockLocal();
-  }).catch(() => {
-    unlockLocal();
-  });
+  ]).then(() => { unlockLocal(); }).catch(() => { unlockLocal(); });
 }
 
 // ── saveNotices（不影響 ts）──────────────────────────────
@@ -1443,6 +1396,37 @@ function saveManualData() {
   localStorage.setItem('zhongxin_manual_v1', JSON.stringify(manualData));
   _pushOne('zhongxin_manual_v1', manualData).catch(() => {});
 }
+
+// ── clearAllHistory ──────────────────────────────────────
+async function clearAllHistory() {
+  showConfirm(
+    '確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。',
+    async () => {
+      toast('清除中…');
+      try {
+        historyLog = [];
+        ensureTodayEditLog();   // 建立今日空記錄
+        lockLocal(30000);       // 先鎖，再推送，防止推送途中輪詢蓋回
+        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+        const ts = touchTs();
+        await Promise.all([
+          _pushOne('zhongxin_hist_v4', historyLog),   // 推送含今日空記錄的版本
+          _pushOne('zhongxin_ts_v1', ts)
+        ]);
+        renderAll();
+        toast('✅ 歷史記錄已清除');
+      } catch(e) {
+        toast('❌ 清除失敗：' + e.message, true);
+      }
+    }
+  );
+}
+
+// ── BOOT ─────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  syncFromCloud();
+  _syncInterval = setInterval(syncFromCloud, 6000);
+});
 
 // ══════════════════════════════════════════════════════════
 //  STATE
@@ -1459,7 +1443,7 @@ let db = {};
 let historyLog = [];
 let groupOrder = {}; // { groupName: [clientName, ...] }
 let notices = [];    // [{ id, author, text, time }]
-let manualData = {}; // { '2026/06/30': { ord, un, no } } 手動輸入的趨勢數據
+let manualData = {}; // { 'YYYY/MM/DD': { ord, un, no } } 手動輸入的趨勢數據
 let editing = null;
 let dragMode = false;
 let dragSrcName = null;
@@ -1598,8 +1582,7 @@ function snapshotOnReset() {
     historyLog.push(entry);
     if (historyLog.length > HISTORY_DAYS) historyLog = historyLog.slice(-HISTORY_DAYS);
   }
-  // ★ 不在這裡推送，由呼叫者（resetAll）統一推送
-  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+  saveHistory();
 }
 
 function logEditTime(name, status) {
@@ -1733,19 +1716,16 @@ const SERIES_LIST = [
 let _activeSeriesKey = null;
 
 const SERIES_EXTRA = {
-  '杏子':  ['勝牛', '王將', '橋村'],   // 額外包含勝牛、王將、橋村開頭
+  '杏子':  ['勝牛', '王將', '橋村'],
   '花月嵐': ['燒丼統領', '蛋包林口', '蛋包南港'],
 };
 
 function getSeriesMembers(key) {
   const extra = SERIES_EXTRA[key] || [];
-
   if (key === '壽司郎') {
-    // 壽司開頭，排除壽司郎
     return Object.keys(db).filter(n => n.startsWith('壽司') && !n.startsWith('壽司郎'));
   }
   if (key === 'YAYOI') {
-    // YAYOI 開頭（相容全形/半形，直接搜 Ya 開頭也抓）
     return Object.keys(db).filter(n => n.startsWith('YAYOI') || n.startsWith('Ya'));
   }
   if (key === '花月嵐') {
@@ -1766,15 +1746,13 @@ function getSeriesMembers(key) {
 function renderSeriesStrip() {
   const strip = document.getElementById('series-strip');
   if (!strip) return;
-
   let html = '';
   SERIES_LIST.forEach(({ key, label }) => {
     const members = getSeriesMembers(key);
     const total   = members.length;
-    const ordered = members.filter(n => db[n].status === '有叫貨').length;
+    const ordered = members.filter(n => db[n] && db[n].status === '有叫貨').length;
     const pct     = total ? Math.round(ordered / total * 100) : 0;
     const isActive = _activeSeriesKey === key;
-
     html += `<div class="series-item${isActive ? ' active' : ''}" onclick="toggleSeriesFilter('${key}')">
       <div class="series-label">${label}${isActive ? ' ✕' : ''}</div>
       <div class="series-nums">
@@ -1784,19 +1762,12 @@ function renderSeriesStrip() {
       </div>
     </div>`;
   });
-
   strip.innerHTML = html;
 }
 
 function toggleSeriesFilter(key) {
-  // 點同一個系列 → 取消篩選；點不同系列 → 切換篩選
   _activeSeriesKey = (_activeSeriesKey === key) ? null : key;
-
-  // 聯動「打勾單」頁面：用精確的系列成員名稱做篩選
-  // 清空搜尋欄，改用 _activeSeriesKey 讓 renderGrid 判斷
-  const qInput = document.getElementById('q-front');
-  qInput.value = '';  // 清空搜尋欄，避免 startsWith 誤篩
-
+  document.getElementById('q-front').value = '';
   renderSeriesStrip();
   renderGrid();
 }
@@ -1849,14 +1820,12 @@ function renderGrid() {
   const container = document.getElementById('grid-container');
   const warn3 = getWarn3Set();
 
-  // ★ 系列篩選的精確成員名單
-  const seriesMembers = _activeSeriesKey ? new Set(getSeriesMembers(_activeSeriesKey)) : null;
-
   const fs = document.getElementById('filter-status').value;
+  const seriesMembers = _activeSeriesKey ? new Set(getSeriesMembers(_activeSeriesKey)) : null;
   const names = Object.keys(db).filter(n => {
     const d = db[n];
-    if (seriesMembers && !seriesMembers.has(n)) return false;  // 系列精確篩選
-    if (!seriesMembers && q && !n.toLowerCase().includes(q)) return false;  // 搜尋欄（無系列篩選時才用）
+    if (seriesMembers && !seriesMembers.has(n)) return false;
+    if (!seriesMembers && q && !n.toLowerCase().includes(q)) return false;
     if (ff && d.fixed !== ff) return false;
     if (fs === 'warn3') return warn3.has(n) && d.status === '未叫貨';
     if (fs && d.status !== fs) return false;
@@ -1912,7 +1881,7 @@ function mkCard(n, warn3) {
     onclick="toggle('${nn}')" oncontextmenu="rightClick(event,'${nn}')"
     ondragstart="onDragStart(event,'${nn}')" ondragend="onDragEnd(event)">
     ${warnTag}
-    <button class="edit-btn" onclick="openEditModal(event,'${nn}')" title="編輯"><img src="pen.png" style="width:100%;height:100%;display:block;" alt="編輯"></button>
+    <button class="edit-btn" onclick="openEditModal(event,'${nn}')">✏</button>
     <div class="ccard-name">${nn}</div>
     <div class="ccard-foot">
       <span class="ccard-dot"></span>
@@ -1924,81 +1893,19 @@ function mkCard(n, warn3) {
 
 function toggle(n) {
   if (dragMode) return; // 拖曳模式中停用點擊
-  // ★ 只允許「未叫貨 → 有叫貨」，已叫貨要進編輯 modal 才能改回
-  if (db[n].status === '未叫貨') changeStatus(n, '有叫貨');
-  // 已叫貨：不做任何事，讓使用者點右上角 ✏ 編輯
+  if (db[n].status === '未叫貨')     changeStatus(n, '有叫貨');
+  else if (db[n].status === '有叫貨') changeStatus(n, '未叫貨');
 }
 function rightClick(e, n) {
   e.preventDefault();
   if (dragMode) return;
   changeStatus(n, db[n].status === '今日不叫貨' ? '未叫貨' : '今日不叫貨');
 }
-async function changeStatus(n, s) {
+function changeStatus(n, s) {
   db[n].status = s;
   db[n].date = s === '未叫貨' ? '' : todayStr;
-  logEditTime(n, s);
-  localStorage.setItem('zhongxin_v4', JSON.stringify(db));
-
-  // ★ 只更新這張卡片的樣式，不重建整個 grid，避免畫面閃跳
-  updateCardDOM(n);
-  updateStats();   // 更新頂部數字統計
+  logEditTime(n, s); save(); renderAll();   // 先記錄操作時間，再一起推送
   toast(n + ' → ' + s);
-
-  // 推送到雲端（單一客戶更新）
-  lockLocal(15000);
-  try {
-    await _pushUpdateClient(n, db[n].status, db[n].date);
-    unlockLocal();
-  } catch(e) {
-    unlockLocal();
-  }
-}
-
-// 只更新單張卡片的 DOM，不重建整個 grid
-function updateCardDOM(n) {
-  const card = document.querySelector(`.ccard[data-name="${CSS.escape(n)}"]`);
-  if (!card) return;
-
-  const d = db[n];
-  const warn3 = getWarn3Set();
-  const isWarn = warn3.has(n) && d.status === '未叫貨';
-
-  let cls, lbl;
-  if (d.status === '有叫貨')        { cls = 'ordered';   lbl = '已叫貨'; }
-  else if (d.status === '今日不叫貨') { cls = 'no-order';  lbl = '不叫'; }
-  else if (isWarn)                   { cls = 'warn3';      lbl = '連續未叫'; }
-  else                               { cls = 'unordered';  lbl = '未叫貨'; }
-
-  // 更新 class
-  card.className = `ccard ${cls}`;
-
-  // 更新底部標籤文字
-  const foot = card.querySelector('.ccard-foot');
-  if (foot) {
-    const todayEntry = getTodayEntry();
-    const logs = todayEntry?.editLog?.[n] || [];
-    const lastLog = logs.at(-1);
-    const lastUser = lastLog?.user || '';
-    const lastIcon = lastLog?.icon || '';
-    foot.innerHTML = `
-      <span class="ccard-dot"></span>
-      <span>${lbl}</span>
-      ${lastUser
-        ? `<span style="font-size:11px;" title="${esc(lastUser)}">${esc(lastIcon)} ${esc(lastUser)}</span>`
-        : (d.date ? `<span>${d.date.slice(5)}</span>` : '')}
-    `;
-  }
-
-  // 更新 warn badge
-  const existingBadge = card.querySelector('.warn3-badge');
-  if (isWarn && !existingBadge) {
-    const badge = document.createElement('span');
-    badge.className = 'warn3-badge';
-    badge.textContent = '⚠ 連續3天未叫';
-    card.insertBefore(badge, card.firstChild);
-  } else if (!isWarn && existingBadge) {
-    existingBadge.remove();
-  }
 }
 
 // ── 拖曳模式 ──────────────────────────────────────────────────────────────
@@ -2189,13 +2096,10 @@ function renderTable() {
   let html = '';
   Object.keys(db).forEach(n => {
     const d = db[n];
-    const nn = esc(n);  // ★ 提前定義，供歷史欄位 onclick 使用
     if (q && !n.toLowerCase().includes(q) && !(d.fixed||'').toLowerCase().includes(q)) return;
-    // ★ 今日已叫貨或今日不叫貨，不視為3天未叫警告
-    const isWarn = warn3.has(n) && d.status === '未叫貨';
+    const isWarn = warn3.has(n);
     if (onlyWarn && !isWarn) return;
 
-    // 連續未叫天數：從最近一次重置往回數，直到出現「有叫貨」或「今日不叫貨」為止
     let streak = 0;
     for (let i = sortedHist.length-1; i >= 0; i--) {
       const s = sortedHist[i].records && sortedHist[i].records[n];
@@ -2209,25 +2113,12 @@ function renderTable() {
 
     pastDates.forEach(dt => {
       const hist = sortedHist.find(h => h.date === dt);
-      const s = hist && hist.records ? (hist.records[n] || '未叫貨') : null;
-      let cs = 'text-align:center;font-size:12px;cursor:pointer;user-select:none;', lbl, title;
-      if (!hist || !hist.records) {
-        cs += 'color:var(--line2);cursor:default;';
-        lbl = '—'; title = '無歷史資料';
-        html += `<td style="${cs}" title="${title}">${lbl}</td>`;
-      } else if (s === '有叫貨') {
-        cs += 'color:var(--grn-dk);font-weight:700;';
-        lbl = '✓'; title = '點擊改為未叫貨';
-        html += `<td style="${cs}" title="${title}" onclick="toggleHistoryStatus('${nn}','${dt}','有叫貨')">${lbl}</td>`;
-      } else if (s === '今日不叫貨') {
-        cs += 'color:var(--blu-dk);';
-        lbl = '不叫'; title = '點擊改為有叫貨';
-        html += `<td style="${cs}" title="${title}" onclick="toggleHistoryStatus('${nn}','${dt}','今日不叫貨')">${lbl}</td>`;
-      } else {
-        cs += 'color:var(--ink3);';
-        lbl = '—'; title = '點擊改為有叫貨';
-        html += `<td style="${cs}" title="${title}" onclick="toggleHistoryStatus('${nn}','${dt}','未叫貨')">${lbl}</td>`;
-      }
+      const s = hist && hist.records ? (hist.records[n] || '—') : '—';
+      let cs = 'text-align:center;font-size:12px;', lbl = s;
+      if (s === '有叫貨')       { cs += 'color:var(--grn-dk);font-weight:700;'; lbl = '✓'; }
+      else if (s === '今日不叫貨') { cs += 'color:var(--blu-dk);'; lbl = '不叫'; }
+      else                      { cs += 'color:var(--line);'; lbl = '—'; }
+      html += `<td style="${cs}">${lbl}</td>`;
     });
 
     const logs = todayEditLog[n] || [];
@@ -2252,11 +2143,12 @@ function renderTable() {
 
     html += `<td style="text-align:center;"><span class="badge ${bc}">${d.status}</span></td>`;
     html += '<td style="text-align:center;">';
-    if (isWarn)                          html += `<span class="warn-pill">⚠ ${streak}天</span>`;
-    else if (streak && d.status === '未叫貨') html += `<span style="font-size:12px;color:var(--ink3);">${streak}天</span>`;
-    else                                 html += '<span style="color:var(--line);">—</span>';
+    if (isWarn)      html += `<span class="warn-pill">⚠ ${streak}天</span>`;
+    else if (streak) html += `<span style="font-size:12px;color:var(--ink3);">${streak}天</span>`;
+    else             html += '<span style="color:var(--line);">—</span>';
     html += '</td>';
 
+    const nn = esc(n);
     html += `<td style="white-space:nowrap;">
       <button class="btn btn-ghost btn-sm" onclick="openEditModal(null,'${nn}')">編輯</button>
       <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="confirmDeleteHistory('${nn}')">刪除</button>
@@ -2268,44 +2160,31 @@ function renderTable() {
     `<tr><td colspan="${colSpan}" style="text-align:center;color:var(--ink3);padding:32px">查無資料</td></tr>`;
 }
 
-// ── 歷史欄位點擊切換叫貨狀態 ────────────────────────────
-async function toggleHistoryStatus(clientName, dateStr, currentStatus) {
-  // 切換邏輯：未叫貨 → 有叫貨 → 今日不叫貨 → 未叫貨
-  let nextStatus;
-  if (currentStatus === '未叫貨')     nextStatus = '有叫貨';
-  else if (currentStatus === '有叫貨') nextStatus = '未叫貨';
-  else                                nextStatus = '有叫貨';  // 今日不叫貨 → 有叫貨
-
-  // 找到該日期的歷史記錄並更新
-  const entry = historyLog.find(h => h.date === dateStr);
-  if (!entry || !entry.records) return;
-
-  entry.records[clientName] = nextStatus;
-
-  // 更新 localStorage 並推送雲端
-  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-  lockLocal(15000);
-  try {
-    await _pushOne('zhongxin_hist_v4', historyLog);
-    unlockLocal();
-  } catch(e) {
-    unlockLocal();
-    toast('❌ 推送失敗，請重試', true);
-  }
-
-  renderAll();
-  toast(`${clientName} ${dateStr.slice(5)} → ${nextStatus}`);
-}
-
-function confirmDeleteHistory(n) {
-  showConfirm('確定刪除客戶「' + n + '」？\n同時清除其所有歷史記錄。', () => {
+async function confirmDeleteHistory(n) {
+  showConfirm('確定刪除客戶「' + n + '」？\n同時清除其所有歷史記錄。', async () => {
     historyLog.forEach(h => {
       if (h.records) delete h.records[n];
       if (h.editLog) delete h.editLog[n];
     });
     delete db[n];
-    buildFixedFilter(); save(); saveHistory(); renderAll();
-    toast('已刪除 ' + n);
+    localStorage.setItem('zhongxin_v4', JSON.stringify(db));
+    localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+    buildFixedFilter(); renderAll();
+    toast('⏳ 刪除中…');
+    lockLocal(30000);
+    try {
+      const ts = touchTs();
+      await Promise.all([
+        _pushOne('zhongxin_v4', db),
+        _pushOne('zhongxin_hist_v4', historyLog),
+        _pushOne('zhongxin_ts_v1', ts)
+      ]);
+      unlockLocal();
+      toast('✅ 已刪除 ' + n);
+    } catch(e) {
+      unlockLocal();
+      toast('❌ 推送失敗：' + e.message, true);
+    }
   });
 }
 
@@ -2379,8 +2258,8 @@ function renderPrintFromExcel() {
         ct=(iw?'⚠ ':'')+esc(cn);
         cs='font-weight:600;text-align:left;padding-left:6px;white-space:nowrap;'+(iw?'background:#fffbeb;color:var(--amber-dk);':'');
       } else if (it) {
-        const groupStart = c - (c % CPG);
-        const cn = row[groupStart] != null ? String(row[groupStart]) : null;
+        let cn=null;
+        for (let nc=c-1;nc>=0;nc--) { if(nc%CPG===0&&row[nc]!=null){cn=String(row[nc]);break;} }
         if(cn&&ordSet.has(cn)){ct='V';cs='font-weight:700;color:var(--grn);background:var(--grn-bg)';} else cs='background:var(--blu-bg);';
       }
       html+=`<td style="${cs}">${ct}</td>`;
@@ -2403,10 +2282,11 @@ function exportExcel() {
     const row = rows[r];
     if (!row) continue;
     for (const c of todayColIndices) {
-      // 找到同一組（CPG欄）內的名稱欄，不可跨組往前找
-      const groupStart = c - (c % CPG);
+      // 找到同列最近一個名稱欄
       let cn = null;
-      if (row[groupStart] != null) cn = String(row[groupStart]);
+      for (let nc = c - 1; nc >= 0; nc--) {
+        if (nc % CPG === 0 && row[nc] != null) { cn = String(row[nc]); break; }
+      }
       // 將 Excel 欄列索引轉成儲存格位址 (e.g. r=1,c=3 → D2)
       const cellAddr = XLSX.utils.encode_cell({ r: r, c: c });
       if (cn && ordSet.has(cn)) {
@@ -2508,22 +2388,22 @@ async function resetAll() {
     snapshotOnReset();
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
-    lockLocal(30000);  // 推送期間保護，推送成功後 unlockLocal() 立即解鎖
     localStorage.setItem('zhongxin_v4', JSON.stringify(db));
     localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-    const ts = touchTs();
     renderAll();
-    toast('⏳ 重置中，推送至雲端…');
+    toast('⏳ 重置中…');
+    lockLocal(30000);
     try {
+      const ts = touchTs();
       await Promise.all([
         _pushOne('zhongxin_v4', db),
         _pushOne('zhongxin_hist_v4', historyLog),
         _pushOne('zhongxin_ts_v1', ts)
       ]);
-      unlockLocal();   // 推送成功立即解鎖，其他裝置下一輪詢即可同步
+      unlockLocal();
       toast('✅ 今日狀態已記錄並重置');
     } catch(e) {
-      unlockLocal();   // 推送失敗也要解鎖，不然其他裝置永遠無法同步
+      unlockLocal();
       toast('❌ 推送失敗：' + e.message, true);
     }
   });
@@ -2548,53 +2428,13 @@ function updateAllDates() {
 // ══════════════════════════════════════════════════════════
 function showConfirm(msg, onOk) {
   document.getElementById('confirm-msg').textContent=msg;
-
-  // 暫時隱藏其他開著的 overlay，讓確認視窗跳到最前面
-  const otherOverlays = ['overlay','user-overlay','manual-overlay']
-    .map(id => document.getElementById(id))
-    .filter(el => el && el.classList.contains('open'));
-  otherOverlays.forEach(el => el.style.visibility = 'hidden');
-
   document.getElementById('confirm-overlay').classList.add('open');
-
-  const cleanup = () => {
+  document.getElementById('confirm-ok').onclick=async ()=>{
+    document.getElementById('confirm-overlay').classList.remove('open'); await onOk();
+  };
+  document.getElementById('confirm-cancel').onclick=()=>{
     document.getElementById('confirm-overlay').classList.remove('open');
-    otherOverlays.forEach(el => el.style.visibility = '');
   };
-
-  document.getElementById('confirm-ok').onclick = async () => {
-    cleanup(); await onOk();
-  };
-  document.getElementById('confirm-cancel').onclick = () => {
-    cleanup();
-  };
-}
-
-// ── clearAllHistory ──────────────────────────────────────
-async function clearAllHistory() {
-  showConfirm(
-    '確定要清除所有歷史記錄？\n此操作無法復原，後台管理的歷史欄位將全部消失。',
-    async () => {
-      toast('清除中…');
-      try {
-        historyLog = [];
-        ensureTodayEditLog();   // 建立今日空記錄
-        lockLocal(30000);       // 推送期間保護，推送成功後 unlockLocal() 立即解鎖
-        localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-        const ts = touchTs();
-        await Promise.all([
-          _pushOne('zhongxin_hist_v4', historyLog),
-          _pushOne('zhongxin_ts_v1', ts)
-        ]);
-        unlockLocal();   // 推送成功立即解鎖
-        renderAll();
-        toast('✅ 歷史記錄已清除');
-      } catch(e) {
-        unlockLocal();   // 推送失敗也要解鎖
-        toast('❌ 清除失敗：' + e.message, true);
-      }
-    }
-  );
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2669,65 +2509,56 @@ function saveUserName() {
 let analyticsYear  = today.getFullYear();
 let analyticsMonth = today.getMonth(); // 0-indexed
 
-function analyticsChangeMonth(delta) {
-  analyticsMonth += delta;
-  if (analyticsMonth < 0)  { analyticsMonth = 11; analyticsYear--; }
-  if (analyticsMonth > 11) { analyticsMonth = 0;  analyticsYear++; }
-  renderAnalytics();
-}
-
-// ── 手動輸入趨勢數據 ────────────────────────────────────
+// ── 手動輸入趨勢數據 Modal ──────────────────────────────
 function openManualDataModal() {
-  // 預設帶入今天日期；若今天已有手動資料，帶入既有數字
-  document.getElementById('manual-date').value = todayISO;
-  fillManualFormFromDate(todayISO);
+  const today = new Date();
+  const iso = today.toISOString().slice(0,10);
+  document.getElementById('manual-date').value = iso;
+  fillManualFormFromDate(iso);
   document.getElementById('manual-overlay').classList.add('open');
 }
-
 function closeManualDataModal() {
   document.getElementById('manual-overlay').classList.remove('open');
 }
-
-// 切換日期時自動帶入該日期既有的手動資料（若無則清空欄位）
-document.addEventListener('DOMContentLoaded', () => {
-  const dateInput = document.getElementById('manual-date');
-  if (dateInput) dateInput.addEventListener('change', e => fillManualFormFromDate(e.target.value));
-});
-
 function fillManualFormFromDate(iso) {
   const dateStr = iso.replace(/-/g, '/');
-  const existing = manualData[dateStr];
-  document.getElementById('manual-ord').value = existing ? existing.ord : '';
-  document.getElementById('manual-un').value  = existing ? existing.un  : '';
-  document.getElementById('manual-no').value  = existing ? existing.no  : '';
-  document.getElementById('btn-manual-del').style.display = existing ? 'inline-flex' : 'none';
+  const ex = manualData[dateStr];
+  document.getElementById('manual-ord').value = ex ? ex.ord : '';
+  document.getElementById('manual-un').value  = ex ? ex.un  : '';
+  document.getElementById('manual-no').value  = ex ? ex.no  : '';
+  document.getElementById('btn-manual-del').style.display = ex ? 'inline-flex' : 'none';
 }
-
 function saveManualDataForm() {
   const iso = document.getElementById('manual-date').value;
   if (!iso) { alert('請選擇日期'); return; }
   const dateStr = iso.replace(/-/g, '/');
-  const ord = parseInt(document.getElementById('manual-ord').value) || 0;
-  const un  = parseInt(document.getElementById('manual-un').value)  || 0;
-  const no  = parseInt(document.getElementById('manual-no').value)  || 0;
-
-  manualData[dateStr] = { ord, un, no };
+  manualData[dateStr] = {
+    ord: parseInt(document.getElementById('manual-ord').value) || 0,
+    un:  parseInt(document.getElementById('manual-un').value)  || 0,
+    no:  parseInt(document.getElementById('manual-no').value)  || 0,
+  };
   saveManualData();
   closeManualDataModal();
   renderAnalytics();
-  toast(`✅ ${dateStr} 數據已儲存`);
+  toast('✅ ' + dateStr + ' 數據已儲存');
 }
-
 function deleteManualData() {
   const iso = document.getElementById('manual-date').value;
   const dateStr = iso.replace(/-/g, '/');
-  showConfirm(`確定刪除 ${dateStr} 的手動數據？\\n刪除後將恢復自動計算。`, () => {
+  showConfirm('確定刪除 ' + dateStr + ' 的手動數據？\n刪除後將恢復自動計算。', () => {
     delete manualData[dateStr];
     saveManualData();
     closeManualDataModal();
     renderAnalytics();
     toast('已刪除，恢復自動計算');
   });
+}
+
+function analyticsChangeMonth(delta) {
+  analyticsMonth += delta;
+  if (analyticsMonth < 0)  { analyticsMonth = 11; analyticsYear--; }
+  if (analyticsMonth > 11) { analyticsMonth = 0;  analyticsYear++; }
+  renderAnalytics();
 }
 
 function renderAnalytics() {
@@ -2745,8 +2576,8 @@ function renderAnalytics() {
     const dateStr = `${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     let ord=0, un=0, no=0;
 
+    // ★ 優先使用手動輸入數據
     if (manualData[dateStr]) {
-      // ★ 該日期有手動輸入數據，優先使用，不走自動計算
       ord = manualData[dateStr].ord || 0;
       un  = manualData[dateStr].un  || 0;
       no  = manualData[dateStr].no  || 0;
@@ -2921,10 +2752,10 @@ function renderAnalyticsTable(dayData) {
   validDays.forEach(d => {
     const isToday = d.date === todayStr;
     const pct = d.total ? Math.round(d.ord / d.total * 100) : 0;
-    const rowBg = isToday ? 'background:#eef2ff;' : (d.manual ? 'background:#fdf4ff;' : '');
+    const rowBg = isToday ? 'background:#eef2ff;' : '';
     html += `<tr style="${rowBg}">
       <td style="padding:7px 12px;border-bottom:1px solid var(--line2);font-weight:${isToday?700:400};color:${isToday?'var(--accent)':'var(--ink)'};">
-        ${d.date.slice(5)}${isToday ? ' <span style="font-size:10px;color:var(--accent);">(今日)</span>' : ''}${d.manual ? ' <span style="font-size:10px;color:#a855f7;">✏手動</span>' : ''}
+        ${d.date.slice(5)}${isToday ? ' <span style="font-size:10px;color:var(--accent);">(今日)</span>' : ''}
       </td>
       <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);font-weight:700;color:#065f46;">${d.ord}</td>
       <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);color:#9f1239;">${d.un}</td>
@@ -2958,18 +2789,7 @@ function toast(msg, isErr) {
   _t=setTimeout(()=>el.classList.remove('show'),2500);
 }
 
-// ── BOOT ─────────────────────────────────────────────────
-init();
-window.addEventListener('load', () => {
-  syncFromCloud();
-  _syncInterval = setInterval(syncFromCloud, 6000);
-});
-
-// ★ 頁面從背景回到前景時立即同步（手機切回來不用等 6 秒）
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) syncFromCloud();
-});
-
 </script>
+
 </body>
 </html>
