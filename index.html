@@ -1337,6 +1337,18 @@ async function syncFromCloud() {
       }
     }
 
+    // ── manualWarn3（手動標示三天未叫）──
+    if (data.zhongxin_warn3_v1) {
+      const cloudWarn3 = JSON.parse(data.zhongxin_warn3_v1);
+      const localArr   = [...manualWarn3].sort().join(',');
+      const cloudArr   = [...cloudWarn3].sort().join(',');
+      if (localArr !== cloudArr) {
+        manualWarn3 = new Set(cloudWarn3);
+        localStorage.setItem('zhongxin_warn3_v1', data.zhongxin_warn3_v1);
+        updated = true;
+      }
+    }
+
     if (useCloud) setLocalTs(cloudTs);   // 對齊基準線
     if (updated) { buildFixedFilter(); renderAll(); }
     setSyncDot('');
@@ -1389,12 +1401,26 @@ function saveOrder() {
 // ── saveNotices（不影響 ts）──────────────────────────────
 function saveNotices() {
   localStorage.setItem('zhongxin_notices_v1', JSON.stringify(notices));
-  _pushOne('zhongxin_notices_v1', notices).catch(() => {});
+  pushInBackground(() => _pushOne('zhongxin_notices_v1', notices));
+}
+
+// ── 背景推送（不阻塞畫面，推送完自動解鎖）────────────────
+function pushInBackground(...pushFns) {
+  lockLocal(30000);
+  Promise.all(pushFns.map(fn => fn()))
+    .then(() => { unlockLocal(); setSyncDot(''); })
+    .catch(() => { unlockLocal(); setSyncDot('error'); });
 }
 
 function saveManualData() {
   localStorage.setItem('zhongxin_manual_v1', JSON.stringify(manualData));
   _pushOne('zhongxin_manual_v1', manualData).catch(() => {});
+}
+
+function saveManualWarn3() {
+  const arr = [...manualWarn3];
+  localStorage.setItem('zhongxin_warn3_v1', JSON.stringify(arr));
+  pushInBackground(() => _pushOne('zhongxin_warn3_v1', arr));
 }
 
 // ── clearAllHistory ──────────────────────────────────────
@@ -1444,6 +1470,7 @@ let historyLog = [];
 let groupOrder = {}; // { groupName: [clientName, ...] }
 let notices = [];    // [{ id, author, text, time }]
 let manualData = {}; // { 'YYYY/MM/DD': { ord, un, no } } 手動輸入的趨勢數據
+let manualWarn3 = new Set(); // 手動標示的三天未叫客戶
 let editing = null;
 let dragMode = false;
 let dragSrcName = null;
@@ -1512,6 +1539,9 @@ function init() {
   const md = localStorage.getItem('zhongxin_manual_v1');
   manualData = md ? JSON.parse(md) : {};
 
+  const mw = localStorage.getItem('zhongxin_warn3_v1');
+  manualWarn3 = new Set(mw ? JSON.parse(mw) : []);
+
   // 讀取操作者暱稱
   const savedUser = localStorage.getItem('zhongxin_user_v1');
   if (savedUser) { currentUser = JSON.parse(savedUser); }
@@ -1548,25 +1578,39 @@ function getTodayEntry() { return historyLog.find(h => h.date === todayStr); }
 // ══════════════════════════════════════════════════════════
 function getWarn3Set() {
   const warn = new Set();
-  // 只看「已完成重置」的歷史天（排除今天）
+
+  // ★ 先加入手動標示的客戶
+  manualWarn3.forEach(n => { if (db[n]) warn.add(n); });
+
+  // 自動辨識：從歷史記錄抓最近3天都未叫的客戶
   const completed = historyLog
     .filter(h => h.date !== todayStr && h.records && Object.keys(h.records).length > 0)
     .sort((a, b) => a.date < b.date ? -1 : 1);
 
-  // 需要至少 3 天已重置的歷史才能判斷
-  if (completed.length < 3) return warn;
-
-  const recent3 = completed.slice(-3); // 最近3天
-
-  Object.keys(db).forEach(n => {
-    const missedAll3 = recent3.every(h => {
-      const s = h.records[n];
-      // 該天：未叫貨 或 根本沒記錄（表示當天也沒叫）
-      return !s || s === '未叫貨';
+  if (completed.length >= 3) {
+    const recent3 = completed.slice(-3);
+    Object.keys(db).forEach(n => {
+      const missedAll3 = recent3.every(h => {
+        const s = h.records[n];
+        return !s || s === '未叫貨';
+      });
+      if (missedAll3) warn.add(n);
     });
-    if (missedAll3) warn.add(n);
-  });
+  }
   return warn;
+}
+
+// 手動切換某客戶的三天未叫標示
+function toggleManualWarn3(n) {
+  if (manualWarn3.has(n)) {
+    manualWarn3.delete(n);
+    toast(n + ' 已移除三天未叫標示');
+  } else {
+    manualWarn3.add(n);
+    toast(n + ' 已標示為三天未叫');
+  }
+  saveManualWarn3();
+  renderAll();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1772,6 +1816,56 @@ function toggleSeriesFilter(key) {
   renderGrid();
 }
 
+// ── 局部更新單張卡片 DOM（不重建整個 grid）───────────────
+function updateCardDOM(n) {
+  const card = document.querySelector(`.ccard[data-name="${CSS.escape(n)}"]`);
+  if (!card) { renderGrid(); return; }  // 找不到就整個重建
+
+  const d = db[n];
+  const warn3 = getWarn3Set();
+  const isWarn = warn3.has(n) && d.status === '未叫貨';
+
+  let cls;
+  if (d.status === '有叫貨')        cls = 'ordered';
+  else if (d.status === '今日不叫貨') cls = 'no-order';
+  else if (isWarn)                   cls = 'warn3';
+  else                               cls = 'unordered';
+
+  card.className = `ccard ${cls}`;
+
+  // 更新底部標籤
+  const foot = card.querySelector('.ccard-foot');
+  if (foot) {
+    const todayEntry = getTodayEntry();
+    const logs = todayEntry?.editLog?.[n] || [];
+    const lastLog = logs.at?.(-1) || logs[logs.length - 1];
+    const lastUser = lastLog?.user || '';
+    const lastIcon = lastLog?.icon || '';
+    let lbl;
+    if (d.status === '有叫貨')        lbl = '已叫貨';
+    else if (d.status === '今日不叫貨') lbl = '不叫';
+    else if (isWarn)                   lbl = '連續未叫';
+    else                               lbl = '未叫貨';
+    foot.innerHTML = `
+      <span class="ccard-dot"></span>
+      <span>${lbl}</span>
+      ${lastUser
+        ? `<span style="font-size:11px;" title="${esc(lastUser)}">${esc(lastIcon)} ${esc(lastUser)}</span>`
+        : (d.date ? `<span>${d.date.slice(5)}</span>` : '')}
+    `;
+  }
+
+  // warn badge
+  const badge = card.querySelector('.warn3-badge');
+  if (isWarn && !badge) {
+    const b = document.createElement('span');
+    b.className = 'warn3-badge'; b.textContent = '⚠ 連續3天未叫';
+    card.insertBefore(b, card.firstChild);
+  } else if (!isWarn && badge) {
+    badge.remove();
+  }
+}
+
 function updateStats() {
   const names = Object.keys(db);
   const tot = names.length;
@@ -1904,8 +1998,18 @@ function rightClick(e, n) {
 function changeStatus(n, s) {
   db[n].status = s;
   db[n].date = s === '未叫貨' ? '' : todayStr;
-  logEditTime(n, s); save(); renderAll();   // 先記錄操作時間，再一起推送
+  logEditTime(n, s);
+  // ★ 立即更新本地 + DOM，背景推送不阻塞畫面
+  localStorage.setItem('zhongxin_v4', JSON.stringify(db));
+  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+  updateCardDOM(n);   // 只更新這張卡片，不重建整個 grid
+  updateStats();
+  renderSeriesStrip();
   toast(n + ' → ' + s);
+  pushInBackground(
+    () => _pushUpdateClient(n, db[n].status, db[n].date),
+    () => _pushOne('zhongxin_hist_v4', historyLog)
+  );
 }
 
 // ── 拖曳模式 ──────────────────────────────────────────────────────────────
@@ -2143,14 +2247,23 @@ function renderTable() {
 
     html += `<td style="text-align:center;"><span class="badge ${bc}">${d.status}</span></td>`;
     html += '<td style="text-align:center;">';
-    if (isWarn)      html += `<span class="warn-pill">⚠ ${streak}天</span>`;
-    else if (streak) html += `<span style="font-size:12px;color:var(--ink3);">${streak}天</span>`;
-    else             html += '<span style="color:var(--line);">—</span>';
+    const isManualWarn = manualWarn3.has(n);
+    if (isWarn) {
+      const label = isManualWarn && !streak ? '手動' : streak + '天';
+      html += `<span class="warn-pill" title="${isManualWarn ? '包含手動標示' : '系統自動辨識'}">⚠ ${label}</span>`;
+    } else if (streak && d.status === '未叫貨') {
+      html += `<span style="font-size:12px;color:var(--ink3);">${streak}天</span>`;
+    } else {
+      html += '<span style="color:var(--line);">—</span>';
+    }
     html += '</td>';
 
     const nn = esc(n);
+    const warnBtnLabel = isManualWarn ? '✅ 已標示' : '⚠ 標示未叫';
+    const warnBtnColor = isManualWarn ? 'background:#fef3c7;color:#d97706;border:1px solid #d97706;' : '';
     html += `<td style="white-space:nowrap;">
       <button class="btn btn-ghost btn-sm" onclick="openEditModal(null,'${nn}')">編輯</button>
+      <button class="btn btn-sm" style="margin-left:4px;${warnBtnColor}" onclick="toggleManualWarn3('${nn}')">${warnBtnLabel}</button>
       <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="confirmDeleteHistory('${nn}')">刪除</button>
     </td></tr>`;
   });
@@ -2160,8 +2273,8 @@ function renderTable() {
     `<tr><td colspan="${colSpan}" style="text-align:center;color:var(--ink3);padding:32px">查無資料</td></tr>`;
 }
 
-async function confirmDeleteHistory(n) {
-  showConfirm('確定刪除客戶「' + n + '」？\n同時清除其所有歷史記錄。', async () => {
+function confirmDeleteHistory(n) {
+  showConfirm('確定刪除客戶「' + n + '」？\n同時清除其所有歷史記錄。', () => {
     historyLog.forEach(h => {
       if (h.records) delete h.records[n];
       if (h.editLog) delete h.editLog[n];
@@ -2170,21 +2283,13 @@ async function confirmDeleteHistory(n) {
     localStorage.setItem('zhongxin_v4', JSON.stringify(db));
     localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
     buildFixedFilter(); renderAll();
-    toast('⏳ 刪除中…');
-    lockLocal(30000);
-    try {
-      const ts = touchTs();
-      await Promise.all([
-        _pushOne('zhongxin_v4', db),
-        _pushOne('zhongxin_hist_v4', historyLog),
-        _pushOne('zhongxin_ts_v1', ts)
-      ]);
-      unlockLocal();
-      toast('✅ 已刪除 ' + n);
-    } catch(e) {
-      unlockLocal();
-      toast('❌ 推送失敗：' + e.message, true);
-    }
+    toast('✅ 已刪除 ' + n);
+    const ts = touchTs();
+    pushInBackground(
+      () => _pushOne('zhongxin_v4', db),
+      () => _pushOne('zhongxin_hist_v4', historyLog),
+      () => _pushOne('zhongxin_ts_v1', ts)
+    );
   });
 }
 
@@ -2366,8 +2471,18 @@ function saveClient() {
     if (db[name]) { alert('該名稱已存在'); return; }
     db[name]={ status, date:status!=='未叫貨'?(dateStr||todayStr):'', fixed };
   }
-  closeModal(); buildFixedFilter(); save(); saveHistory(); renderAll();
+  // ★ 先更新本地 + 畫面
+  localStorage.setItem('zhongxin_v4', JSON.stringify(db));
+  localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+  closeModal(); buildFixedFilter(); renderAll();
   toast('✅ 儲存成功');
+  // 背景推送
+  const ts = touchTs();
+  pushInBackground(
+    () => _pushOne('zhongxin_v4', db),
+    () => _pushOne('zhongxin_hist_v4', historyLog),
+    () => _pushOne('zhongxin_ts_v1', ts)
+  );
 }
 
 function deleteClient() {
@@ -2378,34 +2493,52 @@ function deleteClient() {
       if(h.editLog) delete h.editLog[editing];
     });
     delete db[editing]; closeModal();
-    buildFixedFilter(); save(); renderAll();
+    localStorage.setItem('zhongxin_v4', JSON.stringify(db));
+    localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
+    buildFixedFilter(); renderAll();
     toast('已刪除 '+editing);
+    const ts = touchTs();
+    pushInBackground(
+      () => _pushOne('zhongxin_v4', db),
+      () => _pushOne('zhongxin_hist_v4', historyLog),
+      () => _pushOne('zhongxin_ts_v1', ts)
+    );
   });
 }
 
-async function resetAll() {
-  showConfirm('是否確定重置今日叫貨狀態？\n系統將記錄今日最終叫貨狀態後，所有客戶恢復為「未叫貨」。', async ()=>{
+function resetAll() {
+  showConfirm('是否確定重置今日叫貨狀態？\n系統將記錄今日最終叫貨狀態後，所有客戶恢復為「未叫貨」。', ()=>{
     snapshotOnReset();
     Object.keys(db).forEach(n=>{ db[n].status='未叫貨'; db[n].date=''; });
     const entry=getTodayEntry(); if(entry) entry.editLog={};
     localStorage.setItem('zhongxin_v4', JSON.stringify(db));
     localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-    renderAll();
-    toast('⏳ 重置中…');
-    lockLocal(30000);
-    try {
-      const ts = touchTs();
-      await Promise.all([
-        _pushOne('zhongxin_v4', db),
-        _pushOne('zhongxin_hist_v4', historyLog),
-        _pushOne('zhongxin_ts_v1', ts)
-      ]);
-      unlockLocal();
-      toast('✅ 今日狀態已記錄並重置');
-    } catch(e) {
-      unlockLocal();
-      toast('❌ 推送失敗：' + e.message, true);
+    // 重新計算並推送 warn3
+    const autoWarn3 = [];
+    const completed = historyLog
+      .filter(h => h.date !== todayStr && h.records && Object.keys(h.records).length > 0)
+      .sort((a, b) => a.date < b.date ? -1 : 1);
+    if (completed.length >= 3) {
+      const recent3 = completed.slice(-3);
+      Object.keys(db).forEach(n => {
+        const missedAll3 = recent3.every(h => !h.records[n] || h.records[n] === '未叫貨');
+        if (missedAll3) autoWarn3.push(n);
+      });
     }
+    // 合併手動 + 自動，存回雲端
+    autoWarn3.forEach(n => manualWarn3.add(n));
+    localStorage.setItem('zhongxin_warn3_v1', JSON.stringify([...manualWarn3]));
+
+    renderAll();
+    toast('✅ 今日狀態已記錄並重置');
+    const ts = touchTs();
+    const warn3Arr = [...manualWarn3];
+    pushInBackground(
+      () => _pushOne('zhongxin_v4', db),
+      () => _pushOne('zhongxin_hist_v4', historyLog),
+      () => _pushOne('zhongxin_warn3_v1', warn3Arr),
+      () => _pushOne('zhongxin_ts_v1', ts)
+    );
   });
 }
 
