@@ -1478,8 +1478,12 @@ async function clearAllHistory() {
 
 // ── BOOT ─────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  syncFromCloud();
+  init();          // ★ 先讀取 localStorage（暱稱、db、historyLog 等）
+  syncFromCloud(); // 再從雲端同步
   _syncInterval = setInterval(syncFromCloud, 6000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncFromCloud();
+  });
 });
 
 // ══════════════════════════════════════════════════════════
