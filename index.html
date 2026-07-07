@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>忠欣 · 打勾單系統</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -656,88 +657,144 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 /* ═══════════════════════════════════════════════════
    NOTICE BOARD
 ═══════════════════════════════════════════════════ */
+/* ── 像素風跑馬燈留言板 ── */
 .notice-board {
-  background: var(--white);
-  border-bottom: 1px solid var(--line);
+  background: #000;
+  border-bottom: 3px solid #222;
   overflow: hidden;
+  position: relative;
 }
-.notice-board-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 20px; cursor: pointer;
-  user-select: none;
-  transition: background .15s;
+.notice-ticker-bar {
+  display: flex; align-items: center;
+  height: 48px; overflow: hidden; cursor: pointer;
+  position: relative;
 }
-.notice-board-header:hover { background: var(--line2); }
-.notice-board-label {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 700; color: var(--accent);
-  letter-spacing: .06em; white-space: nowrap;
+.notice-ticker-label {
   flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 18px;
+  background: #b91c1c;
+  height: 100%;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 10px; color: #fff;
+  letter-spacing: .04em; white-space: nowrap;
+  z-index: 1;
+  text-shadow: 2px 2px 0 #7f1d1d;
+  border-right: 3px solid #7f1d1d;
 }
-.notice-badge {
-  background: var(--red); color: #fff;
-  font-size: 10px; font-weight: 700;
-  padding: 1px 5px; border-radius: 99px;
-  min-width: 16px; text-align: center;
-  display: none;
+.notice-ticker-track {
+  flex: 1; overflow: hidden; position: relative; height: 100%;
+  background: #000;
 }
-.notice-badge.visible { display: inline-block; }
-.notice-preview {
-  flex: 1; font-size: 12px; color: var(--ink3);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  min-width: 0;
+.notice-ticker-inner {
+  display: flex; align-items: center;
+  gap: 0; height: 100%;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+  will-change: transform;
 }
-.notice-chevron {
-  font-size: 10px; color: var(--ink3);
-  transition: transform .2s; flex-shrink: 0;
+.notice-ticker-inner:hover { animation-play-state: paused; }
+.notice-ticker-msg {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 0 48px 0 0;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 11px; color: #00ff41;
+  letter-spacing: .04em;
+  text-shadow: 0 0 8px #00ff41;
 }
-.notice-board.open .notice-chevron { transform: rotate(180deg); }
+.notice-ticker-msg .t-author {
+  color: #ffff00;
+  text-shadow: 0 0 8px #ffff00;
+}
+.notice-ticker-msg .t-time {
+  color: #444; font-size: 8px;
+  text-shadow: none;
+}
+.notice-ticker-msg .t-sep {
+  color: #333; font-size: 12px;
+}
+.notice-ticker-empty {
+  display: inline-flex; align-items: center;
+  padding: 0 24px;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 9px; color: #333;
+  letter-spacing: .06em;
+  animation: blink-cursor 1s step-end infinite;
+}
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.2; }
+}
+.notice-chevron-btn {
+  flex-shrink: 0; width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px; color: #333;
+  cursor: pointer; transition: color .1s;
+  border-left: 2px solid #111;
+  background: #000;
+}
+.notice-chevron-btn:hover { color: #00ff41; text-shadow: 0 0 6px #00ff41; }
+.notice-board.open .notice-chevron-btn { color: #00ff41; text-shadow: 0 0 8px #00ff41; }
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 .notice-body {
   display: none;
-  padding: 0 20px 12px;
-  border-top: 1px solid var(--line2);
+  padding: 14px 18px;
+  background: #050505;
+  border-top: 2px solid #111;
 }
 .notice-board.open .notice-body { display: block; }
-.notice-ticker {
-  overflow: hidden; position: relative;
-  min-height: 28px; margin-bottom: 8px;
-}
 .notice-list {
   list-style: none;
   display: flex; flex-direction: column; gap: 0;
-  width: 100%;
+  max-height: 200px; overflow-y: auto;
+  margin-bottom: 12px;
 }
 .notice-item {
-  display: flex; align-items: baseline; gap: 8px;
-  font-size: 13px; color: var(--ink);
-  padding: 2px 0;
-  border-bottom: 1px solid var(--line2);
-  animation: slide-in .25s ease;
+  display: flex; align-items: baseline; gap: 10px;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 9px; color: #00ff41;
+  padding: 9px 0;
+  border-bottom: 1px solid #111;
+  line-height: 2;
+  text-shadow: 0 0 4px #00ff41;
 }
 .notice-item:last-child { border-bottom: none; }
-@keyframes slide-in {
-  from { opacity:0; transform: translateY(-4px); }
-  to   { opacity:1; transform: translateY(0); }
-}
 .notice-author {
-  font-size: 11px; font-weight: 700; color: var(--accent);
-  flex-shrink: 0; min-width: 36px;
+  font-size: 9px; color: #ffff00;
+  flex-shrink: 0; min-width: 52px;
+  text-shadow: 0 0 4px #ffff00;
 }
 .notice-time {
-  font-size: 10px; color: var(--ink3);
+  font-size: 7px; color: #333;
   flex-shrink: 0; font-variant-numeric: tabular-nums;
+  text-shadow: none;
 }
-.notice-text { flex: 1; line-height: 1.4; word-break: break-all; }
+.notice-text { flex: 1; line-height: 2; word-break: break-all; color: #00ff41; }
 .notice-del {
-  font-size: 11px; color: var(--ink3); cursor: pointer;
-  background: none; border: none; padding: 0 2px;
-  opacity: 0; transition: opacity .15s;
-  flex-shrink: 0;
+  font-size: 8px; color: #222; cursor: pointer;
+  background: none; border: none; padding: 0 3px;
+  opacity: 0; transition: opacity .15s; flex-shrink: 0;
+  font-family: 'Press Start 2P', monospace;
+  text-shadow: none;
 }
 .notice-item:hover .notice-del { opacity: 1; }
-.notice-del:hover { color: var(--red); }
+.notice-del:hover { color: #f87171; text-shadow: 0 0 4px #f87171; }
+.notice-badge {
+  background: #ff0000; color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 2px 6px; border-radius: 2px;
+  min-width: 16px; text-align: center;
+  display: none; margin-left: 6px;
+  box-shadow: 2px 2px 0 #7f0000;
+}
+.notice-badge.visible { display: inline-block; }
 .notice-input-wrap {
   display: flex; align-items: center; gap: 6px;
+  font-family: 'Press Start 2P', monospace;
   flex-wrap: wrap;
 }
 .notice-input {
@@ -955,21 +1012,23 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 
 <!-- ── NOTICE BOARD ─────────────────────────────── -->
 <div class="notice-board no-print" id="notice-board">
-  <!-- 收合標頭，點擊展開/收起 -->
-  <div class="notice-board-header" onclick="toggleNoticeBoard()">
-    <span class="notice-board-label">📌 留言板</span>
-    <span class="notice-badge" id="notice-badge"></span>
-    <span class="notice-preview" id="notice-preview">點此展開留言板</span>
-    <span class="notice-chevron">▼</span>
-  </div>
-  <!-- 展開後的內容 -->
-  <div class="notice-body">
-    <div class="notice-ticker" style="margin-top:8px;">
-      <ul class="notice-list" id="notice-list">
-        <li class="notice-empty" id="notice-empty">尚無留言</li>
-      </ul>
+  <!-- 跑馬燈列 -->
+  <div class="notice-ticker-bar" onclick="toggleNoticeBoard()">
+    <div class="notice-ticker-label">
+      📢 留言板
+      <span class="notice-badge" id="notice-badge"></span>
     </div>
-    <div class="notice-input-wrap" style="margin-top:8px;">
+    <div class="notice-ticker-track">
+      <div class="notice-ticker-inner" id="notice-ticker-inner">
+        <span class="notice-ticker-empty" id="notice-ticker-empty">── 尚無留言 ──</span>
+      </div>
+    </div>
+    <div class="notice-chevron-btn" id="notice-chevron">▼</div>
+  </div>
+  <!-- 展開後的留言列表 + 輸入框 -->
+  <div class="notice-body">
+    <ul class="notice-list" id="notice-list"></ul>
+    <div class="notice-input-wrap">
       <input class="notice-author-input" id="notice-author" placeholder="暱稱" maxlength="6">
       <input class="notice-input" id="notice-input" placeholder="輸入留言…" maxlength="60" onkeydown="if(event.key==='Enter')postNotice()">
       <button class="notice-send" onclick="postNotice()">送出</button>
@@ -1715,13 +1774,20 @@ function renderAll() {
 //  NOTICE BOARD
 // ══════════════════════════════════════════════════════════
 function renderNotices() {
-  const list = document.getElementById('notice-list');
+  const list   = document.getElementById('notice-list');
+  const ticker = document.getElementById('notice-ticker-inner');
+  const badge  = document.getElementById('notice-badge');
+
   if (!notices.length) {
-    list.innerHTML = '<li class="notice-empty">尚無留言</li>';
-    updateNoticeHeader(0, '');
+    list.innerHTML = '';
+    ticker.innerHTML = '<span class="notice-ticker-empty">── 尚無留言 ──</span>';
+    badge.classList.remove('visible');
     return;
   }
+
   const shown = notices.slice(-NOTICE_MAX).reverse();
+
+  // ── 展開列表 ──
   list.innerHTML = shown.map(n => `
     <li class="notice-item">
       <span class="notice-author">${esc(n.author||'?')}</span>
@@ -1730,23 +1796,25 @@ function renderNotices() {
       <button class="notice-del" onclick="deleteNotice('${esc(n.id)}')" title="刪除">✕</button>
     </li>`).join('');
 
-  // 更新標頭預覽（最新一則）
-  const latest = shown[0];
-  const preview = `${latest.author}：${latest.text}`;
-  updateNoticeHeader(shown.length, preview);
-}
+  // ── 跑馬燈（訊息複製兩份讓滾動無縫循環）──
+  const msgs = [...shown, ...shown].map(n =>
+    `<span class="notice-ticker-msg">
+      <span class="t-author">${esc(n.author||'?')}</span>
+      <span class="t-sep">›</span>
+      <span>${esc(n.text)}</span>
+      <span class="t-time">${esc(n.time)}</span>
+    </span>`
+  ).join('<span class="notice-ticker-msg"><span class="t-sep" style="opacity:.2">◆</span></span>');
+  ticker.innerHTML = msgs;
 
-function updateNoticeHeader(count, preview) {
-  const badge   = document.getElementById('notice-badge');
-  const previewEl = document.getElementById('notice-preview');
-  if (count > 0) {
-    badge.textContent = count;
-    badge.classList.add('visible');
-    previewEl.textContent = preview;
-  } else {
-    badge.classList.remove('visible');
-    previewEl.textContent = '點此展開留言板';
-  }
+  // 根據內容長度動態調整速度（文字越多跑越快）
+  const totalLen = shown.reduce((s, n) => s + n.text.length + n.author.length, 0);
+  const duration = Math.max(12, Math.min(40, totalLen * 0.6)) + 's';
+  ticker.style.animationDuration = duration;
+
+  // badge
+  badge.textContent = shown.length;
+  badge.classList.add('visible');
 }
 
 let noticeBoardOpen = false;
@@ -1754,7 +1822,8 @@ function toggleNoticeBoard() {
   noticeBoardOpen = !noticeBoardOpen;
   const board = document.getElementById('notice-board');
   board.classList.toggle('open', noticeBoardOpen);
-  // 展開時自動 focus 輸入框
+  const chevron = document.getElementById('notice-chevron');
+  if (chevron) chevron.textContent = noticeBoardOpen ? '▲' : '▼';
   if (noticeBoardOpen) {
     setTimeout(() => document.getElementById('notice-input').focus(), 150);
   }
