@@ -876,14 +876,21 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
       <div class="brand-name">忠欣打勾單系統</div>
     </div>
   </div>
+  <!-- ★ 同步狀態 + 最後同步時間放在品牌名稱右側 -->
+  <div style="display:flex;align-items:center;gap:10px;margin-left:12px;padding-left:12px;border-left:1px solid var(--line);flex-shrink:0;">
+    <div class="sync-wrap">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span class="sync-label" id="sync-label">已同步</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;">
+      <span style="font-size:9px;color:var(--ink3);">最後同步</span>
+      <span style="font-size:12px;font-weight:700;color:var(--ink2);" id="last-sync-time">—</span>
+    </div>
+  </div>
   <div id="topbar-date" class="topbar-date"></div>
   <div class="user-tag" id="user-tag" onclick="openUserModal()" title="點擊設定暱稱">
     <div class="user-tag-avatar" id="user-avatar">?</div>
     <span class="user-tag-name" id="user-tag-name">設定暱稱</span>
-  </div>
-  <div class="sync-wrap">
-    <div class="sync-dot" id="sync-dot"></div>
-    <span class="sync-label" id="sync-label">已同步</span>
   </div>
 </header>
 
@@ -928,10 +935,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
     <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%"></div></div>
     <span class="prog-label" id="prog-pct">0%</span>
   </div>
-  <div class="stat-item" style="border-right:none;margin-right:0;padding-right:0;min-width:auto;">
-    <div class="stat-label-row" style="font-size:10px;">⏱ 最後同步</div>
-    <div style="font-size:12px;font-weight:700;color:var(--ink2);line-height:1.2;" id="last-sync-time">—</div>
-  </div>
+
 </div></div>
 
 <!-- ── SERIES STRIP ─────────────────────────────── -->
