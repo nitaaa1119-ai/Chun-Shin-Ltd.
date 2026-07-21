@@ -303,10 +303,12 @@ body {
 }
 .search-box input::placeholder { color: var(--ink3); }
 .search-ico {
-  position: absolute; left: 10px; top: 50%;
+  position: absolute; left: 9px; top: 50%;
   transform: translateY(-50%);
-  color: var(--ink3); font-size: 13px; pointer-events: none;
+  pointer-events: none;
+  display: flex; align-items: center;
 }
+.search-ico img { width: 16px; height: 16px; object-fit: contain; opacity: .6; }
 .filter-select {
   padding: 7px 10px;
   border: 1px solid var(--line); border-radius: var(--r-sm);
@@ -987,7 +989,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 <div id="check-page" class="page active">
   <div class="toolbar">
     <div class="search-box">
-      <img src="magnifying-glass-wave.png" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;">
+      <span class="search-ico"><img src="magnifying-glass-wave.png"></span>
       <input type="text" id="q-front" placeholder="搜尋客戶…" oninput="renderGrid()">
     </div>
     <select id="filter-fixed" class="filter-select" onchange="renderGrid()">
@@ -1028,7 +1030,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 <div id="backend-page" class="page">
   <div class="toolbar">
     <div class="search-box">
-      <img src="magnifying-glass-wave.png" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;">
+      <span class="search-ico"><img src="magnifying-glass-wave.png"></span>
       <input type="text" id="q-back" placeholder="搜尋客戶或負責人…" oninput="renderTable()">
     </div>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2);cursor:pointer;">
