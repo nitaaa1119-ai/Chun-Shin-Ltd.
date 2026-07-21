@@ -2931,19 +2931,86 @@ function renderLineChart(dayData, daysInMonth) {
       <text x="${tx}" y="${PAD.top - 5}" text-anchor="middle" font-size="9" fill="#6366f1" font-weight="600">今日</text>`;
   }
 
-  const svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif">
+  // 互動式資料點（hover 顯示 tooltip）
+  function makePathInteractive(key, color) {
+    const pts = validDays.map(d => `${xPos(d)},${yPos(d[key])}`);
+    const path = `M${pts.join(' L')}`;
+    const first = validDays[0], last = validDays.at(-1);
+    const area  = `M${xPos(first)},${yPos(0)} L${pts.join(' L')} L${xPos(last)},${yPos(0)} Z`;
+    let dots = '';
+    validDays.forEach(d => {
+      const cx = xPos(d), cy = yPos(d[key]);
+      const label = esc(`${d.date.slice(5)}  ${d[key]} 家`);
+      dots += `<circle class="chart-dot" cx="${cx}" cy="${cy}" r="4"
+        fill="${color}" stroke="white" stroke-width="2"
+        data-date="${esc(d.date.slice(5))}" data-val="${d[key]}" data-color="${color}"
+        style="cursor:pointer;transition:r .15s,filter .15s;"
+        onmouseenter="showChartTooltip(this,${cx},${cy})"
+        onmouseleave="hideChartTooltip()"
+      />`; 
+    });
+    return `
+      <path d="${area}" fill="${color}" fill-opacity=".08"/>
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}`;
+  }
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif;overflow:visible;">
     ${gridLines}
     ${yLabels}
     ${xLabels}
     <text x="${PAD.left + cW/2}" y="${H}" text-anchor="middle" font-size="11" fill="#9ca3af">日期</text>
-    ${makePath('ord', '#10b981')}
-    ${makePath('un',  '#ef4444')}
-    ${makePath('no',  '#3b82f6')}
+    ${makePathInteractive('ord', '#01ab56')}
+    ${makePathInteractive('un',  '#e93e38')}
+    ${makePathInteractive('no',  '#2d79e4')}
     ${todayLine}
   </svg>`;
 
-  document.getElementById('analytics-chart').innerHTML = svg;
+  const wrap = document.getElementById('analytics-chart');
+  wrap.style.position = 'relative';
+  wrap.innerHTML = svg + `
+    <div id="chart-tooltip" style="
+      display:none; position:absolute; pointer-events:none;
+      background:#1f2937; color:#fff;
+      font-size:12px; font-weight:600;
+      padding:6px 12px; border-radius:8px;
+      white-space:nowrap; z-index:10;
+      box-shadow:0 4px 12px rgba(0,0,0,.2);
+      transform:translate(-50%,-110%);
+    "></div>`;
 }
+
+function showChartTooltip(el, cx, cy) {
+  el.setAttribute('r','7');
+  el.style.filter = `drop-shadow(0 0 6px ${el.dataset.color})`;
+  const tt = document.getElementById('chart-tooltip');
+  if (!tt) return;
+  const wrap = document.getElementById('analytics-chart');
+  const svgEl = wrap.querySelector('svg');
+  const svgRect = svgEl.getBoundingClientRect();
+  const wrapRect = wrap.getBoundingClientRect();
+  // 計算 tooltip 位置（相對 wrap）
+  const scaleX = svgRect.width / svgEl.viewBox.baseVal.width;
+  const scaleY = svgRect.height / svgEl.viewBox.baseVal.height;
+  const left = (svgRect.left - wrapRect.left) + cx * scaleX;
+  const top  = (svgRect.top  - wrapRect.top)  + cy * scaleY;
+  tt.style.left = left + 'px';
+  tt.style.top  = top  + 'px';
+  const labels = {'#01ab56':'已叫貨','#e93e38':'未叫貨','#2d79e4':'今日不叫'};
+  tt.innerHTML = `${el.dataset.date}&nbsp;&nbsp;<span style="color:${el.dataset.color}">${labels[el.dataset.color] || ''}</span>&nbsp;${el.dataset.val} 家`;
+  tt.style.display = 'block';
+}
+
+function hideChartTooltip() {
+  document.querySelectorAll('.chart-dot').forEach(el => {
+    el.setAttribute('r','4');
+    el.style.filter = '';
+  });
+  const tt = document.getElementById('chart-tooltip');
+  if (tt) tt.style.display = 'none';
+}
+
+function _dummyRenderLineChart() {
 
 function renderAnalyticsTable(dayData) {
   const validDays = dayData.filter(d => d.total !== null).reverse(); // 最新在前
@@ -2963,7 +3030,7 @@ function renderAnalyticsTable(dayData) {
     const rowBg = isToday ? 'background:#eef2ff;' : '';
     html += `<tr style="${rowBg}">
       <td style="padding:7px 12px;border-bottom:1px solid var(--line2);font-weight:${isToday?700:400};color:${isToday?'var(--accent)':'var(--ink)'};">
-        ${d.date.slice(5)}${isToday ? ' <span style="font-size:10px;color:var(--accent);">(今日)</span>' : ''}
+        ${d.date.slice(5)} <span style="font-size:10px;color:var(--ink3);">（${['日','一','二','三','四','五','六'][new Date(d.date.replace(/\//g,'-')).getDay()]}）</span>${isToday ? ' <span style="font-size:10px;color:var(--accent);">(今日)</span>' : ''}
       </td>
       <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);font-weight:700;color:#065f46;">${d.ord}</td>
       <td style="padding:7px 12px;text-align:center;border-bottom:1px solid var(--line2);color:#9f1239;">${d.un}</td>
