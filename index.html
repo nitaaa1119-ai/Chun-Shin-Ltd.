@@ -1646,6 +1646,14 @@ function snapshotOnReset() {
   saveHistory();
 }
 
+function renderIcon(icon, size = '18px') {
+  if (!icon) return '';
+  if (icon.endsWith('.png')) {
+    return `<img src="${icon}" style="width:${size};height:${size};object-fit:contain;vertical-align:middle;border-radius:50%;">`;
+  }
+  return `<span style="font-size:${size};">${icon}</span>`;
+}
+
 function logEditTime(name, status) {
   ensureTodayEditLog();   // 確保今日記錄存在
   const entry = getTodayEntry();
@@ -1882,7 +1890,7 @@ function updateCardDOM(n) {
       <span class="ccard-dot"></span>
       <span>${lbl}</span>
       ${lastUser
-        ? `<span style="font-size:11px;" title="${esc(lastUser)}">${esc(lastIcon)} ${esc(lastUser)}</span>`
+        ? `<span style="font-size:11px;display:inline-flex;align-items:center;gap:3px;" title="${esc(lastUser)}">${renderIcon(lastIcon,'16px')} ${esc(lastUser)}</span>`
         : (d.date ? `<span>${d.date.slice(5)}</span>` : '')}
     `;
   }
@@ -2025,7 +2033,7 @@ function mkCard(n, warn3) {
     <div class="ccard-foot">
       <span class="ccard-dot"></span>
       <span>${lbl}</span>
-      ${lastUser ? `<span style="font-size:11px;" title="${esc(lastUser)}">${esc(lastIcon)} ${esc(lastUser)}</span>` : (d.date ? `<span>${d.date.slice(5)}</span>` : '')}
+      ${lastUser ? `<span style="font-size:11px;display:inline-flex;align-items:center;gap:3px;" title="${esc(lastUser)}">${renderIcon(lastIcon,'16px')} ${esc(lastUser)}</span>` : (d.date ? `<span>${d.date.slice(5)}</span>` : '')}
     </div>
   </div>`;
 }
