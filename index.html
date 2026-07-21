@@ -3010,8 +3010,6 @@ function hideChartTooltip() {
   if (tt) tt.style.display = 'none';
 }
 
-function _dummyRenderLineChart() {
-
 function renderAnalyticsTable(dayData) {
   const validDays = dayData.filter(d => d.total !== null).reverse(); // 最新在前
   let html = `<thead><tr style="background:var(--page);">
