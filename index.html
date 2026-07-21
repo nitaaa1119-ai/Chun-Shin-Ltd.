@@ -1205,6 +1205,7 @@ async function syncFromCloud() {
           diffNames.forEach(n => { if (db[n]) updateCardDOM(n); });
           updateStats();
           renderSeriesStrip();
+          buildFixedFilter();   // ★ db 更新後重建負責人下拉選單
           if (document.getElementById('backend-page').classList.contains('active')) {
             renderTable();
           }
@@ -1584,15 +1585,18 @@ function logEditTime(name, status) {
 // ══════════════════════════════════════════════════════════
 function buildFixedFilter() {
   const sel = document.getElementById('filter-fixed');
-  const cur = sel.value;
+  const cur = sel.value;  // 先記住目前選的值
   const all = [...new Set(Object.values(db).map(d => d.fixed).filter(Boolean))].sort();
   sel.innerHTML = '<option value="">全部負責人</option>';
   all.forEach(f => {
     const o = document.createElement('option');
     o.value = f; o.textContent = f;
-    if (f === cur) o.selected = true;
     sel.appendChild(o);
   });
+  // ★ 重建後強制恢復原本選的值（避免 innerHTML 重建後 value 被清空）
+  if (cur && all.includes(cur)) {
+    sel.value = cur;
+  }
 }
 
 // ══════════════════════════════════════════════════════════
