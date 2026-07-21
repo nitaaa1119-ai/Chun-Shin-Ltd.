@@ -405,6 +405,30 @@ body {
   gap: 7px;
 }
 
+/* 骨架屏卡片 */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton-card {
+  position: relative;
+  padding: 16px 12px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
+  background: var(--line2);
+  min-height: 80px;
+  display: flex; flex-direction: column; gap: 10px;
+  overflow: hidden;
+}
+.skeleton-line {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+.skeleton-line.title { height: 14px; width: 70%; }
+.skeleton-line.sub   { height: 10px; width: 40%; }
+
 .ccard {
   position: relative;
   padding: 16px 12px 12px;
@@ -537,6 +561,21 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 /* ═══════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════ */
+/* 載入進度條 */
+#loading-bar-wrap {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 3px; z-index: 9999;
+  background: transparent;
+  transition: opacity .4s;
+}
+#loading-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #818cf8);
+  width: 0%;
+  transition: width .4s ease;
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px rgba(99,102,241,.5);
+}
 #toast {
   position: fixed; bottom: 24px; left: 50%;
   transform: translateX(-50%) translateY(80px);
@@ -824,6 +863,9 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 </head>
 <body>
 
+<!-- ── 載入進度條 ──────────────────────────────── -->
+<div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+
 <!-- ── TOP BAR ──────────────────────────────────── -->
 <header class="topbar no-print">
   <div class="brand">
@@ -883,6 +925,10 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   <div class="progress-stat">
     <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%"></div></div>
     <span class="prog-label" id="prog-pct">0%</span>
+  </div>
+  <div class="stat-item" style="border-right:none;margin-right:0;padding-right:0;min-width:auto;">
+    <div class="stat-label-row" style="font-size:10px;">⏱ 最後同步</div>
+    <div style="font-size:12px;font-weight:700;color:var(--ink2);line-height:1.2;" id="last-sync-time">—</div>
   </div>
 </div></div>
 
@@ -1117,9 +1163,26 @@ function setSyncDot(state) {
   if (label) {
     if (state === 'syncing') { label.textContent = '同步中…'; label.style.color = 'var(--amber)'; }
     else if (state === 'error') { label.textContent = '同步失敗'; label.style.color = 'var(--red)'; }
-    else { label.textContent = '已同步'; label.style.color = 'var(--ink3)'; }
+    else {
+      label.textContent = '已同步'; label.style.color = 'var(--ink3)';
+      // 更新最後同步時間
+      const now = new Date();
+      const t = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      const el = document.getElementById('last-sync-time');
+      if (el) el.textContent = t;
+    }
   }
 }
+
+// ── 載入進度條控制 ───────────────────────────────────────
+let _loadingDone = false;
+function setLoadingProgress(pct, subText) {
+  const bar  = document.getElementById('loading-bar');
+  const sub  = document.getElementById('loading-sub');
+  if (bar) bar.style.width = pct + '%';
+  if (sub && subText) sub.textContent = subText;
+}
+
 
 // ── 時間戳：每次本機有實質操作時更新 ───────────────────
 function getLocalTs() {
@@ -1178,12 +1241,14 @@ async function syncFromCloud() {
   }
   _isSyncing = true;
   setSyncDot('syncing');
+  if (!_loadingDone) setLoadingProgress(60, '正在從雲端同步…');
   try {
     const res  = await fetch(API_URL, { redirect: 'follow' });
     const data = await res.json();
 
     // ★ 完全移除時間戳判斷（裝置日期不同會導致 useCloud 誤判）
     // ★ 改用純內容比對：lockLocal 是唯一保護機制，確保本機操作不被覆蓋
+    const wasFirstLoad = _firstLoad;
     _firstLoad = false;
     let updated = false;
 
@@ -1287,6 +1352,13 @@ async function syncFromCloud() {
 
     if (updated) { buildFixedFilter(); renderAll(); }
     setSyncDot('');
+    // ★ 首次同步完成，進度條跑滿後淡出
+    if (wasFirstLoad) {
+      setLoadingProgress(100, '');
+      const bar = document.getElementById('loading-bar-wrap');
+      setTimeout(() => { if (bar) bar.style.opacity = '0'; }, 400);
+      setTimeout(() => { if (bar) bar.style.display = 'none'; }, 900);
+    }
   } catch(e) {
     console.error('雲端同步失敗', e);
     setSyncDot('error');
@@ -1497,6 +1569,8 @@ function init() {
   if (!currentUser.name) {
     setTimeout(openUserModal, 600);
   }
+  // 初始進度條
+  setLoadingProgress(30, '讀取本機資料中…');
 }
 
 function ensureTodayEditLog() {
@@ -1879,7 +1953,20 @@ function renderGrid() {
   });
 
   if (!names.length) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>查無符合條件的客戶</div>';
+    // db 尚未載入時顯示骨架屏，有資料但查無結果時顯示空狀態
+    if (Object.keys(db).length === 0) {
+      let skeletonHtml = '<div class="group-section"><div class="card-grid">';
+      for (let i = 0; i < 12; i++) {
+        skeletonHtml += `<div class="skeleton-card">
+          <div class="skeleton-line title"></div>
+          <div class="skeleton-line sub"></div>
+        </div>`;
+      }
+      skeletonHtml += '</div></div>';
+      container.innerHTML = skeletonHtml;
+    } else {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>查無符合條件的客戶</div>';
+    }
     return;
   }
 
