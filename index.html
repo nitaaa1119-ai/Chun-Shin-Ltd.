@@ -155,12 +155,14 @@ body {
   flex-wrap: wrap; margin: 14px 0;
 }
 .user-icon-btn {
-  width: 40px; height: 40px; border-radius: var(--r-sm);
+  width: 48px; height: 48px; border-radius: var(--r-sm);
   border: 2px solid var(--line); background: var(--page);
-  cursor: pointer; font-size: 22px;
+  cursor: pointer; padding: 5px;
   display: flex; align-items: center; justify-content: center;
   transition: transform .12s, border-color .12s, background .12s;
+  overflow: hidden;
 }
+.user-icon-btn img { width: 100%; height: 100%; object-fit: contain; }
 .user-icon-btn:hover { transform: scale(1.15); background: var(--line2); }
 .user-icon-btn.selected {
   border-color: var(--accent); background: var(--accent-bg);
@@ -1487,7 +1489,11 @@ const NOTICE_MAX = 20; // 最多顯示幾則留言
 
 // 操作者識別
 let currentUser = { name: '', color: '#6366f1' };
-const USER_ICONS = ['🐱','🐶','🐼','🐸','🦊','🐨','🐯','🦁','🐺','🐻','🐧','🦋','🌟','🍀','🌈','🎈'];
+const USER_ICONS = [
+  'thief.png','motorcyclist.png','apple.png','a.png','kitty.png',
+  'github.png','ant.png','snail.png','cat__1_.png','chick.png',
+  'giraffe.png','squirrel.png','crab.png','elephant.png','jellyfish.png'
+];
 
 // ★ 資料版本控制：本機客戶數若低於此值，視為舊資料自動清除
 const MIN_CLIENT_COUNT = 600; // 638位，設600作為安全下限
@@ -2641,10 +2647,16 @@ function switchTab(id, btn) {
 // ══════════════════════════════════════════════════════════
 function updateUserTag() {
   const name = currentUser.name || '';
-  const icon = currentUser.icon || '👤';
+  const icon = currentUser.icon || '';
   const avatar = document.getElementById('user-avatar');
   const tag    = document.getElementById('user-tag-name');
-  if (avatar) avatar.textContent = icon;
+  if (avatar) {
+    if (icon && icon.endsWith('.png')) {
+      avatar.innerHTML = `<img src="${icon}" style="width:24px;height:24px;object-fit:contain;border-radius:50%;">`;
+    } else {
+      avatar.textContent = icon || '👤';
+    }
+  }
   if (tag) tag.textContent = name || '設定暱稱';
 }
 
@@ -2656,7 +2668,9 @@ function openUserModal() {
   const row = document.getElementById('user-icon-row');
   row.innerHTML = USER_ICONS.map(ic =>
     `<div class="user-icon-btn${ic === currentUser.icon ? ' selected' : ''}"
-      onclick="selectUserIcon('${ic}')" data-icon="${ic}">${ic}</div>`
+      onclick="selectUserIcon('${ic}')" data-icon="${ic}">
+      <img src="${ic}" alt="${ic}" style="width:100%;height:100%;object-fit:contain;">
+    </div>`
   ).join('');
 
   document.getElementById('user-overlay').classList.add('open');
