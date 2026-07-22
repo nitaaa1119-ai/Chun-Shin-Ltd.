@@ -190,60 +190,80 @@ body {
 /* ═══════════════════════════════════════════════════
    STAT STRIP
 ═══════════════════════════════════════════════════ */
+/* ── 儀表板卡片列 ── */
 .statstrip-wrap {
-  border: 1px solid var(--line);
-  border-radius: 16px;
   margin: 12px 16px 0;
-  background: var(--white);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow: visible;
 }
 .statstrip {
-  background: var(--white);
-  padding: 0 20px;
-  display: flex; align-items: stretch; gap: 0;
-  overflow-x: auto;
+  display: flex; flex-wrap: wrap; gap: 10px;
+  background: transparent;
+  padding: 0;
 }
 .stat-item {
-  display: flex; flex-direction: column; justify-content: center;
-  padding: 10px 20px 10px 0;
-  margin-right: 20px;
-  border-right: 1px solid var(--line);
+  flex: 1 1 120px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-radius: 14px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  min-width: 100px;
+  transition: box-shadow .15s, transform .15s;
   white-space: nowrap;
-  min-width: 80px;
 }
-.stat-item:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+.stat-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-1px); }
+.stat-item.dash-active { box-shadow: 0 0 0 2.5px var(--accent) !important; transform: translateY(-2px); }
+.stat-item.red-card.dash-active   { box-shadow: 0 0 0 2.5px var(--red)   !important; }
+.stat-item.green-card.dash-active { box-shadow: 0 0 0 2.5px var(--grn)   !important; }
+.stat-item.blue-card.dash-active  { box-shadow: 0 0 0 2.5px var(--blu)   !important; }
+.stat-item.amber-card.dash-active { box-shadow: 0 0 0 2.5px var(--amber) !important; }
+.stat-item.red-card   { border-top: 3px solid var(--red);   background: linear-gradient(135deg, #fff, var(--red-bg)); }
+.stat-item.green-card { border-top: 3px solid var(--grn);   background: linear-gradient(135deg, #fff, var(--grn-bg)); }
+.stat-item.blue-card  { border-top: 3px solid var(--blu);   background: linear-gradient(135deg, #fff, var(--blu-bg)); }
+.stat-item.amber-card { border-top: 3px solid var(--amber); background: linear-gradient(135deg, #fff, var(--amber-bg)); }
+.stat-item.gray-card  { border-top: 3px solid var(--ink3);  background: linear-gradient(135deg, #fff, var(--line2)); }
 .stat-label-row {
   display: flex; align-items: center; gap: 5px;
-  font-size: 11px; color: var(--ink3); font-weight: 500;
-  margin-bottom: 2px;
+  font-size: 11px; font-weight: 600; margin-bottom: 8px;
 }
-.stat-dot {
-  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
-}
-.stat-dot.red    { background: var(--red); }
-.stat-dot.green  { background: var(--grn); }
-.stat-dot.blue   { background: var(--blu); }
-.stat-dot.amber  { background: var(--amber); }
-.stat-dot.gray   { background: var(--ink3); }
+.stat-item.red-card   .stat-label-row { color: var(--red); }
+.stat-item.green-card .stat-label-row { color: var(--grn); }
+.stat-item.blue-card  .stat-label-row { color: var(--blu); }
+.stat-item.amber-card .stat-label-row { color: var(--amber); }
+.stat-item.gray-card  .stat-label-row { color: var(--ink3); }
+.stat-dot { display: none; }
 .stat-number {
-  font-size: 22px; font-weight: 800; color: var(--ink);
+  font-size: 26px; font-weight: 800;
   letter-spacing: -.5px; line-height: 1;
 }
+.stat-item.red-card   .stat-number { color: var(--red); }
+.stat-item.green-card .stat-number { color: var(--grn); }
+.stat-item.blue-card  .stat-number { color: var(--blu); }
+.stat-item.amber-card .stat-number { color: var(--amber); }
+.stat-item.gray-card  .stat-number { color: var(--ink2); }
 .progress-stat {
-  margin-left: auto;
-  display: flex; align-items: center; gap: 10px;
-  padding-left: 20px;
+  flex: 2 1 200px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff, var(--grn-bg));
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--grn);
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
 }
 .prog-track {
-  width: 100px; height: 5px;
-  background: var(--line2); border-radius: 99px; overflow: hidden;
+  width: 100%; background: var(--line2);
+  border-radius: 99px; overflow: hidden;
 }
 .prog-fill {
-  height: 100%; background: var(--grn);
-  border-radius: 99px; transition: width .5s ease;
+  height: 100%; background: linear-gradient(90deg, var(--grn), #34d399);
+  border-radius: 99px; transition: width .6s cubic-bezier(.4,0,.2,1);
 }
-.prog-label { font-size: 13px; font-weight: 700; color: var(--grn); min-width: 38px; }
+@keyframes prog-shine {
+  to { left: 200%; }
+}
+.prog-label { font-size: 16px; font-weight: 800; color: var(--grn); min-width: 48px; }
 
 /* ═══════════════════════════════════════════════════
    TABS
@@ -566,6 +586,42 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 /* ═══════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════ */
+/* 重置提醒橫幅 */
+#reset-reminder {
+  display: none;
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 9000;
+  background: #1f2937;
+  color: #fff;
+  border-radius: 14px;
+  padding: 14px 20px;
+  display: none;
+  align-items: center; gap: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  font-size: 13px;
+  max-width: 420px; width: calc(100% - 40px);
+  animation: slide-up .3s ease;
+}
+@keyframes slide-up {
+  from { opacity:0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity:1; transform: translateX(-50%) translateY(0); }
+}
+#reset-reminder .remind-icon { font-size: 24px; flex-shrink: 0; }
+#reset-reminder .remind-text { flex: 1; line-height: 1.5; }
+#reset-reminder .remind-title { font-weight: 700; font-size: 14px; color: #fbbf24; margin-bottom: 2px; }
+#reset-reminder .remind-sub { font-size: 12px; color: #9ca3af; }
+#reset-reminder .remind-btn {
+  background: #fbbf24; color: #1f2937;
+  border: none; border-radius: 8px;
+  padding: 8px 14px; font-size: 12px; font-weight: 700;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+}
+#reset-reminder .remind-close {
+  background: none; border: none; color: #6b7280;
+  cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0;
+}
+#reset-reminder .remind-close:hover { color: #fff; }
+
 /* 載入進度條 */
 #loading-bar-wrap {
   position: fixed; top: 0; left: 0; right: 0;
@@ -682,33 +738,33 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
    SERIES STRIP
 ═══════════════════════════════════════════════════ */
 .series-strip-wrap {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  margin: 8px 16px 0;
-  background: var(--white);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+  margin: 10px 16px 0;
+  overflow: visible;
 }
 .series-strip {
-  background: var(--white);
-  padding: 0 20px;
-  display: flex; align-items: stretch; gap: 0;
-  overflow-x: auto;
+  background: transparent;
+  padding: 0;
+  display: flex; flex-wrap: wrap; gap: 10px;
+  overflow-x: visible;
 }
 .series-item {
-  display: flex; flex-direction: column; justify-content: center;
-  padding: 8px 18px 8px 0;
-  margin-right: 18px;
-  border-right: 1px solid var(--line);
-  white-space: nowrap; min-width: 80px;
-  cursor: pointer; transition: background .15s;
+  flex: 1 1 100px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  white-space: nowrap; min-width: 90px;
+  cursor: pointer;
+  transition: box-shadow .15s, transform .15s, border-color .15s;
 }
-.series-item:last-child { border-right: none; margin-right: 0; padding-right: 0; }
-.series-item:hover { background: var(--accent-bg); }
-.series-item.active { background: var(--accent-bg); }
-.series-label { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+.series-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-1px); }
+.series-item.active { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 2px var(--accent); }
+.series-label { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
 .series-nums { display: flex; align-items: baseline; gap: 4px; }
-.series-ordered { font-size: 18px; font-weight: 800; color: var(--grn-dk); letter-spacing: -.5px; }
+.series-ordered { font-size: 20px; font-weight: 800; color: var(--grn-dk); letter-spacing: -.5px; }
 .series-total   { font-size: 11px; color: var(--ink3); }
 .series-pct     { font-size: 11px; font-weight: 600; color: var(--grn); }
 
@@ -871,6 +927,17 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 <!-- ── 載入進度條 ──────────────────────────────── -->
 <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 
+<!-- ── 重置提醒橫幅 ─────────────────────────────── -->
+<div id="reset-reminder">
+  <div class="remind-icon">⚠️</div>
+  <div class="remind-text">
+    <div class="remind-title">今日尚未重置叫貨狀態</div>
+    <div class="remind-sub" id="remind-sub">請在今日業務結束後按「重置今日」，確保3天未叫資料正確</div>
+  </div>
+  <button class="remind-btn" onclick="resetAll();hideResetReminder()">立即重置</button>
+  <button class="remind-close" onclick="hideResetReminder()" title="關閉">✕</button>
+</div>
+
 <!-- ── TOP BAR ──────────────────────────────────── -->
 <header class="topbar no-print">
   <div class="brand">
@@ -944,31 +1011,46 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 
 <!-- ── STAT STRIP ───────────────────────────────── -->
 <div class="statstrip-wrap no-print"><div class="statstrip">
-  <div class="stat-item">
-    <div class="stat-label-row"><span class="stat-dot red"></span>未叫貨</div>
+  <div class="stat-item red-card" data-filter="未叫貨" onclick="filterByDash('未叫貨')" style="cursor:pointer;" title="點擊篩選未叫貨">
+    <div class="stat-label-row">未叫貨</div>
     <div class="stat-number" id="c-un">0</div>
   </div>
-  <div class="stat-item">
-    <div class="stat-label-row"><span class="stat-dot green"></span>已叫貨</div>
+  <div class="stat-item green-card" data-filter="有叫貨" onclick="filterByDash('有叫貨')" style="cursor:pointer;" title="點擊篩選已叫貨">
+    <div class="stat-label-row">已叫貨</div>
     <div class="stat-number" id="c-or">0</div>
   </div>
-  <div class="stat-item">
-    <div class="stat-label-row"><span class="stat-dot blue"></span>今日不叫</div>
+  <div class="stat-item blue-card" data-filter="今日不叫貨" onclick="filterByDash('今日不叫貨')" style="cursor:pointer;" title="點擊篩選今日不叫">
+    <div class="stat-label-row">今日不叫</div>
     <div class="stat-number" id="c-no">0</div>
   </div>
-  <div class="stat-item">
-    <div class="stat-label-row"><span class="stat-dot amber"></span>⚠ 3天未叫</div>
+  <div class="stat-item amber-card" data-filter="warn3" onclick="filterByDash('warn3')" style="cursor:pointer;" title="點擊篩選3天未叫">
+    <div class="stat-label-row">⚠ 3天未叫</div>
     <div class="stat-number" id="c-warn">0</div>
   </div>
-  <div class="stat-item">
-    <div class="stat-label-row"><span class="stat-dot gray"></span>總計</div>
+  <div class="stat-item gray-card">
+    <div class="stat-label-row">總計</div>
     <div class="stat-number" id="c-tot">0</div>
   </div>
   <div class="progress-stat">
-    <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%"></div></div>
-    <span class="prog-label" id="prog-pct">0%</span>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;font-weight:700;color:var(--grn);">叫貨進度</span>
+        <span class="prog-label" id="prog-pct" style="font-size:20px;font-weight:800;color:var(--grn);">0%</span>
+      </div>
+      <!-- 主進度條 -->
+      <div class="prog-track" style="height:12px;border-radius:99px;">
+        <div class="prog-fill" id="prog" style="width:0%;height:100%;border-radius:99px;position:relative;overflow:hidden;">
+          <!-- 光澤動畫 -->
+          <div style="position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:prog-shine 2s linear infinite;"></div>
+        </div>
+      </div>
+      <!-- 已叫 / 總計 小字 -->
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);">
+        <span>已叫 <b id="prog-ord" style="color:var(--grn);">0</b> 家</span>
+        <span>總計 <b id="prog-tot2" style="color:var(--ink2);">0</b> 家</span>
+      </div>
+    </div>
   </div>
-
 </div></div>
 
 <!-- ── SERIES STRIP ─────────────────────────────── -->
@@ -1491,14 +1573,59 @@ function clearAllHistory() {
   );
 }
 
+// ── 重置提醒邏輯 ─────────────────────────────────────────
+function hasResetToday() {
+  // 檢查今天的 historyLog records 有沒有資料（代表今天有按過重置）
+  const entry = historyLog.find(h => h.date === todayStr);
+  return !!(entry && entry.records && Object.keys(entry.records).length > 0);
+}
+
+function showResetReminder(subText) {
+  const el = document.getElementById('reset-reminder');
+  if (!el) return;
+  if (subText) document.getElementById('remind-sub').textContent = subText;
+  el.style.display = 'flex';
+}
+
+function hideResetReminder() {
+  const el = document.getElementById('reset-reminder');
+  if (el) el.style.display = 'none';
+  // 記住今天已關閉，避免重複提醒
+  localStorage.setItem('zhongxin_remind_dismissed', todayStr);
+}
+
+let _lastReminderDate = '';  // 避免同一天午夜重複提醒
+
+function checkResetReminder() {
+  const now  = new Date();
+  const h    = now.getHours();
+  const m    = now.getMinutes();
+
+  // ★ 午夜 00:00（精確到分鐘）且今天尚未重置 → Toast 提醒
+  if (h === 0 && m === 0) {
+    const dateKey = now.toDateString();
+    if (_lastReminderDate !== dateKey && !hasResetToday()) {
+      _lastReminderDate = dateKey;
+      toast('⚠ 今日尚未重置叫貨狀態，請記得按「重置今日」！', false);
+      showResetReminder('已到午夜 00:00，請記得重置今日叫貨狀態，確保3天未叫資料正確');
+    }
+  }
+}
+
 // ── BOOT ─────────────────────────────────────────────────
 window.addEventListener('load', () => {
   init();          // ★ 先讀取 localStorage（暱稱、db、historyLog 等）
   syncFromCloud(); // 再從雲端同步
   _syncInterval = setInterval(syncFromCloud, 6000);
+  // 每分鐘檢查一次，精準抓到 00:00 提醒重置
+  setInterval(checkResetReminder, 60 * 1000);
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) syncFromCloud();
+    if (!document.hidden) {
+      syncFromCloud();
+      checkResetReminder(); // 切回頁面時也檢查
+    }
   });
+  // 不在頁面開啟時主動提醒，只在午夜 00:00 觸發
 });
 
 // ══════════════════════════════════════════════════════════
@@ -1889,6 +2016,13 @@ function renderSeriesStrip() {
 function toggleSeriesFilter(key) {
   _activeSeriesKey = (_activeSeriesKey === key) ? null : key;
   document.getElementById('q-front').value = '';
+  // 切換系列篩選時清除儀表板篩選
+  if (_activeSeriesKey) {
+    _activeDashFilter = '';
+    const sel = document.getElementById('filter-status');
+    if (sel) sel.value = '';
+    document.querySelectorAll('.stat-item[data-filter]').forEach(el => el.classList.remove('dash-active'));
+  }
   renderSeriesStrip();
   renderGrid();
 }
@@ -1959,6 +2093,10 @@ function updateStats() {
   document.getElementById('c-tot').textContent  = tot;
   document.getElementById('prog').style.width   = pct + '%';
   document.getElementById('prog-pct').textContent = pct + '%';
+  const ordEl  = document.getElementById('prog-ord');
+  const tot2El = document.getElementById('prog-tot2');
+  if (ordEl)  ordEl.textContent  = ord;
+  if (tot2El) tot2El.textContent = tot;
 
   // ⚠ 警示橫幅
   const warnNames = [...warn3].filter(n => db[n] && db[n].status === '未叫貨');
@@ -1983,6 +2121,21 @@ function getGroupNames(groupName, allNamesInGroup) {
   const ordered = saved.filter(n => allNamesInGroup.includes(n));
   allNamesInGroup.forEach(n => { if (!savedSet.has(n)) ordered.push(n); });
   return ordered;
+}
+
+// ── 儀表板卡片點擊篩選 ──────────────────────────────────
+let _activeDashFilter = '';  // 目前點選的儀表板篩選
+
+function filterByDash(status) {
+  _activeDashFilter = (_activeDashFilter === status) ? '' : status;  // 再點一次取消
+  // 同步到 filter-status select（讓篩選邏輯共用）
+  const sel = document.getElementById('filter-status');
+  if (sel) sel.value = _activeDashFilter;
+  // 更新卡片 active 狀態
+  document.querySelectorAll('.stat-item[data-filter]').forEach(el => {
+    el.classList.toggle('dash-active', el.dataset.filter === _activeDashFilter);
+  });
+  renderGrid();
 }
 
 function renderGrid() {
@@ -2285,11 +2438,9 @@ function renderTable() {
   const todayEntry = getTodayEntry();
   const todayEditLog = todayEntry ? (todayEntry.editLog || {}) : {};
 
+  // ★ 只顯示今日操作時間，移除歷史最終打勾欄
   let thHtml = '<th style="min-width:110px">客戶</th><th>負責人</th>';
-  pastDates.forEach(d => {
-    thHtml += `<th style="white-space:nowrap;text-align:center;">${d.slice(5)}<br><span style="font-size:10px;color:var(--ink3);font-weight:400;">最終</span></th>`;
-  });
-  thHtml += '<th style="min-width:190px;">今日操作時間</th><th style="text-align:center;">今日狀態</th><th style="text-align:center;">連續未叫</th><th></th>';
+  thHtml += '<th style="min-width:200px;">今日操作時間</th><th style="text-align:center;">今日狀態</th><th style="text-align:center;">連續未叫</th><th></th>';
   document.getElementById('history-thead-row').innerHTML = thHtml;
 
   let html = '';
@@ -2310,15 +2461,7 @@ function renderTable() {
     html += `<td style="font-weight:700;">${isWarn ? '<span style="color:var(--amber);">⚠ </span>' : ''}${esc(n)}</td>`;
     html += `<td style="color:var(--ink2);">${esc(d.fixed||'—')}</td>`;
 
-    pastDates.forEach(dt => {
-      const hist = sortedHist.find(h => h.date === dt);
-      const s = hist && hist.records ? (hist.records[n] || '—') : '—';
-      let cs = 'text-align:center;font-size:12px;', lbl = s;
-      if (s === '有叫貨')       { cs += 'color:var(--grn-dk);font-weight:700;'; lbl = '✓'; }
-      else if (s === '今日不叫貨') { cs += 'color:var(--blu-dk);'; lbl = '不叫'; }
-      else                      { cs += 'color:var(--line);'; lbl = '—'; }
-      html += `<td style="${cs}">${lbl}</td>`;
-    });
+    // 歷史欄已移除
 
     const logs = todayEditLog[n] || [];
     html += '<td>';
@@ -2329,11 +2472,14 @@ function renderTable() {
         const dc = log.status === '有叫貨' ? 'ordered' : log.status === '今日不叫貨' ? 'no-order' : 'unordered';
         const userIcon = log.icon || '👤';
         const userName = log.user || '—';
+        const iconHtml = userIcon && userIcon.endsWith('.png')
+          ? `<img src="${userIcon}" style="width:16px;height:16px;border-radius:50%;object-fit:contain;vertical-align:middle;">`
+          : `<span>${esc(userIcon)}</span>`;
         html += `<li class="tl-item">
           <span class="tl-dot ${dc}"></span>
           <span class="tl-time">${esc(log.time)}</span>
           <span class="tl-status">${esc(log.status)}</span>
-          <span class="tl-user" style="background:var(--line2);border-radius:99px;padding:1px 7px;font-size:10px;font-weight:600;color:var(--ink2);margin-left:2px;">${esc(userIcon)} ${esc(userName)}</span>
+          <span class="tl-user" style="background:var(--line2);border-radius:99px;padding:1px 7px;font-size:10px;font-weight:600;color:var(--ink2);margin-left:2px;display:inline-flex;align-items:center;gap:4px;">${iconHtml}${esc(userName)}</span>
         </li>`;
       });
       html += '</ul>';
@@ -2634,6 +2780,7 @@ function resetAll() {
     localStorage.setItem('zhongxin_warn3_v1', JSON.stringify([...manualWarn3]));
 
     renderAll();
+    hideResetReminder();  // 重置後關閉提醒
     toast('✅ 今日狀態已記錄並重置');
     const ts = touchTs();
     const warn3Arr = [...manualWarn3];
