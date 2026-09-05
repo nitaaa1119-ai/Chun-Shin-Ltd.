@@ -1034,7 +1034,7 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
   <div class="progress-stat">
     <div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:11px;font-weight:700;color:var(--grn);">今日叫貨率％</span>
+        <span style="font-size:11px;font-weight:700;color:var(--grn);">叫貨進度</span>
         <span class="prog-label" id="prog-pct" style="font-size:20px;font-weight:800;color:var(--grn);">0%</span>
       </div>
       <!-- 主進度條 -->
@@ -1369,6 +1369,13 @@ async function syncFromCloud() {
 
     // ★ 完全移除時間戳判斷（裝置日期不同會導致 useCloud 誤判）
     // ★ 改用純內容比對：lockLocal 是唯一保護機制，確保本機操作不被覆蓋
+    // ★ 過濾掉非 JSON 的 key（如 _serverTime）
+    const ALLOWED_DATA_KEYS = ['zhongxin_v4','zhongxin_hist_v4','zhongxin_order_v1',
+      'zhongxin_notices_v1','zhongxin_ts_v1','zhongxin_manual_v1','zhongxin_warn3_v1'];
+    Object.keys(data).forEach(k => {
+      if (!ALLOWED_DATA_KEYS.includes(k)) delete data[k];
+    });
+
     const wasFirstLoad = _firstLoad;
     _firstLoad = false;
     let updated = false;
