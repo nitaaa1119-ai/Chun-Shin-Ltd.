@@ -1454,7 +1454,7 @@ async function syncFromCloud() {
       }
     }
 
-    // ── manualWarn3 ──
+    // ── manualWarn3（雲端是權威來源，直接覆蓋本地）──
     if (data.zhongxin_warn3_v1) {
       const cloudWarn3 = JSON.parse(data.zhongxin_warn3_v1);
       const localArr   = [...manualWarn3].sort().join(',');
@@ -1463,6 +1463,7 @@ async function syncFromCloud() {
         manualWarn3 = new Set(cloudWarn3);
         localStorage.setItem('zhongxin_warn3_v1', data.zhongxin_warn3_v1);
         updated = true;
+        console.log('⚠ warn3 同步：', cloudWarn3.length, '位客戶');
       }
     }
 
@@ -1776,17 +1777,13 @@ function getTodayEntry() { return historyLog.find(h => h.date === todayStr); }
 // ══════════════════════════════════════════════════════════
 //  3-DAY WARN DETECTION  ← 核心邏輯說明於下方
 // ══════════════════════════════════════════════════════════
-function getWarn3Set() {
-  const warn = new Set();
-
-  // ★ 先加入手動標示的客戶
-  manualWarn3.forEach(n => { if (db[n]) warn.add(n); });
-
-  // 自動辨識：從歷史記錄抓最近3天都未叫的客戶
+function computeWarn3() {
+  // 從 historyLog 計算最近3次重置都未叫的客戶
   const completed = historyLog
     .filter(h => h.date !== todayStr && h.records && Object.keys(h.records).length > 0)
     .sort((a, b) => a.date < b.date ? -1 : 1);
 
+  const autoWarn = new Set();
   if (completed.length >= 3) {
     const recent3 = completed.slice(-3);
     Object.keys(db).forEach(n => {
@@ -1794,9 +1791,16 @@ function getWarn3Set() {
         const s = h.records[n];
         return !s || s === '未叫貨';
       });
-      if (missedAll3) warn.add(n);
+      if (missedAll3) autoWarn.add(n);
     });
   }
+  return autoWarn;
+}
+
+function getWarn3Set() {
+  const warn = new Set();
+  // ★ 使用雲端同步的 warn3（manualWarn3），不在各裝置自己計算
+  manualWarn3.forEach(n => { if (db[n]) warn.add(n); });
   return warn;
 }
 
@@ -2782,20 +2786,13 @@ function resetAll() {
     const entry=getTodayEntry(); if(entry) entry.editLog={};
     localStorage.setItem('zhongxin_v4', JSON.stringify(db));
     localStorage.setItem('zhongxin_hist_v4', JSON.stringify(historyLog));
-    // 重新計算並推送 warn3
-    const autoWarn3 = [];
-    const completed = historyLog
-      .filter(h => h.date !== todayStr && h.records && Object.keys(h.records).length > 0)
-      .sort((a, b) => a.date < b.date ? -1 : 1);
-    if (completed.length >= 3) {
-      const recent3 = completed.slice(-3);
-      Object.keys(db).forEach(n => {
-        const missedAll3 = recent3.every(h => !h.records[n] || h.records[n] === '未叫貨');
-        if (missedAll3) autoWarn3.push(n);
-      });
-    }
-    // 合併手動 + 自動，存回雲端
+    // ★ 重置時重新計算 warn3（自動 + 手動合併）並推送，確保所有裝置一致
+    const autoWarn3 = computeWarn3();
     autoWarn3.forEach(n => manualWarn3.add(n));
+    // 今日已叫貨的客戶從 warn3 移除
+    Object.keys(db).forEach(n => {
+      if (db[n].status === '有叫貨' || db[n].status === '今日不叫貨') manualWarn3.delete(n);
+    });
     localStorage.setItem('zhongxin_warn3_v1', JSON.stringify([...manualWarn3]));
 
     renderAll();
