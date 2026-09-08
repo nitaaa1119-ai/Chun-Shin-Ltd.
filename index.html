@@ -6,6 +6,7 @@
 <title>忠欣 · 打勾單系統</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -1262,7 +1263,13 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 //  CLOUD SYNC — 時間戳機制（重構版）
 //  規則：雲端 ts > 本機 ts → 用雲端；否則保留本機
 // ══════════════════════════════════════════════════════════
-const API_URL = "https://script.google.com/macros/s/AKfycbx5kRtwjs59cuyl5JFJd7irGIBv1vPEPSgFHgfAAChvNHi-JfBoMBBdpqbCYlYxJiU/exec";
+// ── Supabase 設定 ──────────────────────────────────────
+const SUPABASE_URL = 'https://gorrajarlzvnfjffvigh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvcnJhamFybHp2bmZqZmZ2aWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NTE4NTIsImV4cCI6MjEwNDQyNzg1Mn0.BG38HD95c0G0JulEVeRzjc1UW1l3I6dpIscHn6K4bqw';
+const _sb          = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SB_TABLE     = 'zhongxin_store';
+const ALLOWED_KEYS = ['zhongxin_v4','zhongxin_hist_v4','zhongxin_order_v1',
+                      'zhongxin_notices_v1','zhongxin_manual_v1','zhongxin_warn3_v1'];
 
 let _syncInterval = null;
 let _isSyncing    = false;
@@ -1305,51 +1312,35 @@ function setLoadingProgress(pct, subText) {
 }
 
 
-// ── 時間戳：每次本機有實質操作時更新 ───────────────────
-function getLocalTs() {
-  return parseInt(localStorage.getItem('zhongxin_ts_v1') || '0', 10);
-}
-function setLocalTs(ts) {
-  localStorage.setItem('zhongxin_ts_v1', String(ts));
-}
-function touchTs() {
-  const ts = Date.now();
-  setLocalTs(ts);
-  return ts;
-}
+// ── 時間戳（Supabase 版不再依賴，保留空函式避免呼叫報錯）──
+function getLocalTs() { return 0; }
+function setLocalTs(ts) {}
+function touchTs() { return Date.now(); }
 
-// ── 單筆推送至雲端（相容原始 GAS 介面）─────────────────
+// ── Supabase 單筆寫入 ────────────────────────────────────
 async function _pushOne(key, value) {
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ key, value: JSON.stringify(value) }),
-      redirect: 'follow'
-    });
-    const json = JSON.parse(await res.text());
-    if (json.error) throw new Error(json.error);
-  } catch(e) {
-    console.error('儲存至雲端失敗', e);
-    throw e;
-  }
+  const { error } = await _sb.from(SB_TABLE)
+    .upsert({ key, value: JSON.stringify(value), updated_at: new Date().toISOString() },
+             { onConflict: 'key' });
+  if (error) { console.error('Supabase 寫入失敗', error); throw error; }
 }
 
-// ── 單一客戶更新 ─────────────────────────────────────────
+// ── 單一客戶更新（直接讀最新 db → 改一筆 → 寫回）────────
 async function _pushUpdateClient(name, status, date) {
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'updateClient', name, status, date }),
-      redirect: 'follow'
-    });
-    const json = JSON.parse(await res.text());
-    if (json.error) throw new Error(json.error);
-  } catch(e) {
-    console.error('更新客戶狀態失敗', e);
-    throw e;
-  }
+  // 讀最新的 db
+  const { data, error: fetchErr } = await _sb.from(SB_TABLE)
+    .select('value').eq('key', 'zhongxin_v4').single();
+  if (fetchErr) throw fetchErr;
+
+  const latestDB = JSON.parse(data.value);
+  if (!latestDB[name]) throw new Error('client not found: ' + name);
+  latestDB[name].status = status;
+  latestDB[name].date   = date;
+
+  const { error } = await _sb.from(SB_TABLE)
+    .upsert({ key: 'zhongxin_v4', value: JSON.stringify(latestDB),
+              updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) throw error;
 }
 
 // ── 從雲端同步 ──────────────────────────────────────────
@@ -1364,17 +1355,14 @@ async function syncFromCloud() {
   setSyncDot('syncing');
   if (!_loadingDone) setLoadingProgress(60, '正在從雲端同步…');
   try {
-    const res  = await fetch(API_URL, { redirect: 'follow' });
-    const data = await res.json();
+    const { data: rows, error: fetchErr } = await _sb.from(SB_TABLE).select('key,value');
+    if (fetchErr) throw fetchErr;
+    // 把陣列轉成 { key: value } 格式
+    const data = {};
+    rows.forEach(r => { data[r.key] = r.value; });
 
     // ★ 完全移除時間戳判斷（裝置日期不同會導致 useCloud 誤判）
     // ★ 改用純內容比對：lockLocal 是唯一保護機制，確保本機操作不被覆蓋
-    // ★ 過濾掉非 JSON 的 key（如 _serverTime）
-    const ALLOWED_DATA_KEYS = ['zhongxin_v4','zhongxin_hist_v4','zhongxin_order_v1',
-      'zhongxin_notices_v1','zhongxin_ts_v1','zhongxin_manual_v1','zhongxin_warn3_v1'];
-    Object.keys(data).forEach(k => {
-      if (!ALLOWED_DATA_KEYS.includes(k)) delete data[k];
-    });
 
     const wasFirstLoad = _firstLoad;
     _firstLoad = false;
@@ -1621,18 +1609,42 @@ function checkResetReminder() {
 
 // ── BOOT ─────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  init();          // ★ 先讀取 localStorage（暱稱、db、historyLog 等）
-  syncFromCloud(); // 再從雲端同步
-  _syncInterval = setInterval(syncFromCloud, 6000);
-  // 每分鐘檢查一次，精準抓到 00:00 提醒重置
+  init();          // ★ 先讀取 localStorage
+  syncFromCloud(); // 首次同步
+
+  // ★ Supabase Realtime：訂閱資料庫變更，有人操作立即推送
+  _sb.channel('zhongxin-changes')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: SB_TABLE
+    }, payload => {
+      // 有其他裝置更新了資料，立即拉取最新狀態
+      if (Date.now() >= _localLockUntil) {
+        syncFromCloud();
+      }
+    })
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Supabase Realtime 已連線');
+        setSyncDot('');
+      }
+    });
+
+  // 備用輪詢（Realtime 斷線時保底）
+  _syncInterval = setInterval(() => {
+    if (Date.now() >= _localLockUntil) syncFromCloud();
+  }, 30000);  // 30秒輪詢一次（備用）
+
+  // 每分鐘檢查重置提醒
   setInterval(checkResetReminder, 60 * 1000);
+
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
       syncFromCloud();
-      checkResetReminder(); // 切回頁面時也檢查
+      checkResetReminder();
     }
   });
-  // 不在頁面開啟時主動提醒，只在午夜 00:00 觸發
 });
 
 // ══════════════════════════════════════════════════════════
