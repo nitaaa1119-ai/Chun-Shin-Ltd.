@@ -569,10 +569,26 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
    PRINT PAGE
 ═══════════════════════════════════════════════════ */
 .print-wrap { padding: 0 20px 28px; }
-.print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.print-table th, .print-table td { border: 1px solid #000; padding: 3px 4px; text-align: center; }
-.print-table td.name-cell { font-weight: 600; text-align: left; padding-left: 6px; white-space: nowrap; }
+.print-table { width: 100%; border-collapse: collapse; }
+.print-table th, .print-table td { text-align: center; }
+.print-table td.name-cell { font-weight: 600; text-align: left; white-space: nowrap; }
 .print-table td.name-cell.name-warn { background: #fffbeb; color: var(--amber-dk); }
+/* 列印控制面板 */
+.print-controls {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  padding: 12px 20px; background: var(--page);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.print-ctrl-group {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px;
+}
+.print-ctrl-group label { font-size: 11px; font-weight: 600; color: var(--ink3); white-space: nowrap; }
+.print-ctrl-group input[type=number],
+.print-ctrl-group select { width: 70px; border: none; outline: none; font-size: 13px; background: transparent; }
+.print-ctrl-group input[type=range] { width: 80px; }
 
 /* ═══════════════════════════════════════════════════
    SECTION INFO
@@ -1189,8 +1205,49 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
         <input type="file" id="excel-import" accept=".xls,.xlsx" style="display:none" onchange="importExcel(this)">
       </label>
       <button class="btn btn-ghost" id="btn-export-excel" onclick="exportExcel()" style="display:none;">⬇ 匯出 Excel</button>
-      <button class="btn btn-ghost" onclick="window.print()">🖨 列印</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 列印</button>
     </div>
+  </div>
+  <!-- 格式控制面板 -->
+  <div class="print-controls no-print" id="print-controls" style="display:none;">
+    <div class="print-ctrl-group">
+      <label>列高</label>
+      <input type="number" id="ctrl-row-h" value="22" min="12" max="60" step="1" oninput="applyPrintStyle()">
+      <span style="font-size:11px;color:var(--ink3);">px</span>
+    </div>
+    <div class="print-ctrl-group">
+      <label>欄寬</label>
+      <input type="number" id="ctrl-col-w" value="28" min="16" max="80" step="1" oninput="applyPrintStyle()">
+      <span style="font-size:11px;color:var(--ink3);">px</span>
+    </div>
+    <div class="print-ctrl-group">
+      <label>名稱欄寬</label>
+      <input type="number" id="ctrl-name-w" value="90" min="50" max="200" step="5" oninput="applyPrintStyle()">
+      <span style="font-size:11px;color:var(--ink3);">px</span>
+    </div>
+    <div class="print-ctrl-group">
+      <label>字體大小</label>
+      <input type="number" id="ctrl-font-size" value="11" min="7" max="18" step="1" oninput="applyPrintStyle()">
+      <span style="font-size:11px;color:var(--ink3);">px</span>
+    </div>
+    <div class="print-ctrl-group">
+      <label>字型</label>
+      <select id="ctrl-font-family" onchange="applyPrintStyle()">
+        <option value="system-ui,sans-serif">系統字體</option>
+        <option value="'Microsoft JhengHei',sans-serif">微軟正黑體</option>
+        <option value="'Noto Sans TC',sans-serif">Noto Sans</option>
+        <option value="monospace">等寬字體</option>
+      </select>
+    </div>
+    <div class="print-ctrl-group">
+      <label>格線</label>
+      <select id="ctrl-border" onchange="applyPrintStyle()">
+        <option value="all">全部</option>
+        <option value="has-text">有文字才顯示</option>
+        <option value="none">無格線</option>
+      </select>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="resetPrintStyle()">↺ 重設</button>
   </div>
   <div id="import-status" style="padding:6px 20px;font-size:13px;color:var(--ink2);display:none;"></div>
   <div id="print-placeholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:12px;color:var(--ink3);">
@@ -1327,15 +1384,18 @@ async function _pushOne(key, value) {
 
 // ── 單一客戶更新（直接讀最新 db → 改一筆 → 寫回）────────
 async function _pushUpdateClient(name, status, date) {
-  // 讀最新的 db
+  // 讀最新的 db（防止並發覆蓋）
   const { data, error: fetchErr } = await _sb.from(SB_TABLE)
     .select('value').eq('key', 'zhongxin_v4').single();
   if (fetchErr) throw fetchErr;
 
   const latestDB = JSON.parse(data.value);
   if (!latestDB[name]) throw new Error('client not found: ' + name);
+
+  // ★ 只更新 status，date 用空字串或簡單標記，不存裝置本地日期
+  // 避免不同裝置日期不同造成 syncFromCloud 反覆覆蓋
   latestDB[name].status = status;
-  latestDB[name].date   = date;
+  latestDB[name].date   = status === '未叫貨' ? '' : 'ordered';  // 統一用 'ordered' 代表今日已叫
 
   const { error } = await _sb.from(SB_TABLE)
     .upsert({ key: 'zhongxin_v4', value: JSON.stringify(latestDB),
@@ -1377,7 +1437,7 @@ async function syncFromCloud() {
           !db[n]
           || db[n].status !== cloudDB[n].status
           || db[n].fixed  !== cloudDB[n].fixed
-          || db[n].date   !== cloudDB[n].date
+          // ★ 不比較 date，因為不同裝置日期不同會造成誤判覆蓋
         ).concat(Object.keys(db).filter(n => !cloudDB[n]));
 
         if (diffNames.length > 0) {
@@ -2263,7 +2323,8 @@ function rightClick(e, n) {
 }
 function changeStatus(n, s) {
   db[n].status = s;
-  db[n].date = s === '未叫貨' ? '' : todayStr;
+  // ★ date 統一用 'ordered' 代表今日已叫，不存裝置本地日期（避免跨日期裝置衝突）
+  db[n].date = s === '未叫貨' ? '' : 'ordered';
   logEditTime(n, s);
   // ★ 立即更新本地 + DOM，背景推送不阻塞畫面
   localStorage.setItem('zhongxin_v4', JSON.stringify(db));
@@ -2563,6 +2624,53 @@ function confirmDeleteHistory(n) {
 let importedWbData = null;
 function renderPrint() { importedWbData ? renderPrintFromExcel() : renderPrintDefault(); }
 
+// ── 列印樣式控制 ─────────────────────────────────────────
+function applyPrintStyle() {
+  const rowH     = parseInt(document.getElementById('ctrl-row-h')?.value || 22);
+  const colW     = parseInt(document.getElementById('ctrl-col-w')?.value || 28);
+  const nameW    = parseInt(document.getElementById('ctrl-name-w')?.value || 90);
+  const fontSize = parseInt(document.getElementById('ctrl-font-size')?.value || 11);
+  const fontFam  = document.getElementById('ctrl-font-family')?.value || 'system-ui,sans-serif';
+  const border   = document.getElementById('ctrl-border')?.value || 'all';
+
+  const table = document.getElementById('print-table');
+  if (!table) return;
+
+  table.style.fontSize   = fontSize + 'px';
+  table.style.fontFamily = fontFam;
+
+  // 套用到所有 th/td
+  table.querySelectorAll('th, td').forEach(cell => {
+    cell.style.height = rowH + 'px';
+    cell.style.lineHeight = rowH + 'px';
+    cell.style.padding = '0 2px';
+
+    const isName = cell.classList.contains('name-cell');
+    cell.style.minWidth = isName ? nameW + 'px' : colW + 'px';
+    cell.style.width    = isName ? nameW + 'px' : colW + 'px';
+
+    // 格線邏輯
+    if (border === 'none') {
+      cell.style.border = 'none';
+    } else if (border === 'has-text') {
+      const hasText = cell.textContent.trim() !== '';
+      cell.style.border = hasText ? '1px solid #000' : 'none';
+    } else {
+      cell.style.border = '1px solid #000';
+    }
+  });
+}
+
+function resetPrintStyle() {
+  document.getElementById('ctrl-row-h').value      = 22;
+  document.getElementById('ctrl-col-w').value      = 28;
+  document.getElementById('ctrl-name-w').value     = 90;
+  document.getElementById('ctrl-font-size').value  = 11;
+  document.getElementById('ctrl-font-family').value = 'system-ui,sans-serif';
+  document.getElementById('ctrl-border').value     = 'all';
+  applyPrintStyle();
+}
+
 function renderPrintDefault() {
   // 未匯入 Excel 時，顯示提示而非預設表格
   document.getElementById('print-table').innerHTML = '';
@@ -2599,6 +2707,8 @@ function importExcel(input) {
       statusEl.style.color='var(--grn)';
       statusEl.textContent=`✅ 已載入「${file.name}」，今日（${todayDay}日）識別 ${todayColIndices.length} 個欄`;
       renderPrintFromExcel();
+      document.getElementById('print-controls').style.display = 'flex';
+      setTimeout(applyPrintStyle, 150);
     } catch(err) { statusEl.style.color='var(--red)'; statusEl.textContent='⚠ '+err.message; }
   };
   reader.readAsArrayBuffer(file); input.value='';
