@@ -922,11 +922,19 @@ tbody tr.row-warn:hover td { background: #fef3c7; }
 ═══════════════════════════════════════════════════ */
 @media print {
   body { background: white; }
-  .topbar, .statstrip, .tabs, .toolbar, .hint-bar, .warn-strip, .section-info,
-  .no-print { display: none !important; }
+  /* 隱藏所有 UI 元素 */
+  .topbar, .statstrip-wrap, .series-strip-wrap, .tabs, .toolbar,
+  .hint-bar, .warn-strip, .section-info, .no-print,
+  #toast, #confirm-overlay, #user-overlay, #overlay, #manual-overlay,
+  #loading-bar-wrap, #reset-reminder, .print-controls,
+  #import-status, #print-placeholder
+  { display: none !important; }
+  /* 只顯示列印表格 */
   .page { display: none !important; }
   #print-page { display: block !important; }
-  .print-wrap { padding: 0; }
+  .print-wrap { padding: 0; margin: 0; }
+  /* 確保 overlay 在列印時完全隱藏 */
+  .overlay { display: none !important; }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -2793,11 +2801,39 @@ function exportExcel() {
     String(today.getMonth()+1).padStart(2,'0') +
     String(today.getDate()).padStart(2,'0');
 
+  // ── 套用控制面板的設定到匯出的 Excel ──────────────────
+  const fontSize  = parseInt(document.getElementById('ctrl-font-size')?.value || 11);
+  const borderSetting = document.getElementById('ctrl-border')?.value || 'all';
+
+  // 只修改有 V 的儲存格和名稱欄的樣式
+  Object.keys(ws).forEach(addr => {
+    if (addr.startsWith('!')) return;
+    const cell = ws[addr];
+    if (!cell) return;
+
+    // 判斷是否需要格線
+    const hasValue = cell.v && String(cell.v).trim() !== '';
+    const showBorder = borderSetting === 'none' ? false
+                     : borderSetting === 'has-text' ? hasValue
+                     : true;
+
+    // 套用樣式
+    if (!cell.s) cell.s = {};
+    cell.s.font = { ...( cell.s.font || {}), sz: fontSize };
+    if (showBorder) {
+      const border = { style: 'thin', color: { rgb: '000000' } };
+      cell.s.border = { top: border, bottom: border, left: border, right: border };
+    } else {
+      cell.s.border = {};
+    }
+    cell.s.alignment = { ...( cell.s.alignment || {}), horizontal: 'center', vertical: 'center', wrapText: false };
+  });
+
   // ★ 用 xlsx 格式寫出，完整保留原始格式（格線、字型、合併儲存格）
   XLSX.writeFile(wb, '打勾單_' + ds + '.xlsx', {
     bookType: 'xlsx',
     type: 'binary',
-    cellStyles: true    // 保留儲存格樣式
+    cellStyles: true
   });
   toast('✅ Excel 已匯出');
 }
