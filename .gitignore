@@ -1,0 +1,8 @@
+devstack/node_modules/
+devstack/bin/
+devstack/*.log
+devstack/*.pid
+devstack/.jwt_secret
+devstack/.anon_key
+devstack/shots/
+__pycache__/
